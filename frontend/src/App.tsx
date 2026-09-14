@@ -6,9 +6,11 @@ import { useTheme } from './hooks/useTheme.js';
 import { getStoredAuthSession, saveAuthSession } from './auth/cognito.js';
 import { scheduleSync } from './crdt/sync.js';
 
-import { Header } from './components/layout/Header.js';
+import { Header, type ActiveView } from './components/layout/Header.js';
 import { KanbanBoard } from './components/board/KanbanBoard.js';
 import { FlightDeckView } from './components/flightdeck/FlightDeckView.js';
+import { TableView } from './components/table/TableView.js';
+import { CalendarView } from './components/calendar/CalendarView.js';
 import { QuickCaptureModal } from './components/capture/QuickCaptureModal.js';
 import { TaskDetailDrawer } from './components/task/TaskDetailDrawer.js';
 import { HelpModal } from './components/layout/HelpModal.js';
@@ -38,7 +40,7 @@ export function App() {
     switchProject
   } = useCrdt();
 
-  const [activeView, setActiveView] = useState<'board' | 'flightdeck'>('board');
+  const [activeView, setActiveView] = useState<ActiveView>('board');
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [isQuickCaptureOpen, setIsQuickCaptureOpen] = useState(false);
   const [isHelpOpen, setIsHelpOpen] = useState(false);
@@ -167,7 +169,7 @@ export function App() {
 
       {/* Main View Area */}
       <main className="flex-1 flex overflow-hidden">
-        {activeView === 'board' ? (
+        {activeView === 'board' && (
           <KanbanBoard
             lanes={lanes}
             tasks={tasks}
@@ -176,7 +178,27 @@ export function App() {
             onMoveTask={moveTask}
             onAddTask={(laneId, title) => addTask({ laneId, title })}
           />
-        ) : (
+        )}
+        {activeView === 'table' && (
+          <TableView
+            tasks={tasks}
+            lanes={lanes}
+            onSelectTask={(task) => setSelectedTask(task)}
+            onToggleTimer={toggleTimer}
+            onUpdateTask={updateTask}
+            onAddTask={(taskData) => addTask(taskData)}
+          />
+        )}
+        {activeView === 'calendar' && (
+          <CalendarView
+            tasks={tasks}
+            lanes={lanes}
+            onSelectTask={(task) => setSelectedTask(task)}
+            onToggleTimer={toggleTimer}
+            onAddTask={(taskData) => addTask(taskData)}
+          />
+        )}
+        {activeView === 'flightdeck' && (
           <FlightDeckView
             tasks={tasks}
             onSelectTask={(task) => setSelectedTask(task)}

@@ -8,7 +8,9 @@ import {
   HelpCircle,
   Settings,
   Palette,
-  Check
+  Check,
+  Table as TableIcon,
+  Calendar as CalendarIcon
 } from 'lucide-react';
 import {
   LanekeeperLogo,
@@ -18,10 +20,12 @@ import {
 import type { ProjectMetadata } from '../../types/index.js';
 import { type ThemeId, THEMES } from '../../utils/themes.js';
 
+export type ActiveView = 'board' | 'table' | 'calendar' | 'flightdeck';
+
 interface HeaderProps {
   metadata: ProjectMetadata;
-  activeView: 'board' | 'flightdeck';
-  onViewChange: (view: 'board' | 'flightdeck') => void;
+  activeView: ActiveView;
+  onViewChange: (view: ActiveView) => void;
   onOpenQuickCapture: () => void;
   onOpenHelp: () => void;
   onOpenProjectSettings: () => void;
@@ -89,11 +93,11 @@ export const Header: React.FC<HeaderProps> = ({
 
         <div className="h-5 w-px bg-slate-800 mx-1 hidden sm:block" />
 
-        {/* View Switcher: Board vs Flight Deck */}
+        {/* View Switcher: Board vs Table vs Calendar vs Flight Deck */}
         <div className="flex items-center bg-slate-950/80 p-1 rounded-lg border border-slate-800">
           <button
             onClick={() => onViewChange('board')}
-            className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
               activeView === 'board'
                 ? 'bg-indigo-600 text-white shadow-sm'
                 : 'text-slate-400 hover:text-slate-200'
@@ -101,11 +105,35 @@ export const Header: React.FC<HeaderProps> = ({
             title="Swimlane Board View"
           >
             <SwimlaneIcon size={16} />
-            <span>Board</span>
+            <span className="hidden md:inline">Board</span>
+          </button>
+          <button
+            onClick={() => onViewChange('table')}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
+              activeView === 'table'
+                ? 'bg-indigo-600 text-white shadow-sm'
+                : 'text-slate-400 hover:text-slate-200'
+            }`}
+            title="Data Table View"
+          >
+            <TableIcon className="w-4 h-4" />
+            <span className="hidden md:inline">Table</span>
+          </button>
+          <button
+            onClick={() => onViewChange('calendar')}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
+              activeView === 'calendar'
+                ? 'bg-indigo-600 text-white shadow-sm'
+                : 'text-slate-400 hover:text-slate-200'
+            }`}
+            title="Calendar Schedule View"
+          >
+            <CalendarIcon className="w-4 h-4" />
+            <span className="hidden md:inline">Calendar</span>
           </button>
           <button
             onClick={() => onViewChange('flightdeck')}
-            className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
               activeView === 'flightdeck'
                 ? 'bg-indigo-600 text-white shadow-sm'
                 : 'text-slate-400 hover:text-slate-200'
@@ -113,8 +141,8 @@ export const Header: React.FC<HeaderProps> = ({
             title="Keep to your lane focus mode (Press F)"
           >
             <LaneKeepIcon size={16} />
-            <span>Flight Deck</span>
-            <kbd className="hidden sm:inline-block text-xs font-mono bg-indigo-950 px-1.5 py-0.5 rounded text-indigo-300 border border-indigo-700/50">
+            <span className="hidden md:inline">Flight Deck</span>
+            <kbd className="hidden lg:inline-block text-xs font-mono bg-indigo-950 px-1.5 py-0.5 rounded text-indigo-300 border border-indigo-700/50">
               F
             </kbd>
           </button>
