@@ -1,7 +1,7 @@
 import type { APIGatewayProxyEventV2, APIGatewayProxyResultV2 } from 'aws-lambda';
 import { PutCommand } from '@aws-sdk/lib-dynamodb';
 import { getCognitoAuthContext } from '../common/auth.js';
-import { getDocClient, getTableName } from '../common/ddb.js';
+import { getDocClient, getTableName, isLocalDev, setLocalMemoryItem } from '../common/ddb.js';
 import { sendWebPush } from '../services/webpush.js';
 import type { PushSubscriptionData } from '../common/types.js';
 
@@ -35,23 +35,34 @@ export async function handler(event: APIGatewayProxyEventV2): Promise<APIGateway
       };
     }
 
-    const ddb = getDocClient();
     const endpointHash = Buffer.from(sub.endpoint).toString('base64url').slice(-32);
     const now = new Date().toISOString();
 
-    await ddb.send(
-      new PutCommand({
-        TableName: getTableName(),
-        Item: {
-          PK: `USER#${auth.userId}`,
-          SK: `SUB#${endpointHash}`,
-          endpoint: sub.endpoint,
-          keys: sub.keys,
-          userAgent: event.headers['user-agent'] || '',
-          createdAt: now
-        }
-      })
-    );
+    if (isLocalDev()) {
+      setLocalMemoryItem(`USER#${auth.userId}:SUB#${endpointHash}`, {
+        PK: `USER#${auth.userId}`,
+        SK: `SUB#${endpointHash}`,
+        endpoint: sub.endpoint,
+        keys: sub.keys,
+        userAgent: event.headers['user-agent'] || '',
+        createdAt: now
+      });
+    } else {
+      const ddb = getDocClient();
+      await ddb.send(
+        new PutCommand({
+          TableName: getTableName(),
+          Item: {
+            PK: `USER#${auth.userId}`,
+            SK: `SUB#${endpointHash}`,
+            endpoint: sub.endpoint,
+            keys: sub.keys,
+            userAgent: event.headers['user-agent'] || '',
+            createdAt: now
+          }
+        })
+      );
+    }
 
     // Optional test dispatch
     if (payload.sendTest) {

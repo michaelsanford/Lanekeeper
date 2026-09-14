@@ -1,7 +1,7 @@
 import type { APIGatewayProxyEventV2, APIGatewayProxyResultV2 } from 'aws-lambda';
 import { randomUUID } from 'node:crypto';
 import { PutCommand } from '@aws-sdk/lib-dynamodb';
-import { validateApiToken } from '../common/auth.js';
+import { validateApiToken, getCognitoAuthContext } from '../common/auth.js';
 import { parseQuickTask } from '../common/parser.js';
 import { getNextTaskKey } from '../common/counter.js';
 import {
@@ -10,12 +10,22 @@ import {
   initializeProjectDoc,
   addTaskToDoc
 } from '../common/crdt.js';
-import { getDocClient, getTableName, getProjectCrdtDoc, saveProjectCrdtDoc } from '../common/ddb.js';
+import {
+  getDocClient,
+  getTableName,
+  getProjectCrdtDoc,
+  saveProjectCrdtDoc,
+  isLocalDev,
+  setLocalMemoryItem
+} from '../common/ddb.js';
 import type { Task } from '../common/types.js';
 
 export async function handler(event: APIGatewayProxyEventV2): Promise<APIGatewayProxyResultV2> {
   const authHeader = event.headers.authorization || event.headers.Authorization || '';
-  const auth = await validateApiToken(authHeader);
+  let auth = await validateApiToken(authHeader);
+  if (!auth) {
+    auth = getCognitoAuthContext(event);
+  }
 
   if (!auth) {
     return {
@@ -88,24 +98,39 @@ export async function handler(event: APIGatewayProxyEventV2): Promise<APIGateway
 
     // 5. If task has a due date, schedule a reminder in DynamoDB GSI2
     if (parsed.dueDate) {
-      const ddb = getDocClient();
-      await ddb.send(
-        new PutCommand({
-          TableName: getTableName(),
-          Item: {
-            PK: `WORKSPACE#${workspaceId}`,
-            SK: `REMINDER#${taskId}`,
-            GSI2PK: 'REMINDER#PENDING',
-            GSI2SK: parsed.dueDate,
-            taskId,
-            taskKey,
-            title: parsed.title,
-            userId: auth.userId,
-            dueAt: parsed.dueDate,
-            createdAt: now
-          }
-        })
-      );
+      if (isLocalDev()) {
+        setLocalMemoryItem(`WORKSPACE#${workspaceId}:REMINDER#${taskId}`, {
+          PK: `WORKSPACE#${workspaceId}`,
+          SK: `REMINDER#${taskId}`,
+          GSI2PK: 'REMINDER#PENDING',
+          GSI2SK: parsed.dueDate,
+          taskId,
+          taskKey,
+          title: parsed.title,
+          userId: auth.userId,
+          dueAt: parsed.dueDate,
+          createdAt: now
+        });
+      } else {
+        const ddb = getDocClient();
+        await ddb.send(
+          new PutCommand({
+            TableName: getTableName(),
+            Item: {
+              PK: `WORKSPACE#${workspaceId}`,
+              SK: `REMINDER#${taskId}`,
+              GSI2PK: 'REMINDER#PENDING',
+              GSI2SK: parsed.dueDate,
+              taskId,
+              taskKey,
+              title: parsed.title,
+              userId: auth.userId,
+              dueAt: parsed.dueDate,
+              createdAt: now
+            }
+          })
+        );
+      }
     }
 
     // 6. Persist updated CRDT doc
