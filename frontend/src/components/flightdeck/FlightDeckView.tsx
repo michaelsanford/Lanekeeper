@@ -1,7 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Target,
-  Clock,
   AlertCircle,
   CheckCircle2,
   Play,
@@ -10,6 +8,7 @@ import {
   FileText,
   Plus
 } from 'lucide-react';
+import { LaneKeepIcon } from '../icons/LaneIcons.js';
 import type { Task } from '../../types/index.js';
 
 interface FlightDeckViewProps {
@@ -64,12 +63,12 @@ export const FlightDeckView: React.FC<FlightDeckViewProps> = ({
       <div className="flex items-center justify-between bg-gradient-to-r from-slate-900 to-indigo-950/40 p-5 rounded-2xl border border-indigo-900/40 shadow-lg">
         <div className="flex items-center gap-3.5">
           <div className="w-11 h-11 rounded-xl bg-indigo-600/30 flex items-center justify-center border border-indigo-500/40">
-            <Target className="w-6 h-6 text-indigo-400" />
+            <LaneKeepIcon size={24} className="text-indigo-400" />
           </div>
           <div>
             <h1 className="text-xl font-bold text-slate-100 tracking-tight">Today's Flight Deck</h1>
             <p className="text-sm text-slate-400">
-              Focus mode: single-tasking flow, strict WIP control, and immediate capture.
+              Keep to your lane: single-tasking flow, strict WIP control, and immediate capture.
             </p>
           </div>
         </div>
@@ -90,8 +89,8 @@ export const FlightDeckView: React.FC<FlightDeckViewProps> = ({
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <h2 className="text-sm font-bold uppercase tracking-wider text-slate-300 flex items-center gap-2">
-                <Clock className="w-4 h-4 text-indigo-400" />
-                <span>In Flight ({inFlightTasks.length}/3 WIP)</span>
+                <LaneKeepIcon size={16} className="text-indigo-400" />
+                <span>In Lane ({inFlightTasks.length}/3 WIP)</span>
               </h2>
               {inFlightTasks.length > 3 && (
                 <span className="text-xs text-rose-400 bg-rose-950/50 px-2.5 py-0.5 rounded border border-rose-800/60 font-mono font-medium">
@@ -102,9 +101,9 @@ export const FlightDeckView: React.FC<FlightDeckViewProps> = ({
 
             {inFlightTasks.length === 0 ? (
               <div className="p-8 border border-dashed border-slate-800 rounded-2xl text-center space-y-3 bg-slate-900/40">
-                <p className="text-base text-slate-300 font-medium">No tasks currently in flight.</p>
+                <p className="text-base text-slate-300 font-medium">No tasks currently in your lane.</p>
                 <p className="text-sm text-slate-400">
-                  Pick a card from your To Do lane or capture a task to focus on right now.
+                  Pick a card from your To Do lane or capture a task to keep in focus.
                 </p>
                 <button
                   onClick={onOpenQuickCapture}

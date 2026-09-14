@@ -1,8 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import {
-  Layers,
   Zap,
-  Target,
   Bell,
   BellRing,
   Wifi,
@@ -12,6 +10,11 @@ import {
   Palette,
   Check
 } from 'lucide-react';
+import {
+  LanekeeperLogo,
+  SwimlaneIcon,
+  LaneKeepIcon
+} from '../icons/LaneIcons.js';
 import type { ProjectMetadata } from '../../types/index.js';
 import { type ThemeId, THEMES } from '../../utils/themes.js';
 
@@ -64,7 +67,7 @@ export const Header: React.FC<HeaderProps> = ({
       <div className="flex items-center gap-3.5">
         <div className="flex items-center gap-2.5">
           <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-cyan-500 flex items-center justify-center shadow-md shadow-indigo-500/20">
-            <Layers className="w-4 h-4 text-white" />
+            <LanekeeperLogo size={18} className="text-white" />
           </div>
           <span className="font-bold text-lg text-slate-100 tracking-tight">Lanekeeper</span>
         </div>
@@ -95,8 +98,9 @@ export const Header: React.FC<HeaderProps> = ({
                 ? 'bg-indigo-600 text-white shadow-sm'
                 : 'text-slate-400 hover:text-slate-200'
             }`}
+            title="Swimlane Board View"
           >
-            <Layers className="w-4 h-4" />
+            <SwimlaneIcon size={16} />
             <span>Board</span>
           </button>
           <button
@@ -106,9 +110,9 @@ export const Header: React.FC<HeaderProps> = ({
                 ? 'bg-indigo-600 text-white shadow-sm'
                 : 'text-slate-400 hover:text-slate-200'
             }`}
-            title="Focus Mode (Press F)"
+            title="Keep to your lane focus mode (Press F)"
           >
-            <Target className="w-4 h-4" />
+            <LaneKeepIcon size={16} />
             <span>Flight Deck</span>
             <kbd className="hidden sm:inline-block text-xs font-mono bg-indigo-950 px-1.5 py-0.5 rounded text-indigo-300 border border-indigo-700/50">
               F

@@ -1,10 +1,53 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192" width="192" height="192">
-  <rect width="192" height="192" rx="40" fill="#090d16"/>
-  <rect x="28" y="36" width="36" height="120" rx="8" fill="#4f46e5" fill-opacity="0.2" stroke="#6366f1" stroke-width="4"/>
-  <rect x="78" y="36" width="36" height="120" rx="8" fill="#06b6d4" fill-opacity="0.2" stroke="#06b6d4" stroke-width="4"/>
-  <rect x="128" y="36" width="36" height="120" rx="8" fill="#10b981" fill-opacity="0.2" stroke="#10b981" stroke-width="4"/>
-  <rect x="36" y="48" width="20" height="24" rx="4" fill="#818cf8"/>
-  <rect x="36" y="80" width="20" height="40" rx="4" fill="#818cf8" fill-opacity="0.8"/>
-  <rect x="86" y="48" width="20" height="50" rx="4" fill="#22d3ee"/>
-  <rect x="136" y="48" width="20" height="30" rx="4" fill="#34d399"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bg512" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0b132b"/>
+      <stop offset="50%" stop-color="#090d16"/>
+      <stop offset="100%" stop-color="#020617"/>
+    </linearGradient>
+    <linearGradient id="cyan-buoy512" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#38bdf8"/>
+      <stop offset="100%" stop-color="#0284c7"/>
+    </linearGradient>
+    <linearGradient id="indigo-buoy512" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#a5b4fc"/>
+      <stop offset="100%" stop-color="#4f46e5"/>
+    </linearGradient>
+    <linearGradient id="arrow-grad512" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#38bdf8"/>
+      <stop offset="100%" stop-color="#6366f1"/>
+    </linearGradient>
+    <filter id="glow512" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="14" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+  </defs>
+
+  <!-- Container -->
+  <rect width="512" height="512" rx="112" fill="url(#bg512)"/>
+  <rect width="512" height="512" rx="112" fill="none" stroke="#1e293b" stroke-width="4"/>
+
+  <!-- Left swimlane divider cable -->
+  <line x1="118" y1="52" x2="118" y2="460" stroke="#0284c7" stroke-width="8" opacity="0.6"/>
+  <!-- Left swimlane buoy floats -->
+  <rect x="88" y="80" width="60" height="52" rx="20" fill="url(#cyan-buoy512)" filter="url(#glow512)"/>
+  <rect x="88" y="180" width="60" height="52" rx="20" fill="url(#cyan-buoy512)"/>
+  <rect x="88" y="280" width="60" height="52" rx="20" fill="url(#cyan-buoy512)"/>
+  <rect x="88" y="380" width="60" height="52" rx="20" fill="url(#cyan-buoy512)"/>
+
+  <!-- Right swimlane divider cable -->
+  <line x1="394" y1="52" x2="394" y2="460" stroke="#4f46e5" stroke-width="8" opacity="0.6"/>
+  <!-- Right swimlane buoy floats -->
+  <rect x="364" y="80" width="60" height="52" rx="20" fill="url(#indigo-buoy512)" filter="url(#glow512)"/>
+  <rect x="364" y="180" width="60" height="52" rx="20" fill="url(#indigo-buoy512)"/>
+  <rect x="364" y="280" width="60" height="52" rx="20" fill="url(#indigo-buoy512)"/>
+  <rect x="364" y="380" width="60" height="52" rx="20" fill="url(#indigo-buoy512)"/>
+
+  <!-- Center Lane: Forward Beacon (Keep In Lane) -->
+  <path d="M256 100 L330 240 L256 210 L182 240 Z" fill="url(#arrow-grad512)" filter="url(#glow512)"/>
+  <path d="M256 128 L304 224 L256 204 L208 224 Z" fill="#ffffff" opacity="0.95"/>
+
+  <!-- Center Lane: Pool bottom tracking guide line -->
+  <line x1="256" y1="280" x2="256" y2="340" stroke="#38bdf8" stroke-width="16" stroke-linecap="round" opacity="0.85"/>
+  <line x1="256" y1="380" x2="256" y2="440" stroke="#38bdf8" stroke-width="16" stroke-linecap="round" opacity="0.85"/>
 </svg>

@@ -1,5 +1,6 @@
 import React from 'react';
-import { X, Command, Zap } from 'lucide-react';
+import { X, Zap } from 'lucide-react';
+import { LanekeeperLogo } from '../icons/LaneIcons.js';
 
 interface HelpModalProps {
   isOpen: boolean;
@@ -14,7 +15,7 @@ export const HelpModal: React.FC<HelpModalProps> = ({ isOpen, onClose }) => {
       <div className="w-full max-w-lg bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden flex flex-col">
         <div className="px-5 py-3.5 border-b border-slate-800 flex items-center justify-between">
           <div className="flex items-center gap-2 font-bold text-sm text-slate-100">
-            <Command className="w-4 h-4 text-indigo-400" />
+            <LanekeeperLogo size={18} className="text-indigo-400" />
             <span>Lanekeeper Quick Reference</span>
           </div>
           <button

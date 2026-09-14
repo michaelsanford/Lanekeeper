@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useDroppable } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
-import { Plus, AlertTriangle } from 'lucide-react';
+import { Plus } from 'lucide-react';
+import { SwimlaneBuoyIcon, LaneLimitAlertIcon } from '../icons/LaneIcons.js';
 import type { Lane, Task } from '../../types/index.js';
 import { TaskCard } from './TaskCard.js';
 
@@ -50,9 +51,12 @@ export const LaneColumn: React.FC<LaneColumnProps> = ({
       <div className="p-3.5 border-b border-slate-800/80 flex items-center justify-between select-none">
         <div className="flex items-center gap-2.5">
           <span
-            className="w-3 h-3 rounded-full"
-            style={{ backgroundColor: lane.color }}
-          />
+            className="flex items-center justify-center transition-transform hover:scale-110"
+            style={{ color: lane.color }}
+            title={`Swimlane: ${lane.name}`}
+          >
+            <SwimlaneBuoyIcon size={16} />
+          </span>
           <h2 className="font-bold text-base text-slate-200 tracking-tight">
             {lane.name}
           </h2>
@@ -73,7 +77,7 @@ export const LaneColumn: React.FC<LaneColumnProps> = ({
                 : 'bg-slate-900 text-slate-400 border-slate-800'
             }`}
           >
-            {isWipExceeded && <AlertTriangle className="w-3 h-3" />}
+            {isWipExceeded && <LaneLimitAlertIcon size={12} className="text-rose-400" />}
             <span>
               {tasks.length}/{lane.wipLimit}
             </span>

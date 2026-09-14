@@ -9,6 +9,7 @@ import {
   ArrowRight,
   Palette
 } from 'lucide-react';
+import { SwimlaneIcon, SwimlaneBuoyIcon } from '../icons/LaneIcons.js';
 import type { ProjectMetadata, Lane, LaneType } from '../../types/index.js';
 import { type ThemeId, THEMES } from '../../utils/themes.js';
 
@@ -126,13 +127,14 @@ export const ProjectSettingsModal: React.FC<ProjectSettingsModalProps> = ({
           </button>
           <button
             onClick={() => setActiveTab('lanes')}
-            className={`py-3.5 px-4 text-sm font-semibold border-b-2 transition-colors ${
+            className={`py-3.5 px-4 text-sm font-semibold border-b-2 transition-colors flex items-center gap-1.5 ${
               activeTab === 'lanes'
                 ? 'border-indigo-500 text-indigo-400'
                 : 'border-transparent text-slate-400 hover:text-slate-200'
             }`}
           >
-            Workflow Lanes ({lanes.length})
+            <SwimlaneIcon size={16} />
+            <span>Workflow Lanes ({lanes.length})</span>
           </button>
           <button
             onClick={() => setActiveTab('projects')}
@@ -231,13 +233,19 @@ export const ProjectSettingsModal: React.FC<ProjectSettingsModalProps> = ({
                     className="p-3.5 bg-slate-950/80 rounded-xl border border-slate-800 flex items-center justify-between gap-3"
                   >
                     <div className="flex items-center gap-2.5 flex-1">
-                      {/* Color Picker */}
-                      <input
-                        type="color"
-                        value={lane.color}
-                        onChange={(e) => onUpdateLane(lane.id, { color: e.target.value })}
-                        className="w-7 h-7 rounded-md bg-transparent cursor-pointer border-0 p-0"
-                      />
+                      {/* Color Picker & Buoy */}
+                      <div className="flex items-center gap-1.5">
+                        <input
+                          type="color"
+                          value={lane.color}
+                          onChange={(e) => onUpdateLane(lane.id, { color: e.target.value })}
+                          className="w-7 h-7 rounded-md bg-transparent cursor-pointer border-0 p-0"
+                          title="Change lane color"
+                        />
+                        <span style={{ color: lane.color }} title="Swimlane marker">
+                          <SwimlaneBuoyIcon size={16} />
+                        </span>
+                      </div>
 
                       {/* Lane Name */}
                       <input
