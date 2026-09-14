@@ -9,11 +9,13 @@ import {
   ArrowRight,
   Palette,
   Sun,
-  Moon
+  Moon,
+  Sliders
 } from 'lucide-react';
 import { SwimlaneIcon, SwimlaneBuoyIcon, TrafficLight } from '../icons/LaneIcons.js';
 import type { ProjectMetadata, Lane, LaneType } from '../../types/index.js';
 import { type ThemeId, type ThemeMode, THEMES, getThemePreview } from '../../utils/themes.js';
+import { useFeatureGate } from '../../features/index.js';
 
 interface ProjectSettingsModalProps {
   isOpen: boolean;
@@ -52,7 +54,8 @@ export const ProjectSettingsModal: React.FC<ProjectSettingsModalProps> = ({
   onSelectMode,
   onSeedSampleTasks
 }) => {
-  const [activeTab, setActiveTab] = useState<'general' | 'lanes' | 'projects' | 'themes'>('general');
+  const { definitions, isEnabled, toggleFlag, resetFlags } = useFeatureGate();
+  const [activeTab, setActiveTab] = useState<'general' | 'lanes' | 'projects' | 'themes' | 'features'>('general');
 
   // General tab state
   const [name, setName] = useState(metadata.name);
@@ -164,6 +167,17 @@ export const ProjectSettingsModal: React.FC<ProjectSettingsModalProps> = ({
           >
             <Palette className="w-4 h-4" />
             <span>Theme & Appearance</span>
+          </button>
+          <button
+            onClick={() => setActiveTab('features')}
+            className={`py-3.5 px-4 text-sm font-semibold border-b-2 transition-colors flex items-center gap-1.5 ${
+              activeTab === 'features'
+                ? 'border-indigo-500 text-indigo-400'
+                : 'border-transparent text-slate-400 hover:text-slate-200'
+            }`}
+          >
+            <Sliders className="w-4 h-4" />
+            <span>Feature Gates</span>
           </button>
         </div>
 
@@ -604,6 +618,86 @@ export const ProjectSettingsModal: React.FC<ProjectSettingsModalProps> = ({
                           {currentMode === 'light' ? 'Light' : 'Dark'}
                         </span>
                       </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Tab 5: Feature Gates */}
+          {activeTab === 'features' && (
+            <div className="space-y-6">
+              <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+                <div>
+                  <h3 className="font-bold text-sm text-slate-100 flex items-center gap-2">
+                    <Sliders className="w-4 h-4 text-indigo-400" />
+                    <span>Feature Gates & System Modules</span>
+                  </h3>
+                  <p className="text-xs text-slate-400 mt-1">
+                    Enable or disable optional system capabilities. Settings persist locally per workspace.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={resetFlags}
+                  className="text-xs text-slate-400 hover:text-slate-200 bg-slate-950 px-3 py-1.5 rounded-lg border border-slate-800 hover:border-slate-700 transition-colors"
+                >
+                  Reset Defaults
+                </button>
+              </div>
+
+              <div className="space-y-3">
+                {definitions.map((def) => {
+                  const isFlagActive = isEnabled(def.id);
+                  return (
+                    <div
+                      key={def.id}
+                      className={`p-4 rounded-xl border transition-all flex items-start justify-between gap-4 ${
+                        isFlagActive
+                          ? 'bg-slate-950/80 border-indigo-500/40 shadow-sm'
+                          : 'bg-slate-950/40 border-slate-800/80'
+                      }`}
+                    >
+                      <div className="space-y-1.5 flex-1">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="font-semibold text-sm text-slate-200">{def.name}</span>
+                          <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-slate-800 text-slate-400 border border-slate-700">
+                            {def.category}
+                          </span>
+                          <span
+                            className={`text-[10px] font-mono px-2 py-0.5 rounded border ${
+                              isFlagActive
+                                ? 'bg-emerald-950/60 text-emerald-400 border-emerald-800/60'
+                                : 'bg-slate-900 text-slate-500 border-slate-800'
+                            }`}
+                          >
+                            {isFlagActive ? 'Active' : 'Disabled'}
+                          </span>
+                          <span className="text-[10px] text-slate-500 font-mono">
+                            {def.defaultValue ? 'Default: On' : 'Default: Off'}
+                          </span>
+                        </div>
+                        <p className="text-xs text-slate-400 leading-relaxed">{def.description}</p>
+                      </div>
+
+                      {/* Interactive Toggle Switch */}
+                      <button
+                        type="button"
+                        role="switch"
+                        aria-checked={isFlagActive}
+                        onClick={() => toggleFlag(def.id)}
+                        className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-slate-900 ${
+                          isFlagActive ? 'bg-indigo-600' : 'bg-slate-800'
+                        }`}
+                      >
+                        <span className="sr-only">Toggle {def.name}</span>
+                        <span
+                          className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out ${
+                            isFlagActive ? 'translate-x-5' : 'translate-x-0'
+                          }`}
+                        />
+                      </button>
                     </div>
                   );
                 })}

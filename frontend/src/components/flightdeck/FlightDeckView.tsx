@@ -11,6 +11,7 @@ import {
 import { LaneKeepIcon, TrafficLight } from '../icons/LaneIcons.js';
 import type { Task } from '../../types/index.js';
 import { sortTasksByRank } from '../../utils/rank.js';
+import { useFeatureGate } from '../../features/index.js';
 
 interface FlightDeckViewProps {
   tasks: Task[];
@@ -31,6 +32,9 @@ export const FlightDeckView: React.FC<FlightDeckViewProps> = ({
   onOpenQuickCapture,
   onCreateTaskFromScratchpad
 }) => {
+  const { isEnabled } = useFeatureGate();
+  const isTimeTrackingEnabled = isEnabled('timeTracking');
+
   const [scratchpadText, setScratchpadText] = useState(() => {
     return localStorage.getItem(SCRATCHPAD_KEY) || '';
   });
@@ -158,25 +162,27 @@ export const FlightDeckView: React.FC<FlightDeckViewProps> = ({
                       </div>
 
                       {/* Timer button */}
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onToggleTimer(task.id);
-                        }}
-                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-mono font-medium transition-all ${
-                          task.isTimerRunning
-                            ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40 animate-pulse'
-                            : 'bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-700'
-                        }`}
-                      >
-                        {task.isTimerRunning ? (
-                          <Square className="w-3.5 h-3.5 fill-current" />
-                        ) : (
-                          <Play className="w-3.5 h-3.5 fill-current" />
-                        )}
-                        <span>{task.isTimerRunning ? 'Pause' : 'Focus'}</span>
-                      </button>
+                      {isTimeTrackingEnabled && (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onToggleTimer(task.id);
+                          }}
+                          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-mono font-medium transition-all ${
+                            task.isTimerRunning
+                              ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40 animate-pulse'
+                              : 'bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-700'
+                          }`}
+                        >
+                          {task.isTimerRunning ? (
+                            <Square className="w-3.5 h-3.5 fill-current" />
+                          ) : (
+                            <Play className="w-3.5 h-3.5 fill-current" />
+                          )}
+                          <span>{task.isTimerRunning ? 'Pause' : 'Focus'}</span>
+                        </button>
+                      )}
                     </div>
 
                     <div className="flex items-center justify-between pt-2 border-t border-slate-800/80 text-sm text-slate-400">

@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import type { Task, Lane, TaskPriority } from '../../types/index.js';
 import { SwimlaneBuoyIcon } from '../icons/LaneIcons.js';
+import { useFeatureGate } from '../../features/index.js';
 
 interface TableViewProps {
   tasks: Task[];
@@ -19,6 +20,7 @@ interface TableViewProps {
   onToggleTimer: (taskId: string) => void;
   onUpdateTask: (taskId: string, updates: Partial<Task>) => void;
   onAddTask: (task: { title: string; laneId: string; priority?: TaskPriority; dueDate?: string }) => void;
+  enableTimeTracking?: boolean;
 }
 
 type SortField = 'key' | 'title' | 'lane' | 'priority' | 'dueDate' | 'estimate' | 'timeSpent';
@@ -46,8 +48,12 @@ export const TableView: React.FC<TableViewProps> = ({
   onSelectTask,
   onToggleTimer,
   onUpdateTask,
-  onAddTask
+  onAddTask,
+  enableTimeTracking
 }) => {
+  const { isEnabled } = useFeatureGate();
+  const isTimeTrackingEnabled = enableTimeTracking ?? isEnabled('timeTracking');
+
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedLaneFilter, setSelectedLaneFilter] = useState<string>('all');
   const [selectedPriorityFilter, setSelectedPriorityFilter] = useState<string>('all');
@@ -477,22 +483,24 @@ export const TableView: React.FC<TableViewProps> = ({
                     {/* Actions */}
                     <td className="py-2.5 px-4 text-right" onClick={(e) => e.stopPropagation()}>
                       <div className="flex items-center justify-end gap-1.5">
-                        <button
-                          type="button"
-                          onClick={() => onToggleTimer(task.id)}
-                          title={task.isTimerRunning ? 'Stop Timer' : 'Start Timer'}
-                          className={`p-1.5 rounded-md transition-colors ${
-                            task.isTimerRunning
-                              ? 'bg-rose-500/20 text-rose-400 hover:bg-rose-500/30'
-                              : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
-                          }`}
-                        >
-                          {task.isTimerRunning ? (
-                            <Square className="w-3.5 h-3.5 fill-current" />
-                          ) : (
-                            <Play className="w-3.5 h-3.5 fill-current" />
-                          )}
-                        </button>
+                        {isTimeTrackingEnabled && (
+                          <button
+                            type="button"
+                            onClick={() => onToggleTimer(task.id)}
+                            title={task.isTimerRunning ? 'Stop Timer' : 'Start Timer'}
+                            className={`p-1.5 rounded-md transition-colors ${
+                              task.isTimerRunning
+                                ? 'bg-rose-500/20 text-rose-400 hover:bg-rose-500/30'
+                                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
+                            }`}
+                          >
+                            {task.isTimerRunning ? (
+                              <Square className="w-3.5 h-3.5 fill-current" />
+                            ) : (
+                              <Play className="w-3.5 h-3.5 fill-current" />
+                            )}
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>
@@ -509,7 +517,9 @@ export const TableView: React.FC<TableViewProps> = ({
           Showing {sortedTasks.length} of {tasks.length} tasks
         </div>
         <div className="flex items-center gap-4">
-          <span>{tasks.filter((t) => t.isTimerRunning).length} active timer</span>
+          {isTimeTrackingEnabled && (
+            <span>{tasks.filter((t) => t.isTimerRunning).length} active timer</span>
+          )}
           <span>{tasks.filter((t) => t.dueDate && new Date(t.dueDate) < now && t.laneId !== 'done').length} overdue</span>
         </div>
       </div>

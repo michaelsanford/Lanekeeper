@@ -70,7 +70,8 @@ describe('TableView Component', () => {
         onSelectTask: vi.fn(),
         onToggleTimer: vi.fn(),
         onUpdateTask: vi.fn(),
-        onAddTask: vi.fn()
+        onAddTask: vi.fn(),
+        enableTimeTracking: true
       })
     );
 
@@ -96,6 +97,23 @@ describe('TableView Component', () => {
 
     // Status bar summary
     expect(html).toContain('active timer');
+    expect(html).toContain('overdue');
+  });
+
+  it('hides time tracking controls and status when enableTimeTracking is false', () => {
+    const html = renderToString(
+      React.createElement(TableView, {
+        tasks: mockTasks,
+        lanes: mockLanes,
+        onSelectTask: vi.fn(),
+        onToggleTimer: vi.fn(),
+        onUpdateTask: vi.fn(),
+        onAddTask: vi.fn(),
+        enableTimeTracking: false
+      })
+    );
+
+    expect(html).not.toContain('active timer');
     expect(html).toContain('overdue');
   });
 

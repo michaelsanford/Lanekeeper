@@ -9,6 +9,7 @@ import {
   ArrowUpRight
 } from 'lucide-react';
 import type { Task, Lane, TaskPriority } from '../../types/index.js';
+import { useFeatureGate } from '../../features/index.js';
 
 interface TaskDetailDrawerProps {
   task: Task | null;
@@ -33,16 +34,19 @@ export const TaskDetailDrawer: React.FC<TaskDetailDrawerProps> = ({
   onAddSubtask,
   onPromoteSubtask
 }) => {
+  const { isEnabled } = useFeatureGate();
+  const isTimeTrackingEnabled = isEnabled('timeTracking');
+
   const [newSubtaskTitle, setNewSubtaskTitle] = useState('');
   const [description, setDescription] = useState('');
 
   // Live timer tick
   const [, setTick] = useState(0);
   useEffect(() => {
-    if (!task?.isTimerRunning) return;
+    if (!isTimeTrackingEnabled || !task?.isTimerRunning) return;
     const interval = setInterval(() => setTick((t) => t + 1), 1000);
     return () => clearInterval(interval);
-  }, [task?.isTimerRunning]);
+  }, [isTimeTrackingEnabled, task?.isTimerRunning]);
 
   useEffect(() => {
     if (task) {
@@ -191,46 +195,48 @@ export const TaskDetailDrawer: React.FC<TaskDetailDrawerProps> = ({
           </div>
 
           {/* Time Tracking Widget */}
-          <div className="p-4 bg-slate-950/80 rounded-xl border border-slate-800 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div
-                className={`w-10 h-10 rounded-lg flex items-center justify-center ${
-                  task.isTimerRunning
-                    ? 'bg-rose-500/20 text-rose-400 border border-rose-500/40 animate-pulse'
-                    : 'bg-slate-800 text-slate-400'
-                }`}
-              >
-                <Clock className="w-5 h-5" />
-              </div>
-              <div>
-                <span className="text-sm text-slate-400">Time Tracked</span>
-                <div className="font-mono text-xl font-bold text-slate-100">
-                  {formatTime(totalElapsedSeconds)}
+          {isTimeTrackingEnabled && (
+            <div className="p-4 bg-slate-950/80 rounded-xl border border-slate-800 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div
+                  className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+                    task.isTimerRunning
+                      ? 'bg-rose-500/20 text-rose-400 border border-rose-500/40 animate-pulse'
+                      : 'bg-slate-800 text-slate-400'
+                  }`}
+                >
+                  <Clock className="w-5 h-5" />
+                </div>
+                <div>
+                  <span className="text-sm text-slate-400">Time Tracked</span>
+                  <div className="font-mono text-xl font-bold text-slate-100">
+                    {formatTime(totalElapsedSeconds)}
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <button
-              onClick={() => onToggleTimer(task.id)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold font-mono transition-all ${
-                task.isTimerRunning
-                  ? 'bg-rose-500 hover:bg-rose-600 text-white'
-                  : 'bg-indigo-600 hover:bg-indigo-500 text-white'
-              }`}
-            >
-              {task.isTimerRunning ? (
-                <>
-                  <Square className="w-4 h-4 fill-current" />
-                  <span>Stop Timer</span>
-                </>
-              ) : (
-                <>
-                  <Play className="w-4 h-4 fill-current" />
-                  <span>Start Timer</span>
-                </>
-              )}
-            </button>
-          </div>
+              <button
+                onClick={() => onToggleTimer(task.id)}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold font-mono transition-all ${
+                  task.isTimerRunning
+                    ? 'bg-rose-500 hover:bg-rose-600 text-white'
+                    : 'bg-indigo-600 hover:bg-indigo-500 text-white'
+                }`}
+              >
+                {task.isTimerRunning ? (
+                  <>
+                    <Square className="w-4 h-4 fill-current" />
+                    <span>Stop Timer</span>
+                  </>
+                ) : (
+                  <>
+                    <Play className="w-4 h-4 fill-current" />
+                    <span>Start Timer</span>
+                  </>
+                )}
+              </button>
+            </div>
+          )}
 
           {/* Markdown Description */}
           <div className="space-y-2">

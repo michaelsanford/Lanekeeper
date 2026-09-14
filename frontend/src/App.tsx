@@ -5,6 +5,7 @@ import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts.js';
 import { useTheme } from './hooks/useTheme.js';
 import { getStoredAuthSession, saveAuthSession } from './auth/cognito.js';
 import { scheduleSync, syncWithServer } from './crdt/sync.js';
+import { FeatureGateProvider } from './features/index.js';
 
 import { Header, type ActiveView } from './components/layout/Header.js';
 import { KanbanBoard } from './components/board/KanbanBoard.js';
@@ -176,7 +177,8 @@ export function App() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans select-none antialiased">
+    <FeatureGateProvider>
+      <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans select-none antialiased">
       {/* App Header */}
       <Header
         metadata={metadata}
@@ -298,6 +300,7 @@ export function App() {
         onSeedSampleTasks={seedSampleTasks}
       />
     </div>
+    </FeatureGateProvider>
   );
 }
 

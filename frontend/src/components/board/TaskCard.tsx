@@ -10,18 +10,24 @@ import {
   AlertCircle
 } from 'lucide-react';
 import type { Task, TaskPriority } from '../../types/index.js';
+import { useFeatureGate } from '../../features/index.js';
 
 interface TaskCardProps {
   task: Task;
   onSelect: (task: Task) => void;
   onToggleTimer: (taskId: string) => void;
+  enableTimeTracking?: boolean;
 }
 
 export const TaskCard: React.FC<TaskCardProps> = ({
   task,
   onSelect,
-  onToggleTimer
+  onToggleTimer,
+  enableTimeTracking
 }) => {
+  const { isEnabled } = useFeatureGate();
+  const isTimeTrackingEnabled = enableTimeTracking ?? isEnabled('timeTracking');
+
   const {
     attributes,
     listeners,
@@ -34,10 +40,10 @@ export const TaskCard: React.FC<TaskCardProps> = ({
   // Live timer tick if active
   const [, setTick] = useState(0);
   useEffect(() => {
-    if (!task.isTimerRunning) return;
+    if (!isTimeTrackingEnabled || !task.isTimerRunning) return;
     const interval = setInterval(() => setTick((t) => t + 1), 1000);
     return () => clearInterval(interval);
-  }, [task.isTimerRunning]);
+  }, [isTimeTrackingEnabled, task.isTimerRunning]);
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -106,26 +112,28 @@ export const TaskCard: React.FC<TaskCardProps> = ({
           )}
 
           {/* Inline Timer Button */}
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              onToggleTimer(task.id);
-            }}
-            title={task.isTimerRunning ? 'Stop timer' : 'Start timer'}
-            className={`flex items-center gap-1.5 text-xs px-2 py-0.5 rounded transition-colors ${
-              task.isTimerRunning
-                ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40 animate-pulse'
-                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
-            }`}
-          >
-            {task.isTimerRunning ? (
-              <Square className="w-3 h-3 fill-current" />
-            ) : (
-              <Play className="w-3 h-3 fill-current" />
-            )}
-            {totalElapsedSeconds > 0 && <span>{formatTime(totalElapsedSeconds)}</span>}
-          </button>
+          {isTimeTrackingEnabled && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onToggleTimer(task.id);
+              }}
+              title={task.isTimerRunning ? 'Stop timer' : 'Start timer'}
+              className={`flex items-center gap-1.5 text-xs px-2 py-0.5 rounded transition-colors ${
+                task.isTimerRunning
+                  ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40 animate-pulse'
+                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
+              }`}
+            >
+              {task.isTimerRunning ? (
+                <Square className="w-3 h-3 fill-current" />
+              ) : (
+                <Play className="w-3 h-3 fill-current" />
+              )}
+              {totalElapsedSeconds > 0 && <span>{formatTime(totalElapsedSeconds)}</span>}
+            </button>
+          )}
         </div>
       </div>
 
