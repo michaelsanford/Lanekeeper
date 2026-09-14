@@ -10,7 +10,8 @@ export type ThemeId =
   | 'gruvbox'
   | 'solarized'
   | 'campbell-powershell'
-  | 'campbell';
+  | 'campbell'
+  | 'traffic';
 
 export interface ThemeInfo {
   id: ThemeId;
@@ -181,6 +182,19 @@ export const THEMES: ThemeInfo[] = [
       border: '#2d2d2d',
       accent: '#3b78ff',
       text: '#cccccc'
+    }
+  },
+  {
+    id: 'traffic',
+    name: 'Traffic & Road Paint',
+    authorOrOrigin: 'Highway Department',
+    description: 'Playful fresh asphalt tarmac canvas with double-yellow lines, traffic cone orange, and reflective white road markings',
+    previewColors: {
+      bg: '#121316',
+      surface: '#1a1d22',
+      border: '#2b3039',
+      accent: '#ffc700',
+      text: '#ffffff'
     }
   }
 ];

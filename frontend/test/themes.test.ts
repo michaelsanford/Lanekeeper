@@ -17,8 +17,8 @@ describe('Coding Themes Catalog & Manager', () => {
     }
   });
 
-  it('contains famous and popular coding colour themes including Campbell/PowerShell', () => {
-    expect(THEMES.length).toBe(12);
+  it('contains famous and popular coding colour themes including Campbell and Traffic Road Paint', () => {
+    expect(THEMES.length).toBe(13);
 
     const expectedIds: ThemeId[] = [
       'lanekeeper',
@@ -32,7 +32,8 @@ describe('Coding Themes Catalog & Manager', () => {
       'gruvbox',
       'solarized',
       'campbell-powershell',
-      'campbell'
+      'campbell',
+      'traffic'
     ];
 
     for (const expectedId of expectedIds) {
@@ -63,6 +64,17 @@ describe('Coding Themes Catalog & Manager', () => {
     expect(getStoredTheme()).toBe('campbell-powershell');
   });
 
+  it('correctly applies the playful Traffic & Road Paint theme', () => {
+    applyTheme('traffic');
+    expect(getStoredTheme()).toBe('traffic');
+    if (typeof document !== 'undefined') {
+      expect(document.documentElement.getAttribute('data-theme')).toBe('traffic');
+    }
+    const trafficTheme = THEMES.find((t) => t.id === 'traffic');
+    expect(trafficTheme?.name).toBe('Traffic & Road Paint');
+    expect(trafficTheme?.previewColors.accent).toBe('#ffc700');
+  });
+
   it('smoothly switches across various coding themes', () => {
     const testThemes: ThemeId[] = [
       'tokyo-night',
@@ -74,7 +86,8 @@ describe('Coding Themes Catalog & Manager', () => {
       'gruvbox',
       'solarized',
       'campbell-powershell',
-      'campbell'
+      'campbell',
+      'traffic'
     ];
 
     for (const th of testThemes) {
