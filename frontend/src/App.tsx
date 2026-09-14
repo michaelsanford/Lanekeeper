@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useCrdt } from './hooks/useCrdt.js';
 import { useWebPush } from './hooks/useWebPush.js';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts.js';
+import { useTheme } from './hooks/useTheme.js';
 import { getStoredAuthSession, saveAuthSession } from './auth/cognito.js';
 import { scheduleSync } from './crdt/sync.js';
 
@@ -45,6 +46,8 @@ export function App() {
   const [isProjectSettingsOpen, setIsProjectSettingsOpen] = useState(false);
   const [authSession, setAuthSession] = useState<AuthSession | null>(getStoredAuthSession);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
+
+  const { theme, setTheme } = useTheme();
 
   const { isSubscribed, requestAndSubscribe } = useWebPush(
     import.meta.env.VITE_API_URL,
@@ -158,6 +161,8 @@ export function App() {
         isOnline={isOnline}
         pushSubscribed={isSubscribed}
         onTogglePush={requestAndSubscribe}
+        currentTheme={theme}
+        onSelectTheme={setTheme}
       />
 
       {/* Main View Area */}
@@ -237,6 +242,8 @@ export function App() {
           switchProject(id, name, pfx);
           setIsProjectSettingsOpen(false);
         }}
+        currentTheme={theme}
+        onSelectTheme={setTheme}
       />
     </div>
   );

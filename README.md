@@ -16,6 +16,7 @@
 - **PWA Web Share Target API & App Shortcuts**: Integrated directly into iOS, Android, and macOS native share sheets, plus home screen long-press shortcuts for instant capture.
 - **GitHub Smart Commit & PR Ingestion**: Pushing `fix(auth): handle token expiry (fixes LK-42)` automatically transitions `LK-42` to Done and embeds the commit into the task activity log.
 - **Terminal CLI Companion (`lk`)**: Fast terminal capture, flight deck listing, and branch commands directly from your shell.
+- **10 Famous Coding Colour Schemes**: Instant switching between iconic developer palettes (Dracula, Tokyo Night, Catppuccin Mocha, Nord, One Dark Pro, GitHub Dark, Monokai Pro, Gruvbox Dark, Solarized Dark, and Lanekeeper Midnight) via Header and Project Settings.
 
 ---
 

@@ -6,9 +6,11 @@ import {
   Trash2,
   Plus,
   Check,
-  ArrowRight
+  ArrowRight,
+  Palette
 } from 'lucide-react';
 import type { ProjectMetadata, Lane, LaneType } from '../../types/index.js';
+import { type ThemeId, THEMES } from '../../utils/themes.js';
 
 interface ProjectSettingsModalProps {
   isOpen: boolean;
@@ -22,6 +24,8 @@ interface ProjectSettingsModalProps {
   onDeleteLane: (laneId: string) => void;
   onCreateProject: (name: string, prefix: string) => void;
   onSwitchProject: (projectId: string, name?: string, prefix?: string) => void;
+  currentTheme?: ThemeId;
+  onSelectTheme?: (themeId: ThemeId) => void;
 }
 
 export const ProjectSettingsModal: React.FC<ProjectSettingsModalProps> = ({
@@ -35,9 +39,11 @@ export const ProjectSettingsModal: React.FC<ProjectSettingsModalProps> = ({
   onUpdateLane,
   onDeleteLane,
   onCreateProject,
-  onSwitchProject
+  onSwitchProject,
+  currentTheme,
+  onSelectTheme
 }) => {
-  const [activeTab, setActiveTab] = useState<'general' | 'lanes' | 'projects'>('general');
+  const [activeTab, setActiveTab] = useState<'general' | 'lanes' | 'projects' | 'themes'>('general');
 
   // General tab state
   const [name, setName] = useState(metadata.name);
@@ -137,6 +143,17 @@ export const ProjectSettingsModal: React.FC<ProjectSettingsModalProps> = ({
             }`}
           >
             Switch / New Project ({projectsList.length})
+          </button>
+          <button
+            onClick={() => setActiveTab('themes')}
+            className={`py-3.5 px-4 text-sm font-semibold border-b-2 transition-colors flex items-center gap-1.5 ${
+              activeTab === 'themes'
+                ? 'border-indigo-500 text-indigo-400'
+                : 'border-transparent text-slate-400 hover:text-slate-200'
+            }`}
+          >
+            <Palette className="w-4 h-4" />
+            <span>Theme & Appearance</span>
           </button>
         </div>
 
@@ -428,6 +445,85 @@ export const ProjectSettingsModal: React.FC<ProjectSettingsModalProps> = ({
                   Create and Open Project
                 </button>
               </form>
+            </div>
+          )}
+
+          {/* Tab 4: Theme & Appearance */}
+          {activeTab === 'themes' && (
+            <div className="space-y-5 text-sm">
+              <div>
+                <h3 className="text-sm font-bold text-slate-100">Coding Colour Schemes</h3>
+                <p className="text-xs text-slate-400 mt-0.5">
+                  Select an iconic coding theme to customize Lanekeeper's full interface palette.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                {THEMES.map((th) => {
+                  const isActive = th.id === currentTheme;
+                  return (
+                    <div
+                      key={th.id}
+                      onClick={() => onSelectTheme?.(th.id)}
+                      className={`p-4 rounded-xl border transition-all cursor-pointer flex flex-col justify-between space-y-3 ${
+                        isActive
+                          ? 'bg-indigo-950/40 border-indigo-500/70 shadow-lg ring-1 ring-indigo-500/50'
+                          : 'bg-slate-950/80 border-slate-800 hover:border-slate-700 hover:bg-slate-900/60'
+                      }`}
+                    >
+                      <div className="space-y-2">
+                        <div className="flex items-start justify-between gap-2">
+                          <div>
+                            <div className="font-semibold text-slate-100 text-sm">{th.name}</div>
+                            <div className="text-xs text-slate-400 font-mono">{th.authorOrOrigin}</div>
+                          </div>
+                          {isActive ? (
+                            <span className="text-xs font-semibold text-indigo-400 bg-indigo-950 px-2 py-0.5 rounded border border-indigo-800/60 flex items-center gap-1">
+                              <Check className="w-3.5 h-3.5" />
+                              Active
+                            </span>
+                          ) : (
+                            <span className="text-xs text-slate-500 font-mono">Select</span>
+                          )}
+                        </div>
+                        <p className="text-xs text-slate-400 leading-relaxed">{th.description}</p>
+                      </div>
+
+                      {/* Swatch Previews */}
+                      <div className="flex items-center gap-2 pt-2 border-t border-slate-800/80">
+                        <div className="flex items-center gap-1.5 flex-1">
+                          <span
+                            className="w-5 h-5 rounded-md border border-slate-700/80"
+                            style={{ backgroundColor: th.previewColors.bg }}
+                            title="Background"
+                          />
+                          <span
+                            className="w-5 h-5 rounded-md border border-slate-700/80"
+                            style={{ backgroundColor: th.previewColors.surface }}
+                            title="Surface"
+                          />
+                          <span
+                            className="w-5 h-5 rounded-md border border-slate-700/80"
+                            style={{ backgroundColor: th.previewColors.border }}
+                            title="Border"
+                          />
+                          <span
+                            className="w-5 h-5 rounded-md border border-slate-700/80"
+                            style={{ backgroundColor: th.previewColors.accent }}
+                            title="Accent"
+                          />
+                          <span
+                            className="w-5 h-5 rounded-md border border-slate-700/80"
+                            style={{ backgroundColor: th.previewColors.text }}
+                            title="Text"
+                          />
+                        </div>
+                        <span className="text-xs font-mono text-slate-500 uppercase">Palette</span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           )}
         </div>

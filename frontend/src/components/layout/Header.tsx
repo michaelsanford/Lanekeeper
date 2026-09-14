@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   Layers,
   Zap,
@@ -8,9 +8,12 @@ import {
   Wifi,
   WifiOff,
   HelpCircle,
-  Settings
+  Settings,
+  Palette,
+  Check
 } from 'lucide-react';
 import type { ProjectMetadata } from '../../types/index.js';
+import { type ThemeId, THEMES } from '../../utils/themes.js';
 
 interface HeaderProps {
   metadata: ProjectMetadata;
@@ -22,6 +25,8 @@ interface HeaderProps {
   isOnline: boolean;
   pushSubscribed: boolean;
   onTogglePush: () => void;
+  currentTheme: ThemeId;
+  onSelectTheme: (themeId: ThemeId) => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -33,8 +38,26 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenProjectSettings,
   isOnline,
   pushSubscribed,
-  onTogglePush
+  onTogglePush,
+  currentTheme,
+  onSelectTheme
 }) => {
+  const [isThemeMenuOpen, setIsThemeMenuOpen] = useState(false);
+  const themeMenuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (themeMenuRef.current && !themeMenuRef.current.contains(e.target as Node)) {
+        setIsThemeMenuOpen(false);
+      }
+    };
+    if (isThemeMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isThemeMenuOpen]);
   return (
     <header className="h-16 border-b border-slate-800 bg-slate-900/90 backdrop-blur-md px-5 flex items-center justify-between sticky top-0 z-30 select-none">
       {/* Left: Brand & Project Info */}
@@ -134,6 +157,74 @@ export const Header: React.FC<HeaderProps> = ({
         >
           {isOnline ? <Wifi className="w-3.5 h-3.5" /> : <WifiOff className="w-3.5 h-3.5" />}
           <span className="hidden sm:inline">{isOnline ? 'Online' : 'Offline'}</span>
+        </div>
+
+        {/* Coding Theme Selector */}
+        <div className="relative" ref={themeMenuRef}>
+          <button
+            onClick={() => setIsThemeMenuOpen((o) => !o)}
+            title="Colour Scheme / Theme"
+            className={`p-2 rounded-lg border transition-colors ${
+              isThemeMenuOpen
+                ? 'bg-indigo-950/80 border-indigo-700/70 text-indigo-300'
+                : 'border-slate-800 text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
+            }`}
+          >
+            <Palette className="w-4 h-4" />
+          </button>
+
+          {isThemeMenuOpen && (
+            <div className="absolute right-0 mt-2 w-72 bg-slate-900 border border-slate-800 rounded-xl shadow-2xl overflow-hidden py-1.5 z-50 animate-fade-in">
+              <div className="px-3.5 py-2 border-b border-slate-800/80 flex items-center justify-between text-xs text-slate-400 font-mono uppercase tracking-wider">
+                <span>Colour Schemes</span>
+                <span className="text-[11px] text-slate-500 lowercase">({THEMES.length} themes)</span>
+              </div>
+
+              <div className="max-h-80 overflow-y-auto py-1">
+                {THEMES.map((th) => {
+                  const isSelected = th.id === currentTheme;
+                  return (
+                    <button
+                      key={th.id}
+                      onClick={() => {
+                        onSelectTheme(th.id);
+                        setIsThemeMenuOpen(false);
+                      }}
+                      className={`w-full px-3.5 py-2 flex items-center justify-between text-left transition-colors text-xs ${
+                        isSelected
+                          ? 'bg-indigo-950/60 text-indigo-300 font-semibold'
+                          : 'text-slate-300 hover:bg-slate-800/70'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2.5">
+                        {/* 3-Color Swatch Preview */}
+                        <div className="flex -space-x-1 items-center">
+                          <span
+                            className="w-3.5 h-3.5 rounded-full border border-slate-700"
+                            style={{ backgroundColor: th.previewColors.bg }}
+                          />
+                          <span
+                            className="w-3.5 h-3.5 rounded-full border border-slate-700"
+                            style={{ backgroundColor: th.previewColors.surface }}
+                          />
+                          <span
+                            className="w-3.5 h-3.5 rounded-full border border-slate-700"
+                            style={{ backgroundColor: th.previewColors.accent }}
+                          />
+                        </div>
+                        <div>
+                          <div className="font-medium text-slate-200">{th.name}</div>
+                          <div className="text-[10px] text-slate-500 font-mono">{th.authorOrOrigin}</div>
+                        </div>
+                      </div>
+
+                      {isSelected && <Check className="w-4 h-4 text-indigo-400" />}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Shortcuts Help */}
