@@ -4,7 +4,7 @@ import { useWebPush } from './hooks/useWebPush.js';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts.js';
 import { useTheme } from './hooks/useTheme.js';
 import { getStoredAuthSession, saveAuthSession } from './auth/cognito.js';
-import { scheduleSync } from './crdt/sync.js';
+import { scheduleSync, syncWithServer } from './crdt/sync.js';
 
 import { Header, type ActiveView } from './components/layout/Header.js';
 import { KanbanBoard } from './components/board/KanbanBoard.js';
@@ -37,7 +37,8 @@ export function App() {
     deleteLane,
     getProjectsList,
     createProject,
-    switchProject
+    switchProject,
+    seedSampleTasks
   } = useCrdt();
 
   const [activeView, setActiveView] = useState<ActiveView>('board');
@@ -51,29 +52,53 @@ export function App() {
 
   const { theme, setTheme } = useTheme();
 
+  const apiUrl = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:3001' : '');
+  const syncToken = authSession?.accessToken || (import.meta.env.DEV ? 'lk_dev_seed_token' : undefined);
+
   const { isSubscribed, requestAndSubscribe } = useWebPush(
-    import.meta.env.VITE_API_URL,
-    authSession?.accessToken
+    apiUrl,
+    syncToken
   );
 
-  // Sync online/offline network status
+  // Synchronize with backend on mount, network transitions, tab focus, and polling interval
   useEffect(() => {
+    if (apiUrl && syncToken && navigator.onLine) {
+      syncWithServer(apiUrl, syncToken);
+    }
+
     const handleOnline = () => {
       setIsOnline(true);
-      if (import.meta.env.VITE_API_URL && authSession?.accessToken) {
-        scheduleSync(import.meta.env.VITE_API_URL, authSession.accessToken, 100);
+      if (apiUrl && syncToken) {
+        scheduleSync(apiUrl, syncToken, 100);
       }
     };
     const handleOffline = () => setIsOnline(false);
 
+    const handleFocus = () => {
+      if (apiUrl && syncToken && navigator.onLine) {
+        syncWithServer(apiUrl, syncToken);
+      }
+    };
+
+    // Periodic background synchronization (3s in dev mode to immediately reflect CLI & seed actions)
+    const pollIntervalMs = import.meta.env.DEV ? 3000 : 30000;
+    const interval = setInterval(() => {
+      if (apiUrl && syncToken && navigator.onLine) {
+        syncWithServer(apiUrl, syncToken);
+      }
+    }, pollIntervalMs);
+
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
+    window.addEventListener('focus', handleFocus);
 
     return () => {
+      clearInterval(interval);
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
+      window.removeEventListener('focus', handleFocus);
     };
-  }, [authSession]);
+  }, [apiUrl, syncToken]);
 
   // Handle PWA Web Share Target and App Shortcuts jumplist on mount
   useEffect(() => {
@@ -129,8 +154,8 @@ export function App() {
 
   const handleQuickTaskSubmit = (taskData: any) => {
     addTask(taskData);
-    if (import.meta.env.VITE_API_URL && authSession?.accessToken) {
-      scheduleSync(import.meta.env.VITE_API_URL, authSession.accessToken);
+    if (apiUrl && syncToken) {
+      scheduleSync(apiUrl, syncToken, 100);
     }
   };
 
@@ -266,6 +291,7 @@ export function App() {
         }}
         currentTheme={theme}
         onSelectTheme={setTheme}
+        onSeedSampleTasks={seedSampleTasks}
       />
     </div>
   );

@@ -40,6 +40,7 @@ export function useCrdt() {
     deleteLane: crdtStore.deleteLane.bind(crdtStore),
     getProjectsList: crdtStore.getProjectsList.bind(crdtStore),
     createProject: crdtStore.createProject.bind(crdtStore),
-    switchProject: crdtStore.switchProject.bind(crdtStore)
+    switchProject: crdtStore.switchProject.bind(crdtStore),
+    seedSampleTasks: crdtStore.seedSampleTasks.bind(crdtStore)
   };
 }

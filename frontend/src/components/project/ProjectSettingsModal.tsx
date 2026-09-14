@@ -27,6 +27,7 @@ interface ProjectSettingsModalProps {
   onSwitchProject: (projectId: string, name?: string, prefix?: string) => void;
   currentTheme?: ThemeId;
   onSelectTheme?: (themeId: ThemeId) => void;
+  onSeedSampleTasks?: () => void;
 }
 
 export const ProjectSettingsModal: React.FC<ProjectSettingsModalProps> = ({
@@ -42,7 +43,8 @@ export const ProjectSettingsModal: React.FC<ProjectSettingsModalProps> = ({
   onCreateProject,
   onSwitchProject,
   currentTheme,
-  onSelectTheme
+  onSelectTheme,
+  onSeedSampleTasks
 }) => {
   const [activeTab, setActiveTab] = useState<'general' | 'lanes' | 'projects' | 'themes'>('general');
 
@@ -215,6 +217,28 @@ export const ProjectSettingsModal: React.FC<ProjectSettingsModalProps> = ({
                   Save Changes
                 </button>
               </div>
+
+              {/* Demo Data Seed Action */}
+              {onSeedSampleTasks && (
+                <div className="pt-4 border-t border-slate-800 flex items-center justify-between">
+                  <div>
+                    <div className="font-semibold text-slate-200">Sample Tasks</div>
+                    <div className="text-xs text-slate-500">
+                      Populate workflow lanes with initial sample tasks for local development.
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onSeedSampleTasks();
+                      onClose();
+                    }}
+                    className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-lg border border-slate-700 transition-colors"
+                  >
+                    Load Sample Tasks
+                  </button>
+                </div>
+              )}
             </form>
           )}
 
