@@ -72,37 +72,43 @@ Upgrade Cognito auth pool #backend #infra !urgent ^tomorrow ~2h @michael
 
 ---
 
-## 🚀 Getting Started
+## 🚀 Quick Local Development (Zero Docker Needed)
 
-### Prerequisites
-- Node.js `>= 24.0.0`
-- AWS SAM CLI `>= 1.120.0` (for cloud backend deployment)
-
-### 1. Run the Frontend PWA Locally
+### 1. Start Both Backend & Frontend in One Command
 ```bash
-cd frontend
 npm install
 npm run dev
 ```
-Open [http://localhost:5173](http://localhost:5173). The app will run in full local-first mode with IndexedDB caching and full offline support.
+- **Frontend SPA**: Runs at `http://localhost:5173` with Vite HMR, PWA Service Worker, and local-first IndexedDB CRDT store.
+- **Backend API Dev Server**: Runs at `http://localhost:3001` with TypeScript hot reload via `tsx`. Vite automatically proxies `/api/*` requests to this backend.
 
-### 2. Run Tests
+### 2. Seed Sample Tasks (Optional)
 ```bash
-# Frontend Unit & CRDT tests
-cd frontend
-npm test
-
-# Backend Serverless & Parser tests
-cd ../backend
-npm test
+npm run seed
 ```
 
-### 3. Deploy the AWS Serverless Backend
+### 3. Run Fullstack Test Suite
+```bash
+npm test
+```
+Runs all 16 Vitest unit tests across backend and frontend in parallel.
+
+### 4. Build Fullstack Distribution
+```bash
+npm run build
+```
+
+---
+
+## ☁️ Cloud Deployment (AWS SAM)
+
+When you are ready to deploy the serverless infrastructure to AWS:
 ```bash
 cd backend
 sam build
 sam deploy --guided
 ```
+Creates the Cognito User Pool (with TOTP MFA), DynamoDB Single-Table, API Gateway HTTP API, and EventBridge push scheduler in your AWS account.
 
 ### 4. Use the Terminal CLI (`lk`)
 ```bash
