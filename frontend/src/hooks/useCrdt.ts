@@ -33,6 +33,13 @@ export function useCrdt() {
     toggleSubtask: crdtStore.toggleSubtask.bind(crdtStore),
     addSubtask: crdtStore.addSubtask.bind(crdtStore),
     promoteSubtaskToTask: crdtStore.promoteSubtaskToTask.bind(crdtStore),
-    toggleTimer: crdtStore.toggleTimer.bind(crdtStore)
+    toggleTimer: crdtStore.toggleTimer.bind(crdtStore),
+    updateMetadata: crdtStore.updateMetadata.bind(crdtStore),
+    addLane: crdtStore.addLane.bind(crdtStore),
+    updateLane: crdtStore.updateLane.bind(crdtStore),
+    deleteLane: crdtStore.deleteLane.bind(crdtStore),
+    getProjectsList: crdtStore.getProjectsList.bind(crdtStore),
+    createProject: crdtStore.createProject.bind(crdtStore),
+    switchProject: crdtStore.switchProject.bind(crdtStore)
   };
 }

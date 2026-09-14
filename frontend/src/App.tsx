@@ -12,6 +12,7 @@ import { QuickCaptureModal } from './components/capture/QuickCaptureModal.js';
 import { TaskDetailDrawer } from './components/task/TaskDetailDrawer.js';
 import { HelpModal } from './components/layout/HelpModal.js';
 import { AuthModal } from './components/auth/AuthModal.js';
+import { ProjectSettingsModal } from './components/project/ProjectSettingsModal.js';
 import type { Task, AuthSession } from './types/index.js';
 
 export function App() {
@@ -26,7 +27,14 @@ export function App() {
     toggleSubtask,
     addSubtask,
     promoteSubtaskToTask,
-    toggleTimer
+    toggleTimer,
+    updateMetadata,
+    addLane,
+    updateLane,
+    deleteLane,
+    getProjectsList,
+    createProject,
+    switchProject
   } = useCrdt();
 
   const [activeView, setActiveView] = useState<'board' | 'flightdeck'>('board');
@@ -34,6 +42,7 @@ export function App() {
   const [isQuickCaptureOpen, setIsQuickCaptureOpen] = useState(false);
   const [isHelpOpen, setIsHelpOpen] = useState(false);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
+  const [isProjectSettingsOpen, setIsProjectSettingsOpen] = useState(false);
   const [authSession, setAuthSession] = useState<AuthSession | null>(getStoredAuthSession);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
 
@@ -107,6 +116,7 @@ export function App() {
       setIsQuickCaptureOpen(false);
       setIsHelpOpen(false);
       setIsAuthOpen(false);
+      setIsProjectSettingsOpen(false);
       setSelectedTask(null);
     },
     onToggleHelp: () => setIsHelpOpen((h) => !h)
@@ -144,6 +154,7 @@ export function App() {
         onViewChange={setActiveView}
         onOpenQuickCapture={() => setIsQuickCaptureOpen(true)}
         onOpenHelp={() => setIsHelpOpen(true)}
+        onOpenProjectSettings={() => setIsProjectSettingsOpen(true)}
         isOnline={isOnline}
         pushSubscribed={isSubscribed}
         onTogglePush={requestAndSubscribe}
@@ -207,6 +218,24 @@ export function App() {
         onSessionChange={(session) => {
           setAuthSession(session);
           saveAuthSession(session);
+        }}
+      />
+
+      {/* Project & Workflow Lanes Settings Modal */}
+      <ProjectSettingsModal
+        isOpen={isProjectSettingsOpen}
+        onClose={() => setIsProjectSettingsOpen(false)}
+        metadata={metadata}
+        lanes={lanes}
+        projectsList={getProjectsList()}
+        onUpdateMetadata={updateMetadata}
+        onAddLane={addLane}
+        onUpdateLane={updateLane}
+        onDeleteLane={deleteLane}
+        onCreateProject={createProject}
+        onSwitchProject={(id, name, pfx) => {
+          switchProject(id, name, pfx);
+          setIsProjectSettingsOpen(false);
         }}
       />
     </div>

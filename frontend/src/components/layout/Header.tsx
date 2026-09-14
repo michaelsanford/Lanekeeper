@@ -7,7 +7,8 @@ import {
   BellRing,
   Wifi,
   WifiOff,
-  HelpCircle
+  HelpCircle,
+  Settings
 } from 'lucide-react';
 import type { ProjectMetadata } from '../../types/index.js';
 
@@ -17,6 +18,7 @@ interface HeaderProps {
   onViewChange: (view: 'board' | 'flightdeck') => void;
   onOpenQuickCapture: () => void;
   onOpenHelp: () => void;
+  onOpenProjectSettings: () => void;
   isOnline: boolean;
   pushSubscribed: boolean;
   onTogglePush: () => void;
@@ -28,6 +30,7 @@ export const Header: React.FC<HeaderProps> = ({
   onViewChange,
   onOpenQuickCapture,
   onOpenHelp,
+  onOpenProjectSettings,
   isOnline,
   pushSubscribed,
   onTogglePush
@@ -40,13 +43,23 @@ export const Header: React.FC<HeaderProps> = ({
           <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-cyan-500 flex items-center justify-center shadow-md shadow-indigo-500/20">
             <Layers className="w-4 h-4 text-white" />
           </div>
-          <div className="flex items-baseline gap-1.5">
-            <span className="font-bold text-base text-slate-100 tracking-tight">Lanekeeper</span>
-            <span className="text-xs text-indigo-400 font-mono font-semibold bg-indigo-950/80 px-1.5 py-0.5 rounded border border-indigo-800/60">
-              {metadata.prefix}
-            </span>
-          </div>
+          <span className="font-bold text-base text-slate-100 tracking-tight">Lanekeeper</span>
         </div>
+
+        {/* Project Selector & Settings Trigger */}
+        <button
+          onClick={onOpenProjectSettings}
+          title="Project Settings & Workflow Lanes"
+          className="flex items-center gap-1.5 bg-slate-950/80 hover:bg-slate-800 px-2.5 py-1 rounded-lg border border-slate-800 hover:border-slate-700 transition-colors text-xs"
+        >
+          <span className="text-xs text-indigo-400 font-mono font-semibold bg-indigo-950/80 px-1.5 py-0.5 rounded border border-indigo-800/60">
+            {metadata.prefix}
+          </span>
+          <span className="font-medium text-slate-200 hidden md:inline max-w-[120px] truncate">
+            {metadata.name}
+          </span>
+          <Settings className="w-3.5 h-3.5 text-slate-400 ml-0.5" />
+        </button>
 
         <div className="h-4 w-px bg-slate-800 mx-1 hidden sm:block" />
 

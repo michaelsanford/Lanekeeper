@@ -88,4 +88,34 @@ describe("Frontend Local-First CRDT & Store", () => {
     expect(res.assignee).toBe("michael");
     expect(res.dueDate).toBeDefined();
   });
+
+  it("customizes project metadata and workflow lanes", () => {
+    // 1. Update project metadata
+    crdtStore.updateMetadata({ name: "Infra Engine", prefix: "INFRA" });
+    const meta = crdtStore.getMetadata();
+    expect(meta.name).toBe("Infra Engine");
+    expect(meta.prefix).toBe("INFRA");
+
+    // 2. Add custom workflow lane
+    const customLane = crdtStore.addLane("Quality Assurance", "#ec4899", "started", 4);
+    expect(customLane.id).toBeDefined();
+    expect(customLane.name).toBe("Quality Assurance");
+
+    const allLanes = crdtStore.getLanes();
+    expect(allLanes.some((l) => l.id === customLane.id)).toBe(true);
+
+    // 3. Update lane properties
+    crdtStore.updateLane(customLane.id, { name: "QA / Staging", wipLimit: 2 });
+    const updatedLane = crdtStore.getLanes().find((l) => l.id === customLane.id);
+    expect(updatedLane?.name).toBe("QA / Staging");
+    expect(updatedLane?.wipLimit).toBe(2);
+
+    // 4. Delete lane and reassign cards
+    const cardInLane = crdtStore.addTask({ title: "Card in QA", laneId: customLane.id });
+    crdtStore.deleteLane(customLane.id);
+
+    expect(crdtStore.getLanes().some((l) => l.id === customLane.id)).toBe(false);
+    const reassignedCard = crdtStore.getTasks().find((t) => t.id === cardInLane.id);
+    expect(reassignedCard?.laneId).not.toBe(customLane.id);
+  });
 });
