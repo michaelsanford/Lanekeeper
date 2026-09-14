@@ -1,0 +1,328 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Lanekeeper - Local-First CRDT Project Management Backend (AWS SAM)
+
+Parameters:
+  Stage:
+    Type: String
+    Default: dev
+    Description: Deployment stage environment (dev, prod)
+  VapidPublicKey:
+    Type: String
+    Default: BEl62iUYgUivxIkv69yViEuiBIa-Ib9-SkvMeAtA3LFgDzkrxZJjSgSnfckjBJuBkr3qBUYIHBQFLXYp5Nksh8U
+    Description: VAPID public key for Web Push notifications
+  VapidPrivateKey:
+    Type: String
+    Default: 1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef
+    Description: VAPID private key for Web Push notifications
+    NoEcho: true
+  VapidSubject:
+    Type: String
+    Default: mailto:notifications@lanekeeper.dev
+    Description: Contact email URI for VAPID push service notifications
+
+Globals:
+  Function:
+    Runtime: nodejs22.x
+    Timeout: 30
+    MemorySize: 512
+    Architectures:
+      - arm64
+    Environment:
+      Variables:
+        STAGE: !Ref Stage
+        TABLE_NAME: !Ref LanekeeperTable
+        USER_POOL_ID: !Ref CognitoUserPool
+        USER_POOL_CLIENT_ID: !Ref CognitoUserPoolClient
+        VAPID_PUBLIC_KEY: !Ref VapidPublicKey
+        VAPID_PRIVATE_KEY: !Ref VapidPrivateKey
+        VAPID_SUBJECT: !Ref VapidSubject
+    Tags:
+      App: Lanekeeper
+      ManagedBy: SAM
+
+Resources:
+  # ==============================================================================
+  # DynamoDB Single-Table Storage
+  # ==============================================================================
+  LanekeeperTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub "lanekeeper-${Stage}"
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: PK
+          AttributeType: S
+        - AttributeName: SK
+          AttributeType: S
+        - AttributeName: GSI1PK
+          AttributeType: S
+        - AttributeName: GSI1SK
+          AttributeType: S
+        - AttributeName: GSI2PK
+          AttributeType: S
+        - AttributeName: GSI2SK
+          AttributeType: S
+      KeySchema:
+        - AttributeName: PK
+          KeyType: HASH
+        - AttributeName: SK
+          KeyType: RANGE
+      GlobalSecondaryIndexes:
+        - IndexName: GSI1
+          KeySchema:
+            - AttributeName: GSI1PK
+              KeyType: HASH
+            - AttributeName: GSI1SK
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+        - IndexName: GSI2
+          KeySchema:
+            - AttributeName: GSI2PK
+              KeyType: HASH
+            - AttributeName: GSI2SK
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+      StreamSpecification:
+        StreamViewType: NEW_AND_OLD_IMAGES
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      TimeToLiveSpecification:
+        AttributeName: ttl
+        Enabled: true
+
+  # ==============================================================================
+  # Amazon Cognito User Pool with Enforced TOTP MFA
+  # ==============================================================================
+  CognitoUserPool:
+    Type: AWS::Cognito::UserPool
+    Properties:
+      UserPoolName: !Sub "lanekeeper-users-${Stage}"
+      UsernameAttributes:
+        - email
+      AutoVerifiedAttributes:
+        - email
+      MfaConfiguration: "ON"
+      EnabledMfas:
+        - SOFTWARE_TOKEN_MFA
+      Policies:
+        PasswordPolicy:
+          MinimumLength: 12
+          RequireUppercase: true
+          RequireLowercase: true
+          RequireNumbers: true
+          RequireSymbols: true
+      AccountRecoverySetting:
+        RecoveryMechanisms:
+          - Name: verified_email
+            Priority: 1
+
+  CognitoUserPoolClient:
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      ClientName: !Sub "lanekeeper-client-${Stage}"
+      UserPoolId: !Ref CognitoUserPool
+      GenerateSecret: false
+      ExplicitAuthFlows:
+        - ALLOW_USER_SRP_AUTH
+        - ALLOW_REFRESH_TOKEN_AUTH
+        - ALLOW_USER_PASSWORD_AUTH
+      PreventUserExistenceErrors: ENABLED
+
+  # ==============================================================================
+  # API Gateway HTTP API v2 with JWT Authorizer
+  # ==============================================================================
+  HttpApi:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      Name: !Sub "lanekeeper-api-${Stage}"
+      CorsConfiguration:
+        AllowOrigins:
+          - "*"
+        AllowHeaders:
+          - Authorization
+          - Content-Type
+          - X-API-Key
+          - X-Hub-Signature-256
+        AllowMethods:
+          - GET
+          - POST
+          - PUT
+          - DELETE
+          - OPTIONS
+        MaxAge: 3600
+      Auth:
+        DefaultAuthorizer: CognitoAuth
+        Authorizers:
+          CognitoAuth:
+            IdentitySource: "$request.header.Authorization"
+            JwtConfiguration:
+              audience:
+                - !Ref CognitoUserPoolClient
+              issuer: !Sub "https://cognito-idp.${AWS::Region}.amazonaws.com/${CognitoUserPool}"
+
+  # ==============================================================================
+  # Lambda Functions
+  # ==============================================================================
+  SyncFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: .
+      Handler: src/handlers/sync.handler
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref LanekeeperTable
+      Events:
+        SyncState:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref HttpApi
+            Path: /api/v1/sync
+            Method: POST
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: "node22"
+        Sourcemap: true
+        EntryPoints:
+          - src/handlers/sync.ts
+
+  IngestFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: .
+      Handler: src/handlers/ingest.handler
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref LanekeeperTable
+      Events:
+        QuickIngest:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref HttpApi
+            Path: /api/v1/quick
+            Method: POST
+            Auth:
+              Authorizer: NONE
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: "node22"
+        Sourcemap: true
+        EntryPoints:
+          - src/handlers/ingest.ts
+
+  GithubWebhookFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: .
+      Handler: src/handlers/github.handler
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref LanekeeperTable
+      Events:
+        GithubWebhook:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref HttpApi
+            Path: /api/v1/integrations/github
+            Method: POST
+            Auth:
+              Authorizer: NONE
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: "node22"
+        Sourcemap: true
+        EntryPoints:
+          - src/handlers/github.ts
+
+  LeasesFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: .
+      Handler: src/handlers/leases.handler
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref LanekeeperTable
+      Events:
+        AllocateLease:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref HttpApi
+            Path: /api/v1/projects/{id}/leases
+            Method: POST
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: "node22"
+        Sourcemap: true
+        EntryPoints:
+          - src/handlers/leases.ts
+
+  PushFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: .
+      Handler: src/handlers/push.handler
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref LanekeeperTable
+      Events:
+        SubscribePush:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref HttpApi
+            Path: /api/v1/notifications/subscribe
+            Method: POST
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: "node22"
+        Sourcemap: true
+        EntryPoints:
+          - src/handlers/push.ts
+
+  SchedulerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: .
+      Handler: src/handlers/scheduler.handler
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref LanekeeperTable
+      Events:
+        ReminderSchedule:
+          Type: Schedule
+          Properties:
+            Schedule: rate(5 minutes)
+            Description: Check and dispatch pending task due-date notifications
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: "node22"
+        Sourcemap: true
+        EntryPoints:
+          - src/handlers/scheduler.ts
+
+Outputs:
+  HttpApiUrl:
+    Description: Base URL for HTTP API v2
+    Value: !Sub "https://${HttpApi}.execute-api.${AWS::Region}.amazonaws.com"
+  UserPoolId:
+    Description: Cognito User Pool ID
+    Value: !Ref CognitoUserPool
+  UserPoolClientId:
+    Description: Cognito App Client ID
+    Value: !Ref CognitoUserPoolClient
+  DynamoDBTableName:
+    Description: Single-Table Name
+    Value: !Ref LanekeeperTable
