@@ -24,7 +24,7 @@
   --color-indigo-100: var(--lk-indigo-100);
 }
 
-/* 1. Lanekeeper Midnight (Default) */
+/* 1. Lanekeeper (Default Dark & Light) */
 :root,
 [data-theme="lanekeeper"] {
   --lk-slate-950: #090d16;
@@ -48,6 +48,31 @@
   --lk-indigo-300: #a5b4fc;
   --lk-indigo-200: #c7d2fe;
   --lk-indigo-100: #e0e7ff;
+}
+
+[data-theme="lanekeeper"][data-mode="light"],
+[data-mode="light"] [data-theme="lanekeeper"] {
+  --lk-slate-950: #f8fafc;
+  --lk-slate-900: #ffffff;
+  --lk-slate-800: #e2e8f0;
+  --lk-slate-700: #cbd5e1;
+  --lk-slate-600: #94a3b8;
+  --lk-slate-500: #64748b;
+  --lk-slate-400: #475569;
+  --lk-slate-300: #334155;
+  --lk-slate-200: #1e293b;
+  --lk-slate-100: #090d16;
+
+  --lk-indigo-950: #eef2ff;
+  --lk-indigo-900: #e0e7ff;
+  --lk-indigo-800: #c7d2fe;
+  --lk-indigo-700: #a5b4fc;
+  --lk-indigo-600: #4f46e5;
+  --lk-indigo-500: #4338ca;
+  --lk-indigo-400: #3730a3;
+  --lk-indigo-300: #312e81;
+  --lk-indigo-200: #1e1b4b;
+  --lk-indigo-100: #0f172a;
 }
 
 /* 2. Dracula Theme */
@@ -75,6 +100,31 @@
   --lk-indigo-100: #f7edff;
 }
 
+[data-theme="dracula"][data-mode="light"],
+[data-mode="light"] [data-theme="dracula"] {
+  --lk-slate-950: #f8f8f2;
+  --lk-slate-900: #ffffff;
+  --lk-slate-800: #e5e5ea;
+  --lk-slate-700: #cfcfe0;
+  --lk-slate-600: #a3a4be;
+  --lk-slate-500: #6272a4;
+  --lk-slate-400: #4f516d;
+  --lk-slate-300: #3e4056;
+  --lk-slate-200: #282a36;
+  --lk-slate-100: #1e1f29;
+
+  --lk-indigo-950: #f6f0ff;
+  --lk-indigo-900: #eddfff;
+  --lk-indigo-800: #d8bdfa;
+  --lk-indigo-700: #bd93f9;
+  --lk-indigo-600: #9052ea;
+  --lk-indigo-500: #ff79c6;
+  --lk-indigo-400: #722ed1;
+  --lk-indigo-300: #531dab;
+  --lk-indigo-200: #391085;
+  --lk-indigo-100: #22075e;
+}
+
 /* 3. Tokyo Night */
 [data-theme="tokyo-night"] {
   --lk-slate-950: #16161e;
@@ -100,7 +150,32 @@
   --lk-indigo-100: #f7768e;
 }
 
-/* 4. Catppuccin Mocha */
+[data-theme="tokyo-night"][data-mode="light"],
+[data-mode="light"] [data-theme="tokyo-night"] {
+  --lk-slate-950: #e1e2e7;
+  --lk-slate-900: #ffffff;
+  --lk-slate-800: #d5d6db;
+  --lk-slate-700: #c4c8da;
+  --lk-slate-600: #9699a3;
+  --lk-slate-500: #68707a;
+  --lk-slate-400: #4c505e;
+  --lk-slate-300: #343b58;
+  --lk-slate-200: #2e303e;
+  --lk-slate-100: #1a1b26;
+
+  --lk-indigo-950: #eaf0fb;
+  --lk-indigo-900: #d6e3f8;
+  --lk-indigo-800: #b5cdf5;
+  --lk-indigo-700: #7aa2f7;
+  --lk-indigo-600: #3760bf;
+  --lk-indigo-500: #2e7de9;
+  --lk-indigo-400: #1e4db0;
+  --lk-indigo-300: #163b8c;
+  --lk-indigo-200: #0f2963;
+  --lk-indigo-100: #0a1c43;
+}
+
+/* 4. Catppuccin Mocha & Latte */
 [data-theme="catppuccin"] {
   --lk-slate-950: #11111b;
   --lk-slate-900: #181825;
@@ -125,7 +200,32 @@
   --lk-indigo-100: #f9e2af;
 }
 
-/* 5. Nord (Arctic) */
+[data-theme="catppuccin"][data-mode="light"],
+[data-mode="light"] [data-theme="catppuccin"] {
+  --lk-slate-950: #eff1f5;
+  --lk-slate-900: #ffffff;
+  --lk-slate-800: #e6e9ef;
+  --lk-slate-700: #ccd0da;
+  --lk-slate-600: #bcc0cc;
+  --lk-slate-500: #9ca0b0;
+  --lk-slate-400: #6c6f85;
+  --lk-slate-300: #5c5f77;
+  --lk-slate-200: #4c4f69;
+  --lk-slate-100: #202027;
+
+  --lk-indigo-950: #f2ebfc;
+  --lk-indigo-900: #e4d4f9;
+  --lk-indigo-800: #c8a7f4;
+  --lk-indigo-700: #a775ee;
+  --lk-indigo-600: #8839ef;
+  --lk-indigo-500: #7287fd;
+  --lk-indigo-400: #6228b3;
+  --lk-indigo-300: #4b1b8c;
+  --lk-indigo-200: #351166;
+  --lk-indigo-100: #1e083a;
+}
+
+/* 5. Nord (Arctic & Snow Storm) */
 [data-theme="nord"] {
   --lk-slate-950: #242933;
   --lk-slate-900: #2e3440;
@@ -150,7 +250,32 @@
   --lk-indigo-100: #a3be8c;
 }
 
-/* 6. One Dark Pro */
+[data-theme="nord"][data-mode="light"],
+[data-mode="light"] [data-theme="nord"] {
+  --lk-slate-950: #eceff4;
+  --lk-slate-900: #ffffff;
+  --lk-slate-800: #e5e9f0;
+  --lk-slate-700: #d8dee9;
+  --lk-slate-600: #aeb8c9;
+  --lk-slate-500: #7b88a1;
+  --lk-slate-400: #4c566a;
+  --lk-slate-300: #434c5e;
+  --lk-slate-200: #3b4252;
+  --lk-slate-100: #2e3440;
+
+  --lk-indigo-950: #e8f1f5;
+  --lk-indigo-900: #d1e3ec;
+  --lk-indigo-800: #a7c9db;
+  --lk-indigo-700: #88c0d0;
+  --lk-indigo-600: #5e81ac;
+  --lk-indigo-500: #496a94;
+  --lk-indigo-400: #385273;
+  --lk-indigo-300: #283a52;
+  --lk-indigo-200: #1b2838;
+  --lk-indigo-100: #0e151e;
+}
+
+/* 6. One Dark Pro & One Light */
 [data-theme="one-dark"] {
   --lk-slate-950: #1e222a;
   --lk-slate-900: #282c34;
@@ -175,7 +300,32 @@
   --lk-indigo-100: #e5c07b;
 }
 
-/* 7. GitHub Dark */
+[data-theme="one-dark"][data-mode="light"],
+[data-mode="light"] [data-theme="one-dark"] {
+  --lk-slate-950: #fafafa;
+  --lk-slate-900: #ffffff;
+  --lk-slate-800: #ebebeb;
+  --lk-slate-700: #e0e0e0;
+  --lk-slate-600: #bebebe;
+  --lk-slate-500: #a0a1a7;
+  --lk-slate-400: #696c77;
+  --lk-slate-300: #4f525d;
+  --lk-slate-200: #383a42;
+  --lk-slate-100: #1e2025;
+
+  --lk-indigo-950: #edf4ff;
+  --lk-indigo-900: #d6e6fe;
+  --lk-indigo-800: #aecdfd;
+  --lk-indigo-700: #78affb;
+  --lk-indigo-600: #4078f2;
+  --lk-indigo-500: #2662e0;
+  --lk-indigo-400: #1b4fc0;
+  --lk-indigo-300: #133a8f;
+  --lk-indigo-200: #0b2359;
+  --lk-indigo-100: #05122e;
+}
+
+/* 7. GitHub Dark & GitHub Light */
 [data-theme="github-dark"] {
   --lk-slate-950: #0d1117;
   --lk-slate-900: #161b22;
@@ -200,7 +350,32 @@
   --lk-indigo-100: #cae8ff;
 }
 
-/* 8. Monokai Pro */
+[data-theme="github-dark"][data-mode="light"],
+[data-mode="light"] [data-theme="github-dark"] {
+  --lk-slate-950: #f6f8fa;
+  --lk-slate-900: #ffffff;
+  --lk-slate-800: #eaeef2;
+  --lk-slate-700: #d0d7de;
+  --lk-slate-600: #afb8c1;
+  --lk-slate-500: #8c959f;
+  --lk-slate-400: #656d76;
+  --lk-slate-300: #424a53;
+  --lk-slate-200: #24292f;
+  --lk-slate-100: #1f2328;
+
+  --lk-indigo-950: #ddf4ff;
+  --lk-indigo-900: #b6e3ff;
+  --lk-indigo-800: #80ccff;
+  --lk-indigo-700: #54aeff;
+  --lk-indigo-600: #0969da;
+  --lk-indigo-500: #0550ae;
+  --lk-indigo-400: #033d8b;
+  --lk-indigo-300: #02285a;
+  --lk-indigo-200: #011938;
+  --lk-indigo-100: #000d1f;
+}
+
+/* 8. Monokai Pro & Monokai Light */
 [data-theme="monokai"] {
   --lk-slate-950: #19181a;
   --lk-slate-900: #221f22;
@@ -225,7 +400,32 @@
   --lk-indigo-100: #ab9df2;
 }
 
-/* 9. Gruvbox Dark */
+[data-theme="monokai"][data-mode="light"],
+[data-mode="light"] [data-theme="monokai"] {
+  --lk-slate-950: #f7f7f7;
+  --lk-slate-900: #ffffff;
+  --lk-slate-800: #ecebe9;
+  --lk-slate-700: #dedcd9;
+  --lk-slate-600: #bab7b3;
+  --lk-slate-500: #8f8c88;
+  --lk-slate-400: #686561;
+  --lk-slate-300: #484542;
+  --lk-slate-200: #2f2d2b;
+  --lk-slate-100: #1a1918;
+
+  --lk-indigo-950: #fff8e1;
+  --lk-indigo-900: #ffecb3;
+  --lk-indigo-800: #ffd54f;
+  --lk-indigo-700: #e69500;
+  --lk-indigo-600: #d97706;
+  --lk-indigo-500: #e11d48;
+  --lk-indigo-400: #b45309;
+  --lk-indigo-300: #92400e;
+  --lk-indigo-200: #78350f;
+  --lk-indigo-100: #451a03;
+}
+
+/* 9. Gruvbox Dark & Gruvbox Light */
 [data-theme="gruvbox"] {
   --lk-slate-950: #1d2021;
   --lk-slate-900: #282828;
@@ -250,7 +450,32 @@
   --lk-indigo-100: #8ec07c;
 }
 
-/* 10. Solarized Dark */
+[data-theme="gruvbox"][data-mode="light"],
+[data-mode="light"] [data-theme="gruvbox"] {
+  --lk-slate-950: #fbf1c7;
+  --lk-slate-900: #f9f5d7;
+  --lk-slate-800: #f2e5bc;
+  --lk-slate-700: #ebdbb2;
+  --lk-slate-600: #d5c4a1;
+  --lk-slate-500: #bdae93;
+  --lk-slate-400: #7c6f64;
+  --lk-slate-300: #504945;
+  --lk-slate-200: #3c3836;
+  --lk-slate-100: #282828;
+
+  --lk-indigo-950: #fdf2e9;
+  --lk-indigo-900: #fbe4d2;
+  --lk-indigo-800: #f4c19a;
+  --lk-indigo-700: #e3864a;
+  --lk-indigo-600: #af3a03;
+  --lk-indigo-500: #b57614;
+  --lk-indigo-400: #8f2f02;
+  --lk-indigo-300: #6d2402;
+  --lk-indigo-200: #4e1a01;
+  --lk-indigo-100: #301001;
+}
+
+/* 10. Solarized Dark & Solarized Light */
 [data-theme="solarized"] {
   --lk-slate-950: #001e26;
   --lk-slate-900: #002b36;
@@ -275,7 +500,32 @@
   --lk-indigo-100: #fdf6e3;
 }
 
-/* 11. Campbell PowerShell (Official Windows Terminal & PowerShell) */
+[data-theme="solarized"][data-mode="light"],
+[data-mode="light"] [data-theme="solarized"] {
+  --lk-slate-950: #fdf6e3;
+  --lk-slate-900: #ffffff;
+  --lk-slate-800: #eee8d5;
+  --lk-slate-700: #e0d9c4;
+  --lk-slate-600: #93a1a1;
+  --lk-slate-500: #839496;
+  --lk-slate-400: #657b83;
+  --lk-slate-300: #586e75;
+  --lk-slate-200: #073642;
+  --lk-slate-100: #002b36;
+
+  --lk-indigo-950: #eaf4f9;
+  --lk-indigo-900: #d4eaf5;
+  --lk-indigo-800: #a7d3ea;
+  --lk-indigo-700: #5badd9;
+  --lk-indigo-600: #268bd2;
+  --lk-indigo-500: #2aa198;
+  --lk-indigo-400: #1b6fa9;
+  --lk-indigo-300: #135482;
+  --lk-indigo-200: #0d3a5a;
+  --lk-indigo-100: #072133;
+}
+
+/* 11. Campbell PowerShell */
 [data-theme="campbell-powershell"] {
   --lk-slate-950: #011738;
   --lk-slate-900: #012456;
@@ -300,7 +550,32 @@
   --lk-indigo-100: #ffffff;
 }
 
-/* 12. Campbell (Windows Terminal Default) */
+[data-theme="campbell-powershell"][data-mode="light"],
+[data-mode="light"] [data-theme="campbell-powershell"] {
+  --lk-slate-950: #f0f5fb;
+  --lk-slate-900: #ffffff;
+  --lk-slate-800: #e1ecf8;
+  --lk-slate-700: #cde0f5;
+  --lk-slate-600: #a2c4ed;
+  --lk-slate-500: #689cd9;
+  --lk-slate-400: #3b77be;
+  --lk-slate-300: #1f5497;
+  --lk-slate-200: #0f3a74;
+  --lk-slate-100: #011738;
+
+  --lk-indigo-950: #e8f1fd;
+  --lk-indigo-900: #cfe3fb;
+  --lk-indigo-800: #a2c8f8;
+  --lk-indigo-700: #6ca7f4;
+  --lk-indigo-600: #0066cc;
+  --lk-indigo-500: #004ea1;
+  --lk-indigo-400: #003975;
+  --lk-indigo-300: #00254c;
+  --lk-indigo-200: #001328;
+  --lk-indigo-100: #000814;
+}
+
+/* 12. Campbell (Windows Terminal) */
 [data-theme="campbell"] {
   --lk-slate-950: #080808;
   --lk-slate-900: #0c0c0c;
@@ -323,6 +598,31 @@
   --lk-indigo-300: #f9f1a5;
   --lk-indigo-200: #16c60c;
   --lk-indigo-100: #ffffff;
+}
+
+[data-theme="campbell"][data-mode="light"],
+[data-mode="light"] [data-theme="campbell"] {
+  --lk-slate-950: #f3f3f3;
+  --lk-slate-900: #ffffff;
+  --lk-slate-800: #e5e5e5;
+  --lk-slate-700: #d4d4d4;
+  --lk-slate-600: #a6a6a6;
+  --lk-slate-500: #767676;
+  --lk-slate-400: #555555;
+  --lk-slate-300: #363636;
+  --lk-slate-200: #242424;
+  --lk-slate-100: #0c0c0c;
+
+  --lk-indigo-950: #eaf1fb;
+  --lk-indigo-900: #d3e2f7;
+  --lk-indigo-800: #a5c5ee;
+  --lk-indigo-700: #6ba1e4;
+  --lk-indigo-600: #005fb8;
+  --lk-indigo-500: #004c94;
+  --lk-indigo-400: #003970;
+  --lk-indigo-300: #00264d;
+  --lk-indigo-200: #00152b;
+  --lk-indigo-100: #000814;
 }
 
 /* 13. Roadworks Theme */
@@ -350,9 +650,39 @@
   --lk-indigo-100: #ffffff;
 }
 
+[data-theme="roadworks"][data-mode="light"],
+[data-mode="light"] [data-theme="roadworks"] {
+  --lk-slate-950: #f4f4f6;
+  --lk-slate-900: #ffffff;
+  --lk-slate-800: #e4e6eb;
+  --lk-slate-700: #cbd5e1;
+  --lk-slate-600: #94a3b8;
+  --lk-slate-500: #64748b;
+  --lk-slate-400: #475569;
+  --lk-slate-300: #334155;
+  --lk-slate-200: #1e293b;
+  --lk-slate-100: #111316;
+
+  --lk-indigo-950: #fff7ed;
+  --lk-indigo-900: #ffedd5;
+  --lk-indigo-800: #fed7aa;
+  --lk-indigo-700: #fb923c;
+  --lk-indigo-600: #ea580c;
+  --lk-indigo-500: #d97706;
+  --lk-indigo-400: #c2410c;
+  --lk-indigo-300: #9a3412;
+  --lk-indigo-200: #7c2d12;
+  --lk-indigo-100: #431407;
+}
+
 /* Playful Roadworks Accents: Double yellow keep-in-lane line on header */
 [data-theme="roadworks"] header {
   border-bottom: 4px double #fbbf24 !important;
+}
+
+[data-theme="roadworks"][data-mode="light"] header,
+[data-mode="light"] [data-theme="roadworks"] header {
+  border-bottom: 4px double #d97706 !important;
 }
 
 /* Dashed highway lane lines on Kanban columns with safety orange glow on hover */
@@ -363,6 +693,17 @@
 
 [data-theme="roadworks"] div[class*="min-w-[20rem]"]:hover {
   border-color: rgba(234, 88, 12, 0.7) !important;
+}
+
+[data-theme="roadworks"][data-mode="light"] div[class*="min-w-[20rem]"],
+[data-mode="light"] [data-theme="roadworks"] div[class*="min-w-[20rem]"] {
+  border-style: dashed !important;
+  border-color: rgba(217, 119, 6, 0.45) !important;
+}
+
+[data-theme="roadworks"][data-mode="light"] div[class*="min-w-[20rem]"]:hover,
+[data-mode="light"] [data-theme="roadworks"] div[class*="min-w-[20rem]"]:hover {
+  border-color: rgba(234, 88, 12, 0.9) !important;
 }
 
 @layer base {

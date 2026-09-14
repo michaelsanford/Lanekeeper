@@ -50,7 +50,7 @@ export function App() {
   const [authSession, setAuthSession] = useState<AuthSession | null>(getStoredAuthSession);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
 
-  const { theme, setTheme } = useTheme();
+  const { theme, mode, setTheme, setMode } = useTheme();
 
   const apiUrl = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:3001' : '');
   const syncToken = authSession?.accessToken || (import.meta.env.DEV ? 'lk_dev_seed_token' : undefined);
@@ -189,7 +189,9 @@ export function App() {
         pushSubscribed={isSubscribed}
         onTogglePush={requestAndSubscribe}
         currentTheme={theme}
+        currentMode={mode}
         onSelectTheme={setTheme}
+        onSelectMode={setMode}
       />
 
       {/* Main View Area */}
@@ -290,7 +292,9 @@ export function App() {
           setIsProjectSettingsOpen(false);
         }}
         currentTheme={theme}
+        currentMode={mode}
         onSelectTheme={setTheme}
+        onSelectMode={setMode}
         onSeedSampleTasks={seedSampleTasks}
       />
     </div>

@@ -216,7 +216,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
               <button
                 type="button"
                 onClick={handleToday}
-                className="px-2.5 py-1 text-xs font-semibold text-slate-300 hover:text-white hover:bg-slate-800 rounded transition-colors"
+                className="px-2.5 py-1 text-xs font-semibold text-slate-300 hover:text-slate-100 hover:bg-slate-800 rounded transition-colors"
               >
                 Today
               </button>

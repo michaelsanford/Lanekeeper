@@ -10,7 +10,9 @@ import {
   Palette,
   Check,
   Table as TableIcon,
-  Calendar as CalendarIcon
+  Calendar as CalendarIcon,
+  Sun,
+  Moon
 } from 'lucide-react';
 import {
   LanekeeperLogo,
@@ -18,7 +20,7 @@ import {
   LaneKeepIcon
 } from '../icons/LaneIcons.js';
 import type { ProjectMetadata } from '../../types/index.js';
-import { type ThemeId, THEMES } from '../../utils/themes.js';
+import { type ThemeId, type ThemeMode, THEMES, getThemePreview } from '../../utils/themes.js';
 
 export type ActiveView = 'board' | 'table' | 'calendar' | 'flightdeck';
 
@@ -33,7 +35,9 @@ interface HeaderProps {
   pushSubscribed: boolean;
   onTogglePush: () => void;
   currentTheme: ThemeId;
+  currentMode: ThemeMode;
   onSelectTheme: (themeId: ThemeId) => void;
+  onSelectMode: (mode: ThemeMode) => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -47,7 +51,9 @@ export const Header: React.FC<HeaderProps> = ({
   pushSubscribed,
   onTogglePush,
   currentTheme,
-  onSelectTheme
+  currentMode,
+  onSelectTheme,
+  onSelectMode
 }) => {
   const [isThemeMenuOpen, setIsThemeMenuOpen] = useState(false);
   const themeMenuRef = useRef<HTMLDivElement>(null);
@@ -207,6 +213,39 @@ export const Header: React.FC<HeaderProps> = ({
 
           {isThemeMenuOpen && (
             <div className="absolute right-0 mt-2 w-72 bg-slate-900 border border-slate-800 rounded-xl shadow-2xl overflow-hidden py-1.5 z-50 animate-fade-in">
+              {/* Display Mode Switcher (Light vs Dark) */}
+              <div className="px-3 py-2 border-b border-slate-800/80 bg-slate-950/40">
+                <div className="text-[11px] font-mono uppercase tracking-wider text-slate-400 mb-1.5">
+                  Display Mode
+                </div>
+                <div className="grid grid-cols-2 gap-1 p-1 bg-slate-950/80 rounded-lg border border-slate-800">
+                  <button
+                    type="button"
+                    onClick={() => onSelectMode('light')}
+                    className={`flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-md text-xs font-semibold transition-all ${
+                      currentMode === 'light'
+                        ? 'bg-indigo-600 text-white shadow-sm'
+                        : 'text-slate-400 hover:text-slate-200'
+                    }`}
+                  >
+                    <Sun className="w-3.5 h-3.5" />
+                    <span>Light</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => onSelectMode('dark')}
+                    className={`flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-md text-xs font-semibold transition-all ${
+                      currentMode === 'dark'
+                        ? 'bg-indigo-600 text-white shadow-sm'
+                        : 'text-slate-400 hover:text-slate-200'
+                    }`}
+                  >
+                    <Moon className="w-3.5 h-3.5" />
+                    <span>Dark</span>
+                  </button>
+                </div>
+              </div>
+
               <div className="px-3.5 py-2 border-b border-slate-800/80 flex items-center justify-between text-xs text-slate-400 font-mono uppercase tracking-wider">
                 <span>Colour Schemes</span>
                 <span className="text-[11px] text-slate-500 lowercase">({THEMES.length} themes)</span>
@@ -215,6 +254,7 @@ export const Header: React.FC<HeaderProps> = ({
               <div className="max-h-80 overflow-y-auto py-1">
                 {THEMES.map((th) => {
                   const isSelected = th.id === currentTheme;
+                  const preview = getThemePreview(th, currentMode);
                   return (
                     <button
                       key={th.id}
@@ -224,7 +264,7 @@ export const Header: React.FC<HeaderProps> = ({
                       }}
                       className={`w-full px-3.5 py-2 flex items-center justify-between text-left transition-colors text-xs ${
                         isSelected
-                          ? 'bg-indigo-950/60 text-indigo-300 font-semibold'
+                          ? 'bg-indigo-950/60 text-indigo-400 font-semibold'
                           : 'text-slate-300 hover:bg-slate-800/70'
                       }`}
                     >
@@ -233,20 +273,20 @@ export const Header: React.FC<HeaderProps> = ({
                         <div className="flex -space-x-1 items-center">
                           <span
                             className="w-3.5 h-3.5 rounded-full border border-slate-700"
-                            style={{ backgroundColor: th.previewColors.bg }}
+                            style={{ backgroundColor: preview.bg }}
                           />
                           <span
                             className="w-3.5 h-3.5 rounded-full border border-slate-700"
-                            style={{ backgroundColor: th.previewColors.surface }}
+                            style={{ backgroundColor: preview.surface }}
                           />
                           <span
                             className="w-3.5 h-3.5 rounded-full border border-slate-700"
-                            style={{ backgroundColor: th.previewColors.accent }}
+                            style={{ backgroundColor: preview.accent }}
                           />
                         </div>
                         <div>
-                          <div className="font-medium text-slate-200">{th.name}</div>
-                          <div className="text-[10px] text-slate-500 font-mono">{th.authorOrOrigin}</div>
+                          <div className="font-medium text-slate-100">{th.name}</div>
+                          <div className="text-[10px] text-slate-400 font-mono">{th.authorOrOrigin}</div>
                         </div>
                       </div>
 

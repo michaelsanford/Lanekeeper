@@ -7,11 +7,13 @@ import {
   Plus,
   Check,
   ArrowRight,
-  Palette
+  Palette,
+  Sun,
+  Moon
 } from 'lucide-react';
 import { SwimlaneIcon, SwimlaneBuoyIcon, TrafficLight } from '../icons/LaneIcons.js';
 import type { ProjectMetadata, Lane, LaneType } from '../../types/index.js';
-import { type ThemeId, THEMES } from '../../utils/themes.js';
+import { type ThemeId, type ThemeMode, THEMES, getThemePreview } from '../../utils/themes.js';
 
 interface ProjectSettingsModalProps {
   isOpen: boolean;
@@ -26,7 +28,9 @@ interface ProjectSettingsModalProps {
   onCreateProject: (name: string, prefix: string) => void;
   onSwitchProject: (projectId: string, name?: string, prefix?: string) => void;
   currentTheme?: ThemeId;
+  currentMode?: ThemeMode;
   onSelectTheme?: (themeId: ThemeId) => void;
+  onSelectMode?: (mode: ThemeMode) => void;
   onSeedSampleTasks?: () => void;
 }
 
@@ -43,7 +47,9 @@ export const ProjectSettingsModal: React.FC<ProjectSettingsModalProps> = ({
   onCreateProject,
   onSwitchProject,
   currentTheme,
+  currentMode,
   onSelectTheme,
+  onSelectMode,
   onSeedSampleTasks
 }) => {
   const [activeTab, setActiveTab] = useState<'general' | 'lanes' | 'projects' | 'themes'>('general');
@@ -496,16 +502,47 @@ export const ProjectSettingsModal: React.FC<ProjectSettingsModalProps> = ({
           {/* Tab 4: Theme & Appearance */}
           {activeTab === 'themes' && (
             <div className="space-y-5 text-sm">
-              <div>
-                <h3 className="text-sm font-bold text-slate-100">Coding Colour Schemes</h3>
-                <p className="text-xs text-slate-400 mt-0.5">
-                  Select an iconic coding theme to customize Lanekeeper's full interface palette.
-                </p>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-slate-800/80">
+                <div>
+                  <h3 className="text-sm font-bold text-slate-100">Coding Colour Schemes</h3>
+                  <p className="text-xs text-slate-400 mt-0.5">
+                    Select light or dark mode and an iconic coding palette to customize Lanekeeper.
+                  </p>
+                </div>
+
+                {/* Mode Switcher: Light vs Dark */}
+                <div className="flex items-center bg-slate-950/80 p-1 rounded-xl border border-slate-800 self-start sm:self-auto">
+                  <button
+                    type="button"
+                    onClick={() => onSelectMode?.('light')}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                      currentMode === 'light'
+                        ? 'bg-indigo-600 text-white shadow-sm'
+                        : 'text-slate-400 hover:text-slate-200'
+                    }`}
+                  >
+                    <Sun className="w-3.5 h-3.5" />
+                    <span>Light Mode</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => onSelectMode?.('dark')}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                      currentMode === 'dark'
+                        ? 'bg-indigo-600 text-white shadow-sm'
+                        : 'text-slate-400 hover:text-slate-200'
+                    }`}
+                  >
+                    <Moon className="w-3.5 h-3.5" />
+                    <span>Dark Mode</span>
+                  </button>
+                </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 {THEMES.map((th) => {
                   const isActive = th.id === currentTheme;
+                  const preview = getThemePreview(th, currentMode || 'dark');
                   return (
                     <div
                       key={th.id}
@@ -539,31 +576,33 @@ export const ProjectSettingsModal: React.FC<ProjectSettingsModalProps> = ({
                         <div className="flex items-center gap-1.5 flex-1">
                           <span
                             className="w-5 h-5 rounded-md border border-slate-700/80"
-                            style={{ backgroundColor: th.previewColors.bg }}
+                            style={{ backgroundColor: preview.bg }}
                             title="Background"
                           />
                           <span
                             className="w-5 h-5 rounded-md border border-slate-700/80"
-                            style={{ backgroundColor: th.previewColors.surface }}
+                            style={{ backgroundColor: preview.surface }}
                             title="Surface"
                           />
                           <span
                             className="w-5 h-5 rounded-md border border-slate-700/80"
-                            style={{ backgroundColor: th.previewColors.border }}
+                            style={{ backgroundColor: preview.border }}
                             title="Border"
                           />
                           <span
                             className="w-5 h-5 rounded-md border border-slate-700/80"
-                            style={{ backgroundColor: th.previewColors.accent }}
+                            style={{ backgroundColor: preview.accent }}
                             title="Accent"
                           />
                           <span
                             className="w-5 h-5 rounded-md border border-slate-700/80"
-                            style={{ backgroundColor: th.previewColors.text }}
+                            style={{ backgroundColor: preview.text }}
                             title="Text"
                           />
                         </div>
-                        <span className="text-xs font-mono text-slate-500 uppercase">Palette</span>
+                        <span className="text-xs font-mono text-slate-400 uppercase">
+                          {currentMode === 'light' ? 'Light' : 'Dark'}
+                        </span>
                       </div>
                     </div>
                   );
