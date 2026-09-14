@@ -17,7 +17,7 @@ describe('Coding Themes Catalog & Manager', () => {
     }
   });
 
-  it('contains famous and popular coding colour themes including Campbell and Traffic Road Paint', () => {
+  it('contains famous and popular coding colour themes including Campbell and Roadworks', () => {
     expect(THEMES.length).toBe(13);
 
     const expectedIds: ThemeId[] = [
@@ -33,7 +33,7 @@ describe('Coding Themes Catalog & Manager', () => {
       'solarized',
       'campbell-powershell',
       'campbell',
-      'traffic'
+      'roadworks'
     ];
 
     for (const expectedId of expectedIds) {
@@ -64,15 +64,22 @@ describe('Coding Themes Catalog & Manager', () => {
     expect(getStoredTheme()).toBe('campbell-powershell');
   });
 
-  it('correctly applies the playful Traffic & Road Paint theme', () => {
-    applyTheme('traffic');
-    expect(getStoredTheme()).toBe('traffic');
+  it('correctly applies the playful Roadworks theme with deep orange accent', () => {
+    applyTheme('roadworks');
+    expect(getStoredTheme()).toBe('roadworks');
     if (typeof document !== 'undefined') {
-      expect(document.documentElement.getAttribute('data-theme')).toBe('traffic');
+      expect(document.documentElement.getAttribute('data-theme')).toBe('roadworks');
     }
-    const trafficTheme = THEMES.find((t) => t.id === 'traffic');
-    expect(trafficTheme?.name).toBe('Traffic & Road Paint');
-    expect(trafficTheme?.previewColors.accent).toBe('#ffc700');
+    const roadworksTheme = THEMES.find((t) => t.id === 'roadworks');
+    expect(roadworksTheme?.name).toBe('Roadworks');
+    expect(roadworksTheme?.previewColors.accent).toBe('#ea580c');
+  });
+
+  it('maps legacy traffic storage key to roadworks', () => {
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem('lanekeeper_theme', 'traffic');
+      expect(getStoredTheme()).toBe('roadworks');
+    }
   });
 
   it('smoothly switches across various coding themes', () => {
@@ -87,7 +94,7 @@ describe('Coding Themes Catalog & Manager', () => {
       'solarized',
       'campbell-powershell',
       'campbell',
-      'traffic'
+      'roadworks'
     ];
 
     for (const th of testThemes) {

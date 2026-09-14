@@ -9,7 +9,7 @@ import {
   ArrowRight,
   Palette
 } from 'lucide-react';
-import { SwimlaneIcon, SwimlaneBuoyIcon } from '../icons/LaneIcons.js';
+import { SwimlaneIcon, SwimlaneBuoyIcon, TrafficLight } from '../icons/LaneIcons.js';
 import type { ProjectMetadata, Lane, LaneType } from '../../types/index.js';
 import { type ThemeId, THEMES } from '../../utils/themes.js';
 
@@ -257,20 +257,33 @@ export const ProjectSettingsModal: React.FC<ProjectSettingsModalProps> = ({
                     </div>
 
                     <div className="flex items-center gap-2.5">
-                      {/* Lane Type */}
-                      <select
-                        value={lane.type}
-                        onChange={(e) =>
-                          onUpdateLane(lane.id, { type: e.target.value as LaneType })
-                        }
-                        className="bg-slate-900 text-slate-300 px-2.5 py-1.5 rounded-md border border-slate-800 outline-none text-xs"
-                      >
-                        <option value="backlog">Backlog</option>
-                        <option value="unstarted">Unstarted</option>
-                        <option value="started">Started</option>
-                        <option value="completed">Completed</option>
-                        <option value="cancelled">Cancelled</option>
-                      </select>
+                      {/* Lane Type & Signal */}
+                      <div className="flex items-center gap-1.5 bg-slate-900 px-2 py-1 rounded-md border border-slate-800">
+                        <TrafficLight
+                          state={
+                            lane.type === 'completed'
+                              ? 'green'
+                              : lane.type === 'started'
+                              ? 'amber'
+                              : 'red'
+                          }
+                          size={16}
+                          title={`Flow Signal: ${lane.type}`}
+                        />
+                        <select
+                          value={lane.type}
+                          onChange={(e) =>
+                            onUpdateLane(lane.id, { type: e.target.value as LaneType })
+                          }
+                          className="bg-transparent text-slate-300 outline-none text-xs cursor-pointer"
+                        >
+                          <option value="backlog">Backlog</option>
+                          <option value="unstarted">Unstarted</option>
+                          <option value="started">Started</option>
+                          <option value="completed">Completed</option>
+                          <option value="cancelled">Cancelled</option>
+                        </select>
+                      </div>
 
                       {/* WIP Limit */}
                       <div className="flex items-center gap-1.5">

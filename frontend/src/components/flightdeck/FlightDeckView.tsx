@@ -8,7 +8,7 @@ import {
   FileText,
   Plus
 } from 'lucide-react';
-import { LaneKeepIcon } from '../icons/LaneIcons.js';
+import { LaneKeepIcon, TrafficLight } from '../icons/LaneIcons.js';
 import type { Task } from '../../types/index.js';
 
 interface FlightDeckViewProps {
@@ -88,9 +88,31 @@ export const FlightDeckView: React.FC<FlightDeckViewProps> = ({
           {/* Active Flight Section */}
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <h2 className="text-sm font-bold uppercase tracking-wider text-slate-300 flex items-center gap-2">
+              <h2 className="text-sm font-bold uppercase tracking-wider text-slate-300 flex items-center gap-2.5">
                 <LaneKeepIcon size={16} className="text-indigo-400" />
                 <span>In Lane ({inFlightTasks.length}/3 WIP)</span>
+                <TrafficLight
+                  state={
+                    inFlightTasks.length > 3
+                      ? 'red'
+                      : inFlightTasks.length === 3
+                      ? 'amber'
+                      : inFlightTasks.length > 0
+                      ? 'green'
+                      : 'off'
+                  }
+                  size={16}
+                  horizontal
+                  title={`Traffic Flow: ${
+                    inFlightTasks.length > 3
+                      ? 'Red - Exceeding Recommended WIP'
+                      : inFlightTasks.length === 3
+                      ? 'Amber - At WIP Capacity'
+                      : inFlightTasks.length > 0
+                      ? 'Green - Flow Open'
+                      : 'Off - Idle'
+                  }`}
+                />
               </h2>
               {inFlightTasks.length > 3 && (
                 <span className="text-xs text-rose-400 bg-rose-950/50 px-2.5 py-0.5 rounded border border-rose-800/60 font-mono font-medium">

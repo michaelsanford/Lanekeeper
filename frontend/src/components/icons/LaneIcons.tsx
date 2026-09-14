@@ -207,3 +207,99 @@ export const LaneLimitAlertIcon: React.FC<IconProps> = ({
     <circle cx="8" cy="11.75" r="0.75" fill="currentColor" stroke="none" />
   </svg>
 );
+
+export type TrafficLightState = 'red' | 'amber' | 'green' | 'all' | 'off';
+
+export interface TrafficLightProps extends React.SVGProps<SVGSVGElement> {
+  state?: TrafficLightState;
+  size?: number | string;
+  className?: string;
+  horizontal?: boolean;
+  title?: string;
+}
+
+/**
+ * TrafficLight: Signal indicator for flow control and capacity limits.
+ * Features realistic visored casing with active Red (Stop/Exceeded),
+ * Amber (Caution/Capacity), and Green (Flow/Clear) signal lenses.
+ */
+export const TrafficLight: React.FC<TrafficLightProps> = ({
+  state = 'green',
+  size = 24,
+  className = '',
+  horizontal = false,
+  title,
+  ...props
+}) => {
+  const isRed = state === 'red' || state === 'all';
+  const isAmber = state === 'amber' || state === 'all';
+  const isGreen = state === 'green' || state === 'all';
+
+  if (horizontal) {
+    return (
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width={typeof size === 'number' ? size * 2 : size}
+        height={size}
+        viewBox="0 0 32 14"
+        fill="none"
+        className={`inline-block shrink-0 ${className}`}
+        {...props}
+      >
+        {title && <title>{title}</title>}
+        {/* Signal Casing */}
+        <rect x="1" y="1" width="30" height="12" rx="3.5" fill="#14171c" stroke="#2d333e" strokeWidth="1.2" />
+
+        {/* Visors */}
+        <path d="M4 3.5 Q6 1.5 8 3.5" stroke="#3e4654" strokeWidth="0.8" fill="none" />
+        <path d="M14 3.5 Q16 1.5 18 3.5" stroke="#3e4654" strokeWidth="0.8" fill="none" />
+        <path d="M24 3.5 Q26 1.5 28 3.5" stroke="#3e4654" strokeWidth="0.8" fill="none" />
+
+        {/* Red Lamp */}
+        <circle cx="6" cy="7" r="2.75" fill={isRed ? '#ef4444' : '#451414'} />
+        {isRed && <circle cx="5" cy="6" r="0.75" fill="#ffffff" opacity="0.6" />}
+
+        {/* Amber Lamp */}
+        <circle cx="16" cy="7" r="2.75" fill={isAmber ? '#f59e0b' : '#3d2908'} />
+        {isAmber && <circle cx="15" cy="6" r="0.75" fill="#ffffff" opacity="0.6" />}
+
+        {/* Green Lamp */}
+        <circle cx="26" cy="7" r="2.75" fill={isGreen ? '#22c55e' : '#0d2e18'} />
+        {isGreen && <circle cx="25" cy="6" r="0.75" fill="#ffffff" opacity="0.6" />}
+      </svg>
+    );
+  }
+
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width={typeof size === 'number' ? Math.round(Number(size) * 0.47) : size}
+      height={size}
+      viewBox="0 0 14 30"
+      fill="none"
+      className={`inline-block shrink-0 ${className}`}
+      {...props}
+    >
+      {title && <title>{title}</title>}
+      {/* Signal Casing */}
+      <rect x="1" y="1" width="12" height="28" rx="3.5" fill="#14171c" stroke="#2d333e" strokeWidth="1.2" />
+
+      {/* Visors */}
+      <path d="M3.5 4 Q7 2 10.5 4" stroke="#3e4654" strokeWidth="0.9" fill="none" />
+      <path d="M3.5 12.5 Q7 10.5 10.5 12.5" stroke="#3e4654" strokeWidth="0.9" fill="none" />
+      <path d="M3.5 21 Q7 19 10.5 21" stroke="#3e4654" strokeWidth="0.9" fill="none" />
+
+      {/* Red Lamp */}
+      <circle cx="7" cy="6" r="2.75" fill={isRed ? '#ef4444' : '#451414'} />
+      {isRed && <circle cx="6" cy="5" r="0.75" fill="#ffffff" opacity="0.6" />}
+
+      {/* Amber Lamp */}
+      <circle cx="7" cy="14.5" r="2.75" fill={isAmber ? '#f59e0b' : '#3d2908'} />
+      {isAmber && <circle cx="6" cy="13.5" r="0.75" fill="#ffffff" opacity="0.6" />}
+
+      {/* Green Lamp */}
+      <circle cx="7" cy="23" r="2.75" fill={isGreen ? '#22c55e' : '#0d2e18'} />
+      {isGreen && <circle cx="6" cy="22" r="0.75" fill="#ffffff" opacity="0.6" />}
+    </svg>
+  );
+};

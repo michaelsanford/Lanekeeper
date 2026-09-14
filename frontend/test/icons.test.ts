@@ -6,7 +6,8 @@ import {
   SwimlaneIcon,
   LaneKeepIcon,
   SwimlaneBuoyIcon,
-  LaneLimitAlertIcon
+  LaneLimitAlertIcon,
+  TrafficLight
 } from '../src/components/icons/LaneIcons.js';
 
 describe('Swimlane & Lane Keeping Iconography', () => {
@@ -52,5 +53,20 @@ describe('Swimlane & Lane Keeping Iconography', () => {
     const html = renderToString(React.createElement(LaneLimitAlertIcon, { size: 14 }));
     expect(html).toContain('<svg');
     expect(html).toContain('viewBox="0 0 16 16"');
+  });
+
+  it('renders TrafficLight with vertical and horizontal signal states', () => {
+    const greenHtml = renderToString(React.createElement(TrafficLight, { state: 'green', size: 20 }));
+    expect(greenHtml).toContain('viewBox="0 0 14 30"');
+    expect(greenHtml).toContain('#22c55e'); // Active green lamp
+
+    const redHtml = renderToString(React.createElement(TrafficLight, { state: 'red', size: 20 }));
+    expect(redHtml).toContain('#ef4444'); // Active red lamp
+
+    const amberHtml = renderToString(React.createElement(TrafficLight, { state: 'amber', size: 20 }));
+    expect(amberHtml).toContain('#f59e0b'); // Active amber lamp
+
+    const horizontalHtml = renderToString(React.createElement(TrafficLight, { state: 'green', size: 16, horizontal: true }));
+    expect(horizontalHtml).toContain('viewBox="0 0 32 14"');
   });
 });

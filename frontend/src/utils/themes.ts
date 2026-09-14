@@ -11,7 +11,7 @@ export type ThemeId =
   | 'solarized'
   | 'campbell-powershell'
   | 'campbell'
-  | 'traffic';
+  | 'roadworks';
 
 export interface ThemeInfo {
   id: ThemeId;
@@ -185,15 +185,15 @@ export const THEMES: ThemeInfo[] = [
     }
   },
   {
-    id: 'traffic',
-    name: 'Traffic & Road Paint',
-    authorOrOrigin: 'Highway Department',
-    description: 'Playful fresh asphalt tarmac canvas with double-yellow lines, traffic cone orange, and reflective white road markings',
+    id: 'roadworks',
+    name: 'Roadworks',
+    authorOrOrigin: 'Highway & Traffic Safety',
+    description: 'Playful asphalt tarmac canvas with safety orange, highway yellow, reflective white, and traffic signal flow control',
     previewColors: {
-      bg: '#121316',
-      surface: '#1a1d22',
-      border: '#2b3039',
-      accent: '#ffc700',
+      bg: '#111316',
+      surface: '#181b20',
+      border: '#292e37',
+      accent: '#ea580c',
       text: '#ffffff'
     }
   }
@@ -205,9 +205,12 @@ let memoryTheme: ThemeId = 'lanekeeper';
 export function getStoredTheme(): ThemeId {
   if (typeof localStorage !== 'undefined') {
     try {
-      const saved = localStorage.getItem(THEME_STORAGE_KEY) as ThemeId | null;
+      const saved = localStorage.getItem(THEME_STORAGE_KEY) as string | null;
+      if (saved === 'traffic') {
+        return 'roadworks';
+      }
       if (saved && THEMES.some((t) => t.id === saved)) {
-        return saved;
+        return saved as ThemeId;
       }
     } catch {}
   }

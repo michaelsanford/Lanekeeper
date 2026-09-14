@@ -325,44 +325,44 @@
   --lk-indigo-100: #ffffff;
 }
 
-/* 13. Traffic & Road Paint */
-[data-theme="traffic"] {
-  --lk-slate-950: #121316;
-  --lk-slate-900: #191c21;
-  --lk-slate-800: #2a2f38;
-  --lk-slate-700: #3c434f;
-  --lk-slate-600: #545e6e;
-  --lk-slate-500: #737f94;
-  --lk-slate-400: #9aa7ba;
-  --lk-slate-300: #cbd4e2;
+/* 13. Roadworks Theme */
+[data-theme="roadworks"] {
+  --lk-slate-950: #111316;
+  --lk-slate-900: #181b20;
+  --lk-slate-800: #292e37;
+  --lk-slate-700: #3b424f;
+  --lk-slate-600: #535d6e;
+  --lk-slate-500: #727e93;
+  --lk-slate-400: #99a6b9;
+  --lk-slate-300: #cad3e1;
   --lk-slate-200: #e8edf5;
   --lk-slate-100: #ffffff;
 
-  --lk-indigo-950: #2b1d00;
-  --lk-indigo-900: #4a3200;
-  --lk-indigo-800: #734e00;
-  --lk-indigo-700: #a36f00;
-  --lk-indigo-600: #d98800;
-  --lk-indigo-500: #ffaa00;
-  --lk-indigo-400: #ffc700;
-  --lk-indigo-300: #ffd84d;
-  --lk-indigo-200: #ffe999;
-  --lk-indigo-100: #fff8e1;
+  --lk-indigo-950: #2b1104;
+  --lk-indigo-900: #4a1c07;
+  --lk-indigo-800: #7c2d12;
+  --lk-indigo-700: #9a3412;
+  --lk-indigo-600: #c2410c;
+  --lk-indigo-500: #ea580c;
+  --lk-indigo-400: #f97316;
+  --lk-indigo-300: #fbbf24;
+  --lk-indigo-200: #fde047;
+  --lk-indigo-100: #ffffff;
 }
 
-/* Playful Traffic Road Accents: Double yellow keep-in-lane line on header */
-[data-theme="traffic"] header {
-  border-bottom: 4px double #ffc700 !important;
+/* Playful Roadworks Accents: Double yellow keep-in-lane line on header */
+[data-theme="roadworks"] header {
+  border-bottom: 4px double #fbbf24 !important;
 }
 
-/* Dashed highway lane lines on Kanban columns */
-[data-theme="traffic"] div[class*="min-w-[20rem]"] {
+/* Dashed highway lane lines on Kanban columns with safety orange glow on hover */
+[data-theme="roadworks"] div[class*="min-w-[20rem]"] {
   border-style: dashed !important;
-  border-color: rgba(255, 199, 0, 0.3) !important;
+  border-color: rgba(251, 191, 36, 0.35) !important;
 }
 
-[data-theme="traffic"] div[class*="min-w-[20rem]"]:hover {
-  border-color: rgba(255, 199, 0, 0.6) !important;
+[data-theme="roadworks"] div[class*="min-w-[20rem]"]:hover {
+  border-color: rgba(234, 88, 12, 0.7) !important;
 }
 
 @layer base {

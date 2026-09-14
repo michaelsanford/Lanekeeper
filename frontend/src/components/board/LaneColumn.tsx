@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useDroppable } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { Plus } from 'lucide-react';
-import { SwimlaneBuoyIcon, LaneLimitAlertIcon } from '../icons/LaneIcons.js';
+import { SwimlaneBuoyIcon, TrafficLight } from '../icons/LaneIcons.js';
 import type { Lane, Task } from '../../types/index.js';
 import { TaskCard } from './TaskCard.js';
 
@@ -65,24 +65,47 @@ export const LaneColumn: React.FC<LaneColumnProps> = ({
           </span>
         </div>
 
-        {/* WIP Limit Pill */}
-        {lane.wipLimit && (
-          <div
-            title={`WIP Limit: ${lane.wipLimit}`}
-            className={`flex items-center gap-1.5 text-xs font-mono font-medium px-2 py-0.5 rounded border ${
-              isWipExceeded
-                ? 'bg-rose-950/50 text-rose-400 border-rose-800/70 animate-pulse'
-                : isAtWipLimit
-                ? 'bg-amber-950/50 text-amber-400 border-amber-800/70'
-                : 'bg-slate-900 text-slate-400 border-slate-800'
-            }`}
-          >
-            {isWipExceeded && <LaneLimitAlertIcon size={12} className="text-rose-400" />}
-            <span>
-              {tasks.length}/{lane.wipLimit}
-            </span>
-          </div>
-        )}
+        {/* Traffic Flow & WIP Control */}
+        <div className="flex items-center gap-1.5">
+          {lane.wipLimit ? (
+            <div
+              title={`Lane Flow Capacity: ${tasks.length}/${lane.wipLimit} (${
+                isWipExceeded ? 'Exceeded - Stop' : isAtWipLimit ? 'At Limit - Caution' : 'Flowing - Open'
+              })`}
+              className={`flex items-center gap-1.5 text-xs font-mono font-medium px-2 py-0.5 rounded border ${
+                isWipExceeded
+                  ? 'bg-rose-950/50 text-rose-400 border-rose-800/70 animate-pulse'
+                  : isAtWipLimit
+                  ? 'bg-amber-950/50 text-amber-400 border-amber-800/70'
+                  : 'bg-slate-900 text-slate-400 border-slate-800'
+              }`}
+            >
+              <TrafficLight
+                state={isWipExceeded ? 'red' : isAtWipLimit ? 'amber' : 'green'}
+                size={18}
+              />
+              <span>
+                {tasks.length}/{lane.wipLimit}
+              </span>
+            </div>
+          ) : (
+            <div
+              title={`Flow State: ${lane.type}`}
+              className="p-1 rounded bg-slate-900/60 border border-slate-800/60 flex items-center justify-center"
+            >
+              <TrafficLight
+                state={
+                  lane.type === 'completed'
+                    ? 'green'
+                    : lane.type === 'started'
+                    ? 'amber'
+                    : 'red'
+                }
+                size={18}
+              />
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Cards List */}
