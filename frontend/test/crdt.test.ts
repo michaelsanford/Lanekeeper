@@ -37,6 +37,18 @@ describe("Frontend Local-First CRDT & Store", () => {
     expect(updated?.rank).toBe("0|200:");
   });
 
+  it("automatically assigns ascending ranks to sequentially added tasks in a lane", () => {
+    const t1 = crdtStore.addTask({ title: "Rank Item 1", laneId: "backlog" });
+    const t2 = crdtStore.addTask({ title: "Rank Item 2", laneId: "backlog" });
+    const t3 = crdtStore.addTask({ title: "Rank Item 3", laneId: "backlog" });
+
+    expect(t1.rank).toBeDefined();
+    expect(t2.rank).toBeDefined();
+    expect(t3.rank).toBeDefined();
+    expect(t1.rank < t2.rank).toBe(true);
+    expect(t2.rank < t3.rank).toBe(true);
+  });
+
   it("adds, toggles, and promotes subtasks to standalone tickets", () => {
     const parent = crdtStore.addTask({
       title: "Parent Feature",

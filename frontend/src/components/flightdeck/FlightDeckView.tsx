@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { LaneKeepIcon, TrafficLight } from '../icons/LaneIcons.js';
 import type { Task } from '../../types/index.js';
+import { sortTasksByRank } from '../../utils/rank.js';
 
 interface FlightDeckViewProps {
   tasks: Task[];
@@ -39,7 +40,7 @@ export const FlightDeckView: React.FC<FlightDeckViewProps> = ({
   }, [scratchpadText]);
 
   // Tasks in progress (Flight deck strict limit: 1-3)
-  const inFlightTasks = tasks.filter((t) => t.laneId === 'inprogress');
+  const inFlightTasks = sortTasksByRank(tasks.filter((t) => t.laneId === 'inprogress'));
 
   // Tasks due today or overdue
   const now = new Date();

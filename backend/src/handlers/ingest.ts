@@ -105,7 +105,7 @@ export async function handler(event: APIGatewayProxyEventV2): Promise<APIGateway
       dueDate: parsed.dueDate,
       assigneeId: parsed.assignee,
       laneId: 'triage',
-      rank: `0|${Date.now()}:`,
+      rank: `0|${Date.now().toString(36)}:`,
       tags: parsed.tags,
       subtasks: [],
       createdAt: now,

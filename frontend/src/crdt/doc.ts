@@ -2,6 +2,7 @@ import * as Y from 'yjs';
 import { IndexeddbPersistence } from 'y-indexeddb';
 import type { Task, Lane, ProjectMetadata, Subtask } from '../types/index.js';
 import { getNextTaskKey } from './leases.js';
+import { getRankBetween, sortTasksByRank } from '../utils/rank.js';
 
 class CrdtStore {
   public doc: Y.Doc;
@@ -268,6 +269,14 @@ class CrdtStore {
     const taskId = crypto.randomUUID();
     const taskKey = taskData.key || getNextTaskKey(meta.prefix);
     const now = new Date().toISOString();
+    const laneId = taskData.laneId || 'triage';
+
+    let rank = taskData.rank;
+    if (!rank) {
+      const laneTasks = sortTasksByRank(this.getTasks().filter((t) => t.laneId === laneId));
+      const lastTask = laneTasks[laneTasks.length - 1];
+      rank = getRankBetween(lastTask?.rank, undefined);
+    }
 
     const task: Task = {
       id: taskId,
@@ -278,8 +287,8 @@ class CrdtStore {
       estimateMinutes: taskData.estimateMinutes,
       dueDate: taskData.dueDate,
       assigneeId: taskData.assigneeId,
-      laneId: taskData.laneId || 'triage',
-      rank: taskData.rank || `0|${Date.now()}:`,
+      laneId,
+      rank,
       tags: taskData.tags || [],
       subtasks: taskData.subtasks || [],
       timeSpentSeconds: 0,
