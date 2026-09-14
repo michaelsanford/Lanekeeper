@@ -205,12 +205,9 @@ let memoryTheme: ThemeId = 'lanekeeper';
 export function getStoredTheme(): ThemeId {
   if (typeof localStorage !== 'undefined') {
     try {
-      const saved = localStorage.getItem(THEME_STORAGE_KEY) as string | null;
-      if (saved === 'traffic') {
-        return 'roadworks';
-      }
+      const saved = localStorage.getItem(THEME_STORAGE_KEY) as ThemeId | null;
       if (saved && THEMES.some((t) => t.id === saved)) {
-        return saved as ThemeId;
+        return saved;
       }
     } catch {}
   }

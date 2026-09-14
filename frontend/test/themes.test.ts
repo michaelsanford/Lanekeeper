@@ -75,13 +75,6 @@ describe('Coding Themes Catalog & Manager', () => {
     expect(roadworksTheme?.previewColors.accent).toBe('#ea580c');
   });
 
-  it('maps legacy traffic storage key to roadworks', () => {
-    if (typeof localStorage !== 'undefined') {
-      localStorage.setItem('lanekeeper_theme', 'traffic');
-      expect(getStoredTheme()).toBe('roadworks');
-    }
-  });
-
   it('smoothly switches across various coding themes', () => {
     const testThemes: ThemeId[] = [
       'tokyo-night',
