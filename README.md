@@ -15,41 +15,69 @@
 - **On-Device Voice-to-Task Capture**: Zero-cloud-cost speech-to-task dictation using the native browser Web Speech API.
 - **PWA Web Share Target API & App Shortcuts**: Integrated directly into iOS, Android, and macOS native share sheets, plus home screen long-press shortcuts for instant capture.
 - **GitHub Smart Commit & PR Ingestion**: Pushing `fix(auth): handle token expiry (fixes LK-42)` automatically transitions `LK-42` to Done and embeds the commit into the task activity log.
-- **Terminal CLI Companion (`lk`)**: Fast terminal capture, flight deck listing, and branch commands directly from your shell.
-- **12 Famous Coding Colour Schemes**: Instant switching between iconic developer palettes (Campbell PowerShell, Campbell, Dracula, Tokyo Night, Catppuccin Mocha, Nord, One Dark Pro, GitHub Dark, Monokai Pro, Gruvbox Dark, Solarized Dark, and Lanekeeper Midnight) via Header and Project Settings.
+- **13 Famous Coding & Roadwork Colour Schemes**: Instant switching between iconic developer palettes (Lanekeeper Midnight, Dracula, Tokyo Night, Catppuccin Mocha, Nord, One Dark Pro, GitHub Dark, Monokai Pro, Gruvbox Dark, Solarized Dark, Campbell PowerShell, Campbell, and Roadworks) with first-class Light and Dark mode support across all themes.
+- **Multiple Operational Views**: Seamless switching between Kanban Swimlane Board, sortable Data Table view, full-month Calendar schedule view, and single-task Flight Deck focus mode.
 
 ---
 
 ## Architecture
 
-```text
-                                  +-----------------------+
-                                  |   Browser / PWA SPA   |
-                                  | React 19 + Tailwind 4 |
-                                  +-----------+-----------+
-                                              |
-                   +--------------------------+--------------------------+
-                   | (Offline Local Reads/Writes)                        | (Sync State Vectors & Diffs)
-                   v                                                     v
-        +---------------------+                               +---------------------+
-        |  Yjs Local CRDT Doc |                               |   AWS HTTP API v2   |
-        |  y-indexeddb (IDB)  |                               +----------+----------+
-        +---------------------+                                          |
-                                              +--------------------------+--------------------------+
-                                              |                          |                          |
-                                              v                          v                          v
-                                     +-----------------+        +-----------------+        +-----------------+
-                                     |  Sync Function  |        | Ingest Function |        |  Push Function  |
-                                     | (Node 24 / Yjs) |        |  (API Key Web)  |        | (VAPID WebPush) |
-                                     +--------+--------+        +--------+--------+        +--------+--------+
-                                              |                          |                          |
-                                              +--------------------------+--------------------------+
-                                                                         |
-                                                                         v
-                                                            +------------------------+
-                                                            | Amazon DynamoDB (DDB)  |
-                                                            |   Single-Table Model   |
-                                                            +------------------------+
+```mermaid
+flowchart TB
+  subgraph Client ["Client Tier (Local-First PWA)"]
+    direction TB
+    UI["Browser / PWA SPA<br/>React 19 + Tailwind CSS v4"]
+    IDB[("Local Yjs CRDT Doc<br/>y-indexeddb Storage")]
+    SW["Service Worker<br/>Offline Cache & Web Push"]
+    CLI["Terminal CLI (lk)<br/>Node.js Companion"]
+
+    UI <-->|"Sub-millisecond Reads / Writes"| IDB
+    UI -->|"Register Push Subscription"| SW
+  end
+
+  subgraph Ingestion ["Ingestion Sources"]
+    direction TB
+    GH["GitHub Webhooks<br/>Smart Commits & PRs"]
+    ExtScripts["External Scripts & Integrations<br/>Raycast / iOS Shortcuts"]
+  end
+
+  subgraph Cloud ["AWS Serverless Cloud Tier (SAM)"]
+    direction TB
+    APIGW["Amazon API Gateway HTTP API v2"]
+    Cognito["Amazon Cognito<br/>Enforced TOTP MFA"]
+    EB["Amazon EventBridge<br/>Scheduled Reminder Cron"]
+
+    subgraph Lambdas ["AWS Lambda Functions (Node.js 24)"]
+      direction TB
+      SyncFn["Sync Handler<br/>Yjs State Vectors & Diffs"]
+      IngestFn["Quick Ingest Handler<br/>Syntax Parsing & Idempotency"]
+      LeaseFn["Lease Handler<br/>Offline Sequence Key Blocks"]
+      GHFn["GitHub Handler<br/>Smart Commit Transitions"]
+      PushFn["Push Dispatcher<br/>RFC 8291 VAPID Service"]
+    end
+
+    DDB[("Amazon DynamoDB<br/>Single-Table Model (PK, SK, GSI1, GSI2)")]
+  end
+
+  UI <-->|"Sync State Vectors & Diffs"| APIGW
+  UI -.->|"Cognito JWT Auth"| Cognito
+  CLI -->|"Quick Ingest & Key Leases"| APIGW
+  GH -->|"Push Event Webhook"| APIGW
+  ExtScripts -->|"Quick Ingest Endpoint"| APIGW
+
+  APIGW --> SyncFn
+  APIGW --> IngestFn
+  APIGW --> LeaseFn
+  APIGW --> GHFn
+  APIGW --> PushFn
+  EB --> PushFn
+
+  SyncFn <-->|"Persist & Merge CRDT Updates"| DDB
+  IngestFn -->|"Atomic Counters & Task Storage"| DDB
+  LeaseFn -->|"Allocate Contiguous Key Blocks"| DDB
+  GHFn -->|"Transition Lanes & Link Commits"| DDB
+  PushFn -->|"Query Reminders & Subscriptions"| DDB
+  PushFn -->|"Encrypted Push Dispatch"| SW
 ```
 
 ---
@@ -92,7 +120,7 @@ npm run seed
 ```bash
 npm test
 ```
-Runs all 16 Vitest unit tests across backend and frontend in parallel.
+Runs all 44 Vitest unit tests across backend and frontend in parallel.
 
 ### 4. Build Fullstack Distribution
 ```bash
