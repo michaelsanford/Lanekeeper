@@ -114,7 +114,7 @@ const server = http.createServer(async (req, res) => {
 });
 
 server.listen(PORT, () => {
-  console.log(`\n🚀 Lanekeeper Local Backend Server running at http://localhost:${PORT}`);
+  console.log(`\nLanekeeper Local Backend Server running at http://localhost:${PORT}`);
   console.log(`   - POST /api/v1/sync               (CRDT State Vector Sync)`);
   console.log(`   - POST /api/v1/quick              (Quick Task Ingest)`);
   console.log(`   - POST /api/v1/integrations/github (GitHub Webhooks)`);

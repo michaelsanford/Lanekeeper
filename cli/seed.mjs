@@ -9,7 +9,7 @@ const sampleTasks = [
 ];
 
 async function seed() {
-  console.log("🌱 Seeding Lanekeeper sample tasks for local development...\n");
+  console.log("Seeding Lanekeeper sample tasks for local development...\n");
 
   for (const raw of sampleTasks) {
     try {
@@ -24,17 +24,17 @@ async function seed() {
 
       if (res.ok) {
         const data = await res.json();
-        console.log(`  ✓ Ingested: [${data.task?.key || "OK"}] ${data.task?.title || raw}`);
+        console.log(`  Ingested: [${data.task?.key || "OK"}] ${data.task?.title || raw}`);
       } else {
-        console.log(`  ℹ Local server returned ${res.status}. If dev server isn'\''t running, tasks are ready in CRDT offline store.`);
+        console.log(`  Local server returned ${res.status}. If dev server is not running, tasks are ready in CRDT offline store.`);
       }
     } catch {
-      console.log(`  ℹ Note: Start local dev server (npm run dev) to sync seed tasks over HTTP API.`);
+      console.log(`  Note: Start local dev server (npm run dev) to sync seed tasks over HTTP API.`);
       break;
     }
   }
 
-  console.log("\n✨ Seed process completed.");
+  console.log("\nSeed process completed.");
 }
 
 seed();

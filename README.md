@@ -1,25 +1,25 @@
-# Lanekeeper 🚀
+# Lanekeeper
 
 > **A fast, local-first task and project management PWA designed for solo developers and small engineering teams.**  
-> *The sweet spot between Todoist (instant, frictionless capture, lightning-fast) and Jira (project keys, kanban workflow lanes, structured metadata, estimation, git automation).*
+> *The sweet spot between Todoist (instant, frictionless capture, low latency) and Jira (project keys, kanban workflow lanes, structured metadata, estimation, git automation).*
 
 ---
 
-## 🌟 Key Capabilities
+## Key Capabilities
 
-- **⚡ Local-First CRDT Architecture**: Built on **Yjs** and **y-indexeddb**. Zero-latency local reads and writes, 100% offline functionality, and mathematical conflict-free convergence over AWS Serverless.
-- **🏷️ Deterministic Project Prefixes & Offline ID Leasing**: Predictable issue numbers (e.g. `LK-42`) backed by atomic DynamoDB counters and offline ID reservation leases so you can create tickets on an airplane without number collisions.
-- **🔐 Amazon Cognito with Enforced TOTP MFA**: Hardware/Software Token MFA (`SOFTWARE_TOKEN_MFA`) with QR code onboarding flow.
-- **🎯 Today'\''s Flight Deck (Focus Mode - Press `F`)**: Cures cognitive fatigue by collapsing boards down to 1–3 active cards in flight, overdue/due alerts, and a local markdown scratchpad.
-- **🔔 Native Web Push Notifications**: Standards-based RFC 8291/8292 VAPID push notifications delivered via Service Worker, with EventBridge scheduled due date reminders.
-- **🗣️ On-Device Voice-to-Task Capture**: Free, zero-cloud-cost speech-to-task dictation using the native browser Web Speech API.
-- **📲 PWA Web Share Target API & App Shortcuts**: Appears directly in iOS / Android / macOS native share sheets, plus home screen long-press jumplist shortcuts for instant capture.
-- **🐙 GitHub Smart Commit & PR Ingestion**: Pushing `fix(auth): handle token expiry (fixes LK-42)` automatically transitions `LK-42` to Done and embeds the commit into the task activity log.
-- **💻 Terminal CLI Companion (`lk`)**: Rapid terminal capture, flight deck listing, and branch commands without leaving your shell.
+- **Local-First CRDT Architecture**: Built on **Yjs** and **y-indexeddb**. Zero-latency local reads and writes, 100% offline functionality, and deterministic conflict-free convergence over AWS Serverless.
+- **Deterministic Project Prefixes & Offline ID Leasing**: Predictable issue numbers (e.g. `LK-42`) backed by atomic DynamoDB counters and offline ID reservation leases so you can create tickets while disconnected without number collisions.
+- **Amazon Cognito with Enforced TOTP MFA**: Hardware and Software Token MFA (`SOFTWARE_TOKEN_MFA`) with QR code onboarding flow.
+- **Today'\''s Flight Deck (Focus Mode - Press `F`)**: Reduces cognitive fatigue by collapsing boards down to 1–3 active cards in flight, overdue/due alerts, and a local markdown scratchpad.
+- **Native Web Push Notifications**: Standards-based RFC 8291/8292 VAPID push notifications delivered via Service Worker, with EventBridge scheduled due date reminders.
+- **On-Device Voice-to-Task Capture**: Zero-cloud-cost speech-to-task dictation using the native browser Web Speech API.
+- **PWA Web Share Target API & App Shortcuts**: Integrated directly into iOS, Android, and macOS native share sheets, plus home screen long-press shortcuts for instant capture.
+- **GitHub Smart Commit & PR Ingestion**: Pushing `fix(auth): handle token expiry (fixes LK-42)` automatically transitions `LK-42` to Done and embeds the commit into the task activity log.
+- **Terminal CLI Companion (`lk`)**: Fast terminal capture, flight deck listing, and branch commands directly from your shell.
 
 ---
 
-## 🏗️ Architecture
+## Architecture
 
 ```text
                                   +-----------------------+
@@ -53,7 +53,7 @@
 
 ---
 
-## ⌨️ Quick Ingestion Syntax
+## Quick Ingestion Syntax
 
 Type naturally into the Quick Capture modal (`C` or `Cmd+K`) or via the `lk` CLI:
 
@@ -63,7 +63,7 @@ Upgrade Cognito auth pool #backend #infra !urgent ^tomorrow ~2h @michael
 
 | Token | Meaning | Examples |
 | :--- | :--- | :--- |
-| `text` | Task Title | Any leading/trailing words |
+| `text` | Task Title | Leading or trailing description |
 | `#tag` | Category / Tag | `#backend`, `#frontend`, `#infra` |
 | `!priority` | Task Priority | `!urgent`, `!high`, `!med`, `!low` |
 | `^due` | Due Date | `^today`, `^tomorrow`, `^friday`, `^2026-10-31` |
@@ -72,7 +72,7 @@ Upgrade Cognito auth pool #backend #infra !urgent ^tomorrow ~2h @michael
 
 ---
 
-## 🚀 Quick Local Development (Zero Docker Needed)
+## Quick Local Development (Zero Docker Needed)
 
 ### 1. Start Both Backend & Frontend in One Command
 ```bash
@@ -100,7 +100,7 @@ npm run build
 
 ---
 
-## ☁️ Cloud Deployment (AWS SAM)
+## Cloud Deployment (AWS SAM)
 
 When you are ready to deploy the serverless infrastructure to AWS:
 ```bash
@@ -108,9 +108,9 @@ cd backend
 sam build
 sam deploy --guided
 ```
-Creates the Cognito User Pool (with TOTP MFA), DynamoDB Single-Table, API Gateway HTTP API, and EventBridge push scheduler in your AWS account.
+Provisions the Cognito User Pool (with TOTP MFA), DynamoDB Single-Table, API Gateway HTTP API, and EventBridge push scheduler in your AWS account.
 
-### 4. Use the Terminal CLI (`lk`)
+### Terminal CLI (`lk`)
 ```bash
 export LANEKEEPER_API_URL="https://your-api-id.execute-api.us-east-1.amazonaws.com"
 export LANEKEEPER_API_TOKEN="lk_live_your_token"
@@ -122,5 +122,5 @@ node cli/lk.mjs start LK-42
 
 ---
 
-## 📜 License
+## License
 MIT

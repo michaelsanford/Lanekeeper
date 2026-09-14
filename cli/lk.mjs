@@ -19,7 +19,7 @@ async function main() {
       break;
     }
     case "list": {
-      console.log("\n🚀 Lanekeeper Flight Deck (Terminal View)\n");
+      console.log("\nLanekeeper Flight Deck (Terminal View)\n");
       console.log("  LK-101  [In Progress]  Optimize CloudFront TTLs (~1h)");
       console.log("  LK-102  [To Do]        Implement VAPID Web Push (due tomorrow)");
       console.log("\nRun `lk start <KEY>` to begin work, or `lk add '<TEXT>'` to capture.\n");
@@ -44,7 +44,7 @@ async function main() {
         console.error("Error: Please provide task key (e.g. lk close LK-42)");
         exit(1);
       }
-      console.log(`\n✓ Marked ${key} as Done.\n`);
+      console.log(`\nTask ${key} marked as Done.\n`);
       break;
     }
     default: {
@@ -85,7 +85,7 @@ async function quickAdd(raw) {
     }
 
     const data = await res.json();
-    console.log(`\n✓ Ingested task: [${data.task.key}] ${data.task.title}`);
+    console.log(`\nIngested task: [${data.task.key}] ${data.task.title}`);
     console.log(`  Lane: ${data.task.laneId} | Priority: ${data.task.priority}\n`);
   } catch (err) {
     console.error("Failed to reach Lanekeeper API:", err.message);
