@@ -118,4 +118,32 @@ describe("Frontend Local-First CRDT & Store", () => {
     const reassignedCard = crdtStore.getTasks().find((t) => t.id === cardInLane.id);
     expect(reassignedCard?.laneId).not.toBe(customLane.id);
   });
+
+  it("sanitizes duplicate lanes and deduplicates tasks by title", () => {
+    // Inject duplicated lane in Y.Array
+    const laneOrder = crdtStore.doc.getArray<string>("laneOrder");
+    laneOrder.push(["triage", "todo", "triage"]);
+
+    // getLanes returns only unique lanes
+    const lanes = crdtStore.getLanes();
+    const laneIds = lanes.map((l) => l.id);
+    const uniqueIds = new Set(laneIds);
+    expect(laneIds.length).toBe(uniqueIds.size);
+
+    // sanitizeLaneOrder cleans up the underlying Y.Array
+    crdtStore.sanitizeLaneOrder();
+    const arrayIds = crdtStore.doc.getArray<string>("laneOrder").toArray();
+    expect(arrayIds.length).toBe(new Set(arrayIds).size);
+
+    // Add duplicate tasks with identical titles
+    crdtStore.addTask({ title: "Identical duplicate title", laneId: "triage" });
+    crdtStore.addTask({ title: "Identical duplicate title", laneId: "triage" });
+    const tasksBefore = crdtStore.getTasks().filter((t) => t.title === "Identical duplicate title");
+    expect(tasksBefore.length).toBe(2);
+
+    const removed = crdtStore.deduplicateTasks();
+    expect(removed).toBe(1);
+    const tasksAfter = crdtStore.getTasks().filter((t) => t.title === "Identical duplicate title");
+    expect(tasksAfter.length).toBe(1);
+  });
 });

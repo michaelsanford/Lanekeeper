@@ -35,6 +35,7 @@ class CrdtStore {
 
   private setupListeners(): void {
     this.doc.on('update', () => {
+      this.sanitizeLaneOrder();
       this.notifyListeners();
     });
   }
@@ -57,25 +58,81 @@ class CrdtStore {
     const laneOrder = this.doc.getArray<string>('laneOrder');
     const metaMap = this.doc.getMap<string>('metadata');
 
-    if (laneOrder.length === 0) {
-      metaMap.set('id', 'default');
-      metaMap.set('name', 'Lanekeeper Core');
-      metaMap.set('prefix', 'LK');
+    metaMap.set('id', metaMap.get('id') || 'default');
+    metaMap.set('name', metaMap.get('name') || 'Lanekeeper Core');
+    metaMap.set('prefix', metaMap.get('prefix') || 'LK');
 
-      const defaultLanes: Lane[] = [
-        { id: 'triage', name: 'Triage / Inbox', color: '#64748b', type: 'backlog' },
-        { id: 'backlog', name: 'Backlog', color: '#8b5cf6', type: 'unstarted' },
-        { id: 'todo', name: 'To Do', color: '#3b82f6', type: 'unstarted' },
-        { id: 'inprogress', name: 'In Progress', color: '#f59e0b', type: 'started', wipLimit: 3 },
-        { id: 'review', name: 'Review', color: '#06b6d4', type: 'started' },
-        { id: 'done', name: 'Done', color: '#10b981', type: 'completed' }
-      ];
+    const defaultLanes: Lane[] = [
+      { id: 'triage', name: 'Triage / Inbox', color: '#64748b', type: 'backlog' },
+      { id: 'backlog', name: 'Backlog', color: '#8b5cf6', type: 'unstarted' },
+      { id: 'todo', name: 'To Do', color: '#3b82f6', type: 'unstarted' },
+      { id: 'inprogress', name: 'In Progress', color: '#f59e0b', type: 'started', wipLimit: 3 },
+      { id: 'review', name: 'Review', color: '#06b6d4', type: 'started' },
+      { id: 'done', name: 'Done', color: '#10b981', type: 'completed' }
+    ];
 
-      for (const lane of defaultLanes) {
+    const existingOrder = new Set(laneOrder.toArray());
+    for (const lane of defaultLanes) {
+      if (!lanesMap.has(lane.id)) {
         lanesMap.set(lane.id, lane);
+      }
+      if (!existingOrder.has(lane.id)) {
         laneOrder.push([lane.id]);
+        existingOrder.add(lane.id);
       }
     }
+
+    this.sanitizeLaneOrder();
+    this.deduplicateTasks();
+  }
+
+  public sanitizeLaneOrder(): void {
+    const laneOrder = this.doc.getArray<string>('laneOrder');
+    const lanesMap = this.doc.getMap<Lane>('lanes');
+    const orderArr = laneOrder.toArray();
+    const seen = new Set<string>();
+    const toDelete: number[] = [];
+
+    for (let i = 0; i < orderArr.length; i++) {
+      const id = orderArr[i];
+      if (seen.has(id)) {
+        toDelete.push(i);
+      } else {
+        seen.add(id);
+      }
+    }
+
+    // Delete duplicates backwards so indices remain valid
+    for (let i = toDelete.length - 1; i >= 0; i--) {
+      laneOrder.delete(toDelete[i], 1);
+    }
+
+    // Ensure all defined lanes are represented in laneOrder
+    for (const id of lanesMap.keys()) {
+      if (!seen.has(id)) {
+        laneOrder.push([id]);
+        seen.add(id);
+      }
+    }
+  }
+
+  public deduplicateTasks(): number {
+    const tasksMap = this.doc.getMap<Task>('tasks');
+    const tasks = Array.from(tasksMap.values());
+    tasks.sort((a, b) => (a.createdAt > b.createdAt ? 1 : -1));
+    const seenTitles = new Set<string>();
+    let removed = 0;
+
+    for (const t of tasks) {
+      const norm = t.title.trim().toLowerCase();
+      if (seenTitles.has(norm)) {
+        tasksMap.delete(t.id);
+        removed++;
+      } else {
+        seenTitles.add(norm);
+      }
+    }
+    return removed;
   }
 
   public getMetadata(): ProjectMetadata {
@@ -147,9 +204,14 @@ class CrdtStore {
     const lanesMap = this.doc.getMap<Lane>('lanes');
     const laneOrder = this.doc.getArray<string>('laneOrder').toArray();
     const result: Lane[] = [];
+    const seen = new Set<string>();
+
     for (const id of laneOrder) {
-      const lane = lanesMap.get(id);
-      if (lane) result.push(lane);
+      if (!seen.has(id)) {
+        seen.add(id);
+        const lane = lanesMap.get(id);
+        if (lane) result.push(lane);
+      }
     }
     return result;
   }

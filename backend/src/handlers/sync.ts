@@ -6,7 +6,9 @@ import {
   encodeStateVectorBase64,
   computeDiffUpdate,
   applyClientUpdate,
-  initializeProjectDoc
+  initializeProjectDoc,
+  sanitizeLaneOrder,
+  deduplicateTasks
 } from '../common/crdt.js';
 import { getProjectCrdtDoc, saveProjectCrdtDoc } from '../common/ddb.js';
 import type { SyncRequest, SyncResponse } from '../common/types.js';
@@ -34,7 +36,7 @@ export async function handler(event: APIGatewayProxyEventV2): Promise<APIGateway
     const workspaceId = payload.workspaceId || auth.workspaceId;
     const projectId = payload.projectId || 'default';
 
-    // 1. Fetch current CRDT document from DynamoDB
+    // 1. Fetch current CRDT document from DynamoDB / local memory
     const existing = await getProjectCrdtDoc(workspaceId, projectId);
     const doc = loadDocFromBase64(existing?.yDocState);
 
@@ -49,6 +51,15 @@ export async function handler(event: APIGatewayProxyEventV2): Promise<APIGateway
     // 3. Apply any incoming updates from client
     if (payload.updates) {
       applyClientUpdate(doc, payload.updates);
+      docModified = true;
+    }
+
+    // Always sanitize lane order and deduplicate redundant seed tasks
+    const initialLaneCount = doc.getArray('laneOrder').length;
+    sanitizeLaneOrder(doc);
+    const finalLaneCount = doc.getArray('laneOrder').length;
+    const removedTasks = deduplicateTasks(doc);
+    if (initialLaneCount !== finalLaneCount || removedTasks > 0) {
       docModified = true;
     }
 

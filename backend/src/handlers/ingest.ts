@@ -62,16 +62,35 @@ export async function handler(event: APIGatewayProxyEventV2): Promise<APIGateway
     // 1. Parse quick task syntax (#tag, !prio, ^date, ~est, @user)
     const parsed = parseQuickTask(raw);
 
-    // 2. Allocate sequential key (e.g. LK-42)
-    const taskKey = await getNextTaskKey(workspaceId, projectId, prefix);
-
-    // 3. Load or initialize project Y.Doc
+    // 2. Load or initialize project Y.Doc
     const existing = await getProjectCrdtDoc(workspaceId, projectId);
     const doc = loadDocFromBase64(existing?.yDocState);
 
     if (!existing) {
       initializeProjectDoc(doc, prefix, 'General');
     }
+
+    // 3. Check if task with identical title already exists to prevent duplicate seeding
+    const tasksMap = doc.getMap<Task>('tasks');
+    const existingTask = Array.from(tasksMap.values()).find(
+      (t) => t.title.trim().toLowerCase() === parsed.title.trim().toLowerCase()
+    );
+    if (existingTask) {
+      return {
+        statusCode: 200,
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*'
+        },
+        body: JSON.stringify({
+          message: 'Task already exists',
+          task: existingTask
+        })
+      };
+    }
+
+    // 4. Allocate sequential key (e.g. LK-42)
+    const taskKey = await getNextTaskKey(workspaceId, projectId, prefix);
 
     const taskId = randomUUID();
     const now = new Date().toISOString();
