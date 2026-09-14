@@ -17,8 +17,8 @@ describe('Coding Themes Catalog & Manager', () => {
     }
   });
 
-  it('contains the top 10 famous and popular coding colour themes', () => {
-    expect(THEMES.length).toBe(10);
+  it('contains famous and popular coding colour themes including Campbell/PowerShell', () => {
+    expect(THEMES.length).toBe(12);
 
     const expectedIds: ThemeId[] = [
       'lanekeeper',
@@ -30,7 +30,9 @@ describe('Coding Themes Catalog & Manager', () => {
       'github-dark',
       'monokai',
       'gruvbox',
-      'solarized'
+      'solarized',
+      'campbell-powershell',
+      'campbell'
     ];
 
     for (const expectedId of expectedIds) {
@@ -50,15 +52,15 @@ describe('Coding Themes Catalog & Manager', () => {
   });
 
   it('applies theme to document element and updates storage', () => {
-    applyTheme('dracula');
+    applyTheme('campbell-powershell');
 
     if (typeof document !== 'undefined') {
-      expect(document.documentElement.getAttribute('data-theme')).toBe('dracula');
+      expect(document.documentElement.getAttribute('data-theme')).toBe('campbell-powershell');
     }
     if (typeof localStorage !== 'undefined') {
-      expect(localStorage.getItem('lanekeeper_theme')).toBe('dracula');
+      expect(localStorage.getItem('lanekeeper_theme')).toBe('campbell-powershell');
     }
-    expect(getStoredTheme()).toBe('dracula');
+    expect(getStoredTheme()).toBe('campbell-powershell');
   });
 
   it('smoothly switches across various coding themes', () => {
@@ -70,7 +72,9 @@ describe('Coding Themes Catalog & Manager', () => {
       'github-dark',
       'monokai',
       'gruvbox',
-      'solarized'
+      'solarized',
+      'campbell-powershell',
+      'campbell'
     ];
 
     for (const th of testThemes) {

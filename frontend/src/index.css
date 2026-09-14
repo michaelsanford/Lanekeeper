@@ -275,6 +275,56 @@
   --lk-indigo-100: #fdf6e3;
 }
 
+/* 11. Campbell PowerShell (Official Windows Terminal & PowerShell) */
+[data-theme="campbell-powershell"] {
+  --lk-slate-950: #011738;
+  --lk-slate-900: #012456;
+  --lk-slate-800: #0a3d87;
+  --lk-slate-700: #1453b0;
+  --lk-slate-600: #386db8;
+  --lk-slate-500: #5f8ecf;
+  --lk-slate-400: #90b3e6;
+  --lk-slate-300: #b8d1f3;
+  --lk-slate-200: #cccccc;
+  --lk-slate-100: #f2f2f2;
+
+  --lk-indigo-950: #042a63;
+  --lk-indigo-900: #093d8a;
+  --lk-indigo-800: #1256b8;
+  --lk-indigo-700: #2268db;
+  --lk-indigo-600: #3b78ff;
+  --lk-indigo-500: #61d6d6;
+  --lk-indigo-400: #f9f1a5;
+  --lk-indigo-300: #16c60c;
+  --lk-indigo-200: #e74856;
+  --lk-indigo-100: #ffffff;
+}
+
+/* 12. Campbell (Windows Terminal Default) */
+[data-theme="campbell"] {
+  --lk-slate-950: #080808;
+  --lk-slate-900: #0c0c0c;
+  --lk-slate-800: #242424;
+  --lk-slate-700: #363636;
+  --lk-slate-600: #555555;
+  --lk-slate-500: #767676;
+  --lk-slate-400: #9e9e9e;
+  --lk-slate-300: #b8b8b8;
+  --lk-slate-200: #cccccc;
+  --lk-slate-100: #f2f2f2;
+
+  --lk-indigo-950: #071840;
+  --lk-indigo-900: #0c2869;
+  --lk-indigo-800: #123c99;
+  --lk-indigo-700: #2056cc;
+  --lk-indigo-600: #3b78ff;
+  --lk-indigo-500: #61d6d6;
+  --lk-indigo-400: #3a96dd;
+  --lk-indigo-300: #f9f1a5;
+  --lk-indigo-200: #16c60c;
+  --lk-indigo-100: #ffffff;
+}
+
 @layer base {
   html {
     font-size: 16.5px;

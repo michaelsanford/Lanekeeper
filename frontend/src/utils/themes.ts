@@ -8,7 +8,9 @@ export type ThemeId =
   | 'github-dark'
   | 'monokai'
   | 'gruvbox'
-  | 'solarized';
+  | 'solarized'
+  | 'campbell-powershell'
+  | 'campbell';
 
 export interface ThemeInfo {
   id: ThemeId;
@@ -153,6 +155,32 @@ export const THEMES: ThemeInfo[] = [
       border: '#073642',
       accent: '#268bd2',
       text: '#eee8d5'
+    }
+  },
+  {
+    id: 'campbell-powershell',
+    name: 'Campbell PowerShell',
+    authorOrOrigin: 'Microsoft / Windows Terminal',
+    description: 'The official PowerShell console palette with royal navy background and Campbell ANSI highlights',
+    previewColors: {
+      bg: '#011738',
+      surface: '#012456',
+      border: '#0a3d87',
+      accent: '#3b78ff',
+      text: '#cccccc'
+    }
+  },
+  {
+    id: 'campbell',
+    name: 'Campbell',
+    authorOrOrigin: 'Microsoft / Windows Terminal',
+    description: 'The default Windows Terminal dark console theme with crisp Campbell 16-color ANSI accents',
+    previewColors: {
+      bg: '#080808',
+      surface: '#0c0c0c',
+      border: '#2d2d2d',
+      accent: '#3b78ff',
+      text: '#cccccc'
     }
   }
 ];
