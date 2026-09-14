@@ -110,7 +110,7 @@ export const ProjectSettingsModal: React.FC<ProjectSettingsModalProps> = ({
         <div className="flex border-b border-slate-800 bg-slate-950/50 px-6">
           <button
             onClick={() => setActiveTab('general')}
-            className={`py-3 px-4 text-xs font-semibold border-b-2 transition-colors ${
+            className={`py-3.5 px-4 text-sm font-semibold border-b-2 transition-colors ${
               activeTab === 'general'
                 ? 'border-indigo-500 text-indigo-400'
                 : 'border-transparent text-slate-400 hover:text-slate-200'
@@ -120,7 +120,7 @@ export const ProjectSettingsModal: React.FC<ProjectSettingsModalProps> = ({
           </button>
           <button
             onClick={() => setActiveTab('lanes')}
-            className={`py-3 px-4 text-xs font-semibold border-b-2 transition-colors ${
+            className={`py-3.5 px-4 text-sm font-semibold border-b-2 transition-colors ${
               activeTab === 'lanes'
                 ? 'border-indigo-500 text-indigo-400'
                 : 'border-transparent text-slate-400 hover:text-slate-200'
@@ -130,7 +130,7 @@ export const ProjectSettingsModal: React.FC<ProjectSettingsModalProps> = ({
           </button>
           <button
             onClick={() => setActiveTab('projects')}
-            className={`py-3 px-4 text-xs font-semibold border-b-2 transition-colors ${
+            className={`py-3.5 px-4 text-sm font-semibold border-b-2 transition-colors ${
               activeTab === 'projects'
                 ? 'border-indigo-500 text-indigo-400'
                 : 'border-transparent text-slate-400 hover:text-slate-200'
@@ -144,21 +144,21 @@ export const ProjectSettingsModal: React.FC<ProjectSettingsModalProps> = ({
         <div className="p-6 overflow-y-auto flex-1 space-y-6">
           {/* Tab 1: General */}
           {activeTab === 'general' && (
-            <form onSubmit={handleGeneralSubmit} className="space-y-4 text-xs">
+            <form onSubmit={handleGeneralSubmit} className="space-y-4 text-sm">
               <div className="space-y-1.5">
-                <label className="text-slate-400 uppercase font-mono text-[11px]">
+                <label className="text-slate-400 uppercase font-mono text-xs">
                   Project Name
                 </label>
                 <input
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full bg-slate-950 text-slate-100 p-2.5 rounded-xl border border-slate-800 outline-none focus:border-indigo-500 font-sans"
+                  className="w-full bg-slate-950 text-slate-100 p-2.5 rounded-xl border border-slate-800 outline-none focus:border-indigo-500 font-sans text-sm"
                 />
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-slate-400 uppercase font-mono text-[11px]">
+                <label className="text-slate-400 uppercase font-mono text-xs">
                   Issue Key Prefix (e.g. LK, API, OPS)
                 </label>
                 <input
@@ -166,24 +166,24 @@ export const ProjectSettingsModal: React.FC<ProjectSettingsModalProps> = ({
                   maxLength={6}
                   value={prefix}
                   onChange={(e) => setPrefix(e.target.value.toUpperCase())}
-                  className="w-full bg-slate-950 text-slate-100 p-2.5 rounded-xl border border-slate-800 outline-none focus:border-indigo-500 font-mono"
+                  className="w-full bg-slate-950 text-slate-100 p-2.5 rounded-xl border border-slate-800 outline-none focus:border-indigo-500 font-mono text-sm"
                 />
-                <p className="text-[11px] text-slate-500">
+                <p className="text-xs text-slate-500">
                   All new tasks created in this project will follow the format {prefix || 'KEY'}-101.
                 </p>
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-slate-400 uppercase font-mono text-[11px]">Project ID</label>
-                <div className="p-2.5 bg-slate-950/60 rounded-xl border border-slate-800/80 font-mono text-slate-500">
+                <label className="text-slate-400 uppercase font-mono text-xs">Project ID</label>
+                <div className="p-2.5 bg-slate-950/60 rounded-xl border border-slate-800/80 font-mono text-xs text-slate-400">
                   {metadata.id}
                 </div>
               </div>
 
               <div className="pt-3 flex items-center justify-between border-t border-slate-800">
                 {generalSaved ? (
-                  <span className="text-emerald-400 flex items-center gap-1 font-medium">
-                    <Check className="w-3.5 h-3.5" />
+                  <span className="text-emerald-400 flex items-center gap-1.5 font-medium text-sm">
+                    <Check className="w-4 h-4" />
                     Settings saved
                   </span>
                 ) : (
@@ -191,7 +191,7 @@ export const ProjectSettingsModal: React.FC<ProjectSettingsModalProps> = ({
                 )}
                 <button
                   type="submit"
-                  className="bg-indigo-600 hover:bg-indigo-500 text-white font-medium px-4 py-2 rounded-xl transition-all shadow-md active:scale-95"
+                  className="bg-indigo-600 hover:bg-indigo-500 text-white font-medium px-4 py-2 rounded-xl transition-all shadow-md active:scale-95 text-sm"
                 >
                   Save Changes
                 </button>
@@ -201,17 +201,17 @@ export const ProjectSettingsModal: React.FC<ProjectSettingsModalProps> = ({
 
           {/* Tab 2: Workflow Lanes */}
           {activeTab === 'lanes' && (
-            <div className="space-y-5 text-xs">
-              <p className="text-slate-400">
+            <div className="space-y-5 text-sm">
+              <p className="text-slate-400 text-sm">
                 Configure your Kanban workflow columns, column colors, and WIP limits.
               </p>
 
               {/* Existing Lanes List */}
-              <div className="space-y-2">
+              <div className="space-y-2.5">
                 {lanes.map((lane) => (
                   <div
                     key={lane.id}
-                    className="p-3 bg-slate-950/80 rounded-xl border border-slate-800 flex items-center justify-between gap-3"
+                    className="p-3.5 bg-slate-950/80 rounded-xl border border-slate-800 flex items-center justify-between gap-3"
                   >
                     <div className="flex items-center gap-2.5 flex-1">
                       {/* Color Picker */}
@@ -219,7 +219,7 @@ export const ProjectSettingsModal: React.FC<ProjectSettingsModalProps> = ({
                         type="color"
                         value={lane.color}
                         onChange={(e) => onUpdateLane(lane.id, { color: e.target.value })}
-                        className="w-6 h-6 rounded-md bg-transparent cursor-pointer border-0 p-0"
+                        className="w-7 h-7 rounded-md bg-transparent cursor-pointer border-0 p-0"
                       />
 
                       {/* Lane Name */}
@@ -227,18 +227,18 @@ export const ProjectSettingsModal: React.FC<ProjectSettingsModalProps> = ({
                         type="text"
                         value={lane.name}
                         onChange={(e) => onUpdateLane(lane.id, { name: e.target.value })}
-                        className="bg-slate-900 px-2 py-1 rounded-md text-slate-100 border border-slate-800 outline-none focus:border-indigo-500 flex-1 font-medium"
+                        className="bg-slate-900 px-2.5 py-1.5 rounded-md text-slate-100 border border-slate-800 outline-none focus:border-indigo-500 flex-1 font-medium text-sm"
                       />
                     </div>
 
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2.5">
                       {/* Lane Type */}
                       <select
                         value={lane.type}
                         onChange={(e) =>
                           onUpdateLane(lane.id, { type: e.target.value as LaneType })
                         }
-                        className="bg-slate-900 text-slate-300 px-2 py-1 rounded-md border border-slate-800 outline-none text-[11px]"
+                        className="bg-slate-900 text-slate-300 px-2.5 py-1.5 rounded-md border border-slate-800 outline-none text-xs"
                       >
                         <option value="backlog">Backlog</option>
                         <option value="unstarted">Unstarted</option>
@@ -248,8 +248,8 @@ export const ProjectSettingsModal: React.FC<ProjectSettingsModalProps> = ({
                       </select>
 
                       {/* WIP Limit */}
-                      <div className="flex items-center gap-1">
-                        <span className="text-slate-500 font-mono text-[10px]">WIP:</span>
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-slate-400 font-mono text-xs">WIP:</span>
                         <input
                           type="number"
                           placeholder="No limit"
@@ -259,7 +259,7 @@ export const ProjectSettingsModal: React.FC<ProjectSettingsModalProps> = ({
                               wipLimit: e.target.value ? parseInt(e.target.value, 10) : undefined
                             })
                           }
-                          className="w-14 bg-slate-900 text-slate-200 px-1.5 py-1 rounded-md border border-slate-800 outline-none text-center font-mono text-[11px]"
+                          className="w-16 bg-slate-900 text-slate-200 px-2 py-1.5 rounded-md border border-slate-800 outline-none text-center font-mono text-xs"
                         />
                       </div>
 
@@ -272,9 +272,9 @@ export const ProjectSettingsModal: React.FC<ProjectSettingsModalProps> = ({
                               onDeleteLane(lane.id);
                             }
                           }}
-                          className="p-1 rounded text-slate-500 hover:text-rose-400 hover:bg-rose-950/40 transition-colors"
+                          className="p-1.5 rounded text-slate-500 hover:text-rose-400 hover:bg-rose-950/40 transition-colors"
                         >
-                          <Trash2 className="w-3.5 h-3.5" />
+                          <Trash2 className="w-4 h-4" />
                         </button>
                       )}
                     </div>
@@ -285,20 +285,20 @@ export const ProjectSettingsModal: React.FC<ProjectSettingsModalProps> = ({
               {/* Add New Lane Form */}
               <form
                 onSubmit={handleAddLaneSubmit}
-                className="p-3 bg-slate-950/40 border border-dashed border-slate-800 rounded-xl space-y-3"
+                className="p-3.5 bg-slate-950/40 border border-dashed border-slate-800 rounded-xl space-y-3"
               >
-                <div className="flex items-center gap-2 font-semibold text-slate-300">
-                  <Plus className="w-3.5 h-3.5 text-indigo-400" />
+                <div className="flex items-center gap-2 font-semibold text-slate-300 text-sm">
+                  <Plus className="w-4 h-4 text-indigo-400" />
                   <span>Add Workflow Lane</span>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-5 gap-2 items-center">
-                  <div className="flex items-center gap-1.5 sm:col-span-2">
+                <div className="grid grid-cols-1 sm:grid-cols-5 gap-2.5 items-center">
+                  <div className="flex items-center gap-2 sm:col-span-2">
                     <input
                       type="color"
                       value={newLaneColor}
                       onChange={(e) => setNewLaneColor(e.target.value)}
-                      className="w-7 h-7 rounded-md bg-transparent cursor-pointer border-0 p-0 flex-shrink-0"
+                      className="w-8 h-8 rounded-md bg-transparent cursor-pointer border-0 p-0 flex-shrink-0"
                     />
                     <input
                       type="text"
@@ -306,14 +306,14 @@ export const ProjectSettingsModal: React.FC<ProjectSettingsModalProps> = ({
                       placeholder="Lane Name (e.g. QA)"
                       value={newLaneName}
                       onChange={(e) => setNewLaneName(e.target.value)}
-                      className="w-full bg-slate-900 text-slate-100 px-2.5 py-1.5 rounded-lg border border-slate-800 outline-none focus:border-indigo-500"
+                      className="w-full bg-slate-900 text-slate-100 px-3 py-2 rounded-lg border border-slate-800 outline-none focus:border-indigo-500 text-sm"
                     />
                   </div>
 
                   <select
                     value={newLaneType}
                     onChange={(e) => setNewLaneType(e.target.value as LaneType)}
-                    className="bg-slate-900 text-slate-300 px-2 py-1.5 rounded-lg border border-slate-800 outline-none text-[11px]"
+                    className="bg-slate-900 text-slate-300 px-2.5 py-2 rounded-lg border border-slate-800 outline-none text-xs"
                   >
                     <option value="unstarted">Unstarted</option>
                     <option value="started">Started</option>
@@ -326,12 +326,12 @@ export const ProjectSettingsModal: React.FC<ProjectSettingsModalProps> = ({
                     placeholder="WIP (opt)"
                     value={newLaneWip}
                     onChange={(e) => setNewLaneWip(e.target.value)}
-                    className="bg-slate-900 text-slate-200 px-2 py-1.5 rounded-lg border border-slate-800 outline-none text-center font-mono text-[11px]"
+                    className="bg-slate-900 text-slate-200 px-2.5 py-2 rounded-lg border border-slate-800 outline-none text-center font-mono text-xs"
                   />
 
                   <button
                     type="submit"
-                    className="bg-indigo-600 hover:bg-indigo-500 text-white font-medium py-1.5 px-3 rounded-lg transition-colors text-xs"
+                    className="bg-indigo-600 hover:bg-indigo-500 text-white font-medium py-2 px-3.5 rounded-lg transition-colors text-sm"
                   >
                     Add Lane
                   </button>
@@ -342,46 +342,46 @@ export const ProjectSettingsModal: React.FC<ProjectSettingsModalProps> = ({
 
           {/* Tab 3: Switch / Create Projects */}
           {activeTab === 'projects' && (
-            <div className="space-y-5 text-xs">
-              <p className="text-slate-400">
+            <div className="space-y-5 text-sm">
+              <p className="text-slate-400 text-sm">
                 Switch between different project boards in your local workspace or provision a new one.
               </p>
 
               {/* Projects List */}
-              <div className="space-y-2">
+              <div className="space-y-2.5">
                 {projectsList.map((proj) => {
                   const isActive = proj.id === metadata.id;
                   return (
                     <div
                       key={proj.id}
-                      className={`p-3 rounded-xl border flex items-center justify-between transition-colors ${
+                      className={`p-3.5 rounded-xl border flex items-center justify-between transition-colors ${
                         isActive
                           ? 'bg-indigo-950/40 border-indigo-500/50'
                           : 'bg-slate-950/80 border-slate-800 hover:border-slate-700'
                       }`}
                     >
                       <div className="flex items-center gap-3">
-                        <span className="font-mono text-xs font-bold text-indigo-400 bg-indigo-950 px-2 py-0.5 rounded border border-indigo-800/60">
+                        <span className="font-mono text-xs font-bold text-indigo-400 bg-indigo-950 px-2.5 py-1 rounded border border-indigo-800/60">
                           {proj.prefix}
                         </span>
                         <div>
-                          <div className="font-semibold text-slate-200">{proj.name}</div>
-                          <div className="text-[10px] text-slate-500 font-mono">{proj.id}</div>
+                          <div className="font-semibold text-slate-200 text-sm">{proj.name}</div>
+                          <div className="text-xs text-slate-400 font-mono">{proj.id}</div>
                         </div>
                       </div>
 
                       {isActive ? (
-                        <span className="text-[11px] font-medium text-indigo-400 flex items-center gap-1">
+                        <span className="text-xs font-medium text-indigo-400 flex items-center gap-1">
                           <Check className="w-3.5 h-3.5" />
                           Active
                         </span>
                       ) : (
                         <button
                           onClick={() => onSwitchProject(proj.id, proj.name, proj.prefix)}
-                          className="flex items-center gap-1 text-[11px] bg-slate-800 hover:bg-slate-700 text-slate-200 px-2.5 py-1 rounded-lg border border-slate-700 transition-colors"
+                          className="flex items-center gap-1.5 text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-1.5 rounded-lg border border-slate-700 transition-colors font-medium"
                         >
                           <span>Switch</span>
-                          <ArrowRight className="w-3 h-3" />
+                          <ArrowRight className="w-3.5 h-3.5" />
                         </button>
                       )}
                     </div>

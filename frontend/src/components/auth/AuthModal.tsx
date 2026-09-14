@@ -109,12 +109,12 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
           {step === 'login' && (
             <form onSubmit={handleLoginSubmit} className="space-y-4">
-              <p className="text-xs text-slate-400">
+              <p className="text-sm text-slate-400">
                 Cognito MFA authentication protects your team workspaces and cloud sync.
               </p>
 
-              <div className="space-y-1">
-                <label className="text-[11px] font-mono text-slate-400 uppercase">Email Address</label>
+              <div className="space-y-1.5">
+                <label className="text-xs font-mono text-slate-400 uppercase">Email Address</label>
                 <div className="relative flex items-center">
                   <Mail className="w-4 h-4 text-slate-500 absolute left-3" />
                   <input
@@ -123,14 +123,14 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                     placeholder="developer@team.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full bg-slate-950 text-xs text-slate-100 pl-9 pr-3 py-2.5 rounded-xl border border-slate-800 outline-none focus:border-indigo-500"
+                    className="w-full bg-slate-950 text-sm text-slate-100 pl-9 pr-3 py-2.5 rounded-xl border border-slate-800 outline-none focus:border-indigo-500"
                   />
                 </div>
               </div>
 
               <button
                 type="submit"
-                className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-xs py-2.5 rounded-xl shadow-md transition-all active:scale-95"
+                className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-sm py-2.5 rounded-xl shadow-md transition-all active:scale-95"
               >
                 Continue &rarr;
               </button>
@@ -139,7 +139,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
           {step === 'mfa_setup' && (
             <form onSubmit={handleMfaVerifySubmit} className="space-y-4 text-center">
-              <p className="text-xs text-slate-400">
+              <p className="text-sm text-slate-400">
                 Scan this QR code with your authenticator app (Google Authenticator, 1Password, etc.):
               </p>
 
@@ -150,13 +150,13 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               )}
 
               {mfaChallenge?.secretCode && (
-                <div className="text-[11px] font-mono text-slate-400 bg-slate-950 p-2 rounded-lg border border-slate-800">
+                <div className="text-xs font-mono text-slate-400 bg-slate-950 p-2.5 rounded-lg border border-slate-800">
                   Secret: <span className="text-indigo-400">{mfaChallenge.secretCode}</span>
                 </div>
               )}
 
-              <div className="space-y-1 text-left">
-                <label className="text-[11px] font-mono text-slate-400 uppercase">
+              <div className="space-y-1.5 text-left">
+                <label className="text-xs font-mono text-slate-400 uppercase">
                   6-Digit Authenticator Code
                 </label>
                 <input
@@ -166,13 +166,13 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   placeholder="123456"
                   value={totpCode}
                   onChange={(e) => setTotpCode(e.target.value.replace(/\D/g, ''))}
-                  className="w-full bg-slate-950 text-center font-mono text-lg tracking-widest text-slate-100 py-2 rounded-xl border border-slate-800 outline-none focus:border-indigo-500"
+                  className="w-full bg-slate-950 text-center font-mono text-xl tracking-widest text-slate-100 py-2.5 rounded-xl border border-slate-800 outline-none focus:border-indigo-500"
                 />
               </div>
 
               <button
                 type="submit"
-                className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-xs py-2.5 rounded-xl transition-all"
+                className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-sm py-2.5 rounded-xl transition-all"
               >
                 Verify and Activate MFA
               </button>
@@ -181,13 +181,13 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
           {step === 'mfa_verify' && (
             <form onSubmit={handleMfaVerifySubmit} className="space-y-4">
-              <p className="text-xs text-slate-400">
+              <p className="text-sm text-slate-400">
                 Open your authenticator app and enter the 6-digit security code for{' '}
                 <span className="text-slate-200 font-semibold">{email}</span>.
               </p>
 
-              <div className="space-y-1">
-                <label className="text-[11px] font-mono text-slate-400 uppercase">
+              <div className="space-y-1.5">
+                <label className="text-xs font-mono text-slate-400 uppercase">
                   6-Digit Security Code
                 </label>
                 <input
@@ -198,13 +198,13 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   placeholder="123456"
                   value={totpCode}
                   onChange={(e) => setTotpCode(e.target.value.replace(/\D/g, ''))}
-                  className="w-full bg-slate-950 text-center font-mono text-lg tracking-widest text-slate-100 py-2 rounded-xl border border-slate-800 outline-none focus:border-indigo-500"
+                  className="w-full bg-slate-950 text-center font-mono text-xl tracking-widest text-slate-100 py-2.5 rounded-xl border border-slate-800 outline-none focus:border-indigo-500"
                 />
               </div>
 
               <button
                 type="submit"
-                className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-xs py-2.5 rounded-xl transition-all"
+                className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-sm py-2.5 rounded-xl transition-all"
               >
                 Sign In
               </button>

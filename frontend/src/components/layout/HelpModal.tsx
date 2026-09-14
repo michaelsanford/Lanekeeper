@@ -25,32 +25,32 @@ export const HelpModal: React.FC<HelpModalProps> = ({ isOpen, onClose }) => {
           </button>
         </div>
 
-        <div className="p-5 space-y-5 text-xs">
+        <div className="p-6 space-y-6 text-sm">
           {/* Keyboard Shortcuts */}
-          <div className="space-y-2">
-            <h3 className="font-bold uppercase tracking-wider text-slate-400">Keyboard Shortcuts</h3>
-            <div className="grid grid-cols-2 gap-2">
-              <div className="p-2.5 bg-slate-950/60 rounded-lg border border-slate-800/80 flex items-center justify-between">
+          <div className="space-y-3">
+            <h3 className="font-bold uppercase tracking-wider text-slate-300 text-xs">Keyboard Shortcuts</h3>
+            <div className="grid grid-cols-2 gap-2.5">
+              <div className="p-3 bg-slate-950/60 rounded-lg border border-slate-800/80 flex items-center justify-between">
                 <span className="text-slate-300">Quick Capture</span>
-                <kbd className="bg-slate-800 text-indigo-300 font-mono px-1.5 py-0.5 rounded border border-slate-700 text-[11px]">
+                <kbd className="bg-slate-800 text-indigo-300 font-mono px-2 py-0.5 rounded border border-slate-700 text-xs">
                   C / Cmd+K
                 </kbd>
               </div>
-              <div className="p-2.5 bg-slate-950/60 rounded-lg border border-slate-800/80 flex items-center justify-between">
+              <div className="p-3 bg-slate-950/60 rounded-lg border border-slate-800/80 flex items-center justify-between">
                 <span className="text-slate-300">Flight Deck Focus</span>
-                <kbd className="bg-slate-800 text-indigo-300 font-mono px-1.5 py-0.5 rounded border border-slate-700 text-[11px]">
+                <kbd className="bg-slate-800 text-indigo-300 font-mono px-2 py-0.5 rounded border border-slate-700 text-xs">
                   F
                 </kbd>
               </div>
-              <div className="p-2.5 bg-slate-950/60 rounded-lg border border-slate-800/80 flex items-center justify-between">
+              <div className="p-3 bg-slate-950/60 rounded-lg border border-slate-800/80 flex items-center justify-between">
                 <span className="text-slate-300">Close Drawer/Modal</span>
-                <kbd className="bg-slate-800 text-indigo-300 font-mono px-1.5 py-0.5 rounded border border-slate-700 text-[11px]">
+                <kbd className="bg-slate-800 text-indigo-300 font-mono px-2 py-0.5 rounded border border-slate-700 text-xs">
                   Esc
                 </kbd>
               </div>
-              <div className="p-2.5 bg-slate-950/60 rounded-lg border border-slate-800/80 flex items-center justify-between">
+              <div className="p-3 bg-slate-950/60 rounded-lg border border-slate-800/80 flex items-center justify-between">
                 <span className="text-slate-300">Show Shortcuts</span>
-                <kbd className="bg-slate-800 text-indigo-300 font-mono px-1.5 py-0.5 rounded border border-slate-700 text-[11px]">
+                <kbd className="bg-slate-800 text-indigo-300 font-mono px-2 py-0.5 rounded border border-slate-700 text-xs">
                   ?
                 </kbd>
               </div>
@@ -58,31 +58,31 @@ export const HelpModal: React.FC<HelpModalProps> = ({ isOpen, onClose }) => {
           </div>
 
           {/* Quick Syntax Guide */}
-          <div className="space-y-2">
-            <h3 className="font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
-              <Zap className="w-3.5 h-3.5 text-indigo-400" />
+          <div className="space-y-3">
+            <h3 className="font-bold uppercase tracking-wider text-slate-300 text-xs flex items-center gap-2">
+              <Zap className="w-4 h-4 text-indigo-400" />
               <span>Quick Ingestion Syntax</span>
             </h3>
-            <div className="p-3 bg-slate-950/80 rounded-xl border border-slate-800 space-y-2 font-mono text-[11px]">
-              <div className="flex items-baseline justify-between border-b border-slate-800/80 pb-1.5">
-                <span className="text-indigo-400">#tag</span>
-                <span className="text-slate-400 font-sans">Categorize with tags (e.g. #backend, #infra)</span>
+            <div className="p-3.5 bg-slate-950/80 rounded-xl border border-slate-800 space-y-2.5 font-mono text-xs">
+              <div className="flex items-baseline justify-between border-b border-slate-800/80 pb-2">
+                <span className="text-indigo-400 font-semibold">#tag</span>
+                <span className="text-slate-400 font-sans text-xs">Categorize with tags (e.g. #backend, #infra)</span>
               </div>
-              <div className="flex items-baseline justify-between border-b border-slate-800/80 pb-1.5">
-                <span className="text-rose-400">!priority</span>
-                <span className="text-slate-400 font-sans">!urgent, !high, !med, !low</span>
+              <div className="flex items-baseline justify-between border-b border-slate-800/80 pb-2">
+                <span className="text-rose-400 font-semibold">!priority</span>
+                <span className="text-slate-400 font-sans text-xs">!urgent, !high, !med, !low</span>
               </div>
-              <div className="flex items-baseline justify-between border-b border-slate-800/80 pb-1.5">
-                <span className="text-cyan-400">^due</span>
-                <span className="text-slate-400 font-sans">^today, ^tomorrow, ^fri, ^2026-10-31</span>
+              <div className="flex items-baseline justify-between border-b border-slate-800/80 pb-2">
+                <span className="text-cyan-400 font-semibold">^due</span>
+                <span className="text-slate-400 font-sans text-xs">^today, ^tomorrow, ^fri, ^2026-10-31</span>
               </div>
-              <div className="flex items-baseline justify-between border-b border-slate-800/80 pb-1.5">
-                <span className="text-amber-400">~estimate</span>
-                <span className="text-slate-400 font-sans">~30m, ~2h, ~1.5h</span>
+              <div className="flex items-baseline justify-between border-b border-slate-800/80 pb-2">
+                <span className="text-amber-400 font-semibold">~estimate</span>
+                <span className="text-slate-400 font-sans text-xs">~30m, ~2h, ~1.5h</span>
               </div>
               <div className="flex items-baseline justify-between">
-                <span className="text-emerald-400">@assignee</span>
-                <span className="text-slate-400 font-sans">Assign task to team member</span>
+                <span className="text-emerald-400 font-semibold">@assignee</span>
+                <span className="text-slate-400 font-sans text-xs">Assign task to team member</span>
               </div>
             </div>
           </div>

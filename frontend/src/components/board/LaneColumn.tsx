@@ -47,16 +47,16 @@ export const LaneColumn: React.FC<LaneColumnProps> = ({
       }`}
     >
       {/* Column Header */}
-      <div className="p-3 border-b border-slate-800/80 flex items-center justify-between select-none">
-        <div className="flex items-center gap-2">
+      <div className="p-3.5 border-b border-slate-800/80 flex items-center justify-between select-none">
+        <div className="flex items-center gap-2.5">
           <span
-            className="w-2.5 h-2.5 rounded-full"
+            className="w-3 h-3 rounded-full"
             style={{ backgroundColor: lane.color }}
           />
-          <h2 className="font-semibold text-sm text-slate-200 tracking-tight">
+          <h2 className="font-bold text-base text-slate-200 tracking-tight">
             {lane.name}
           </h2>
-          <span className="text-xs font-mono font-medium text-slate-500 bg-slate-900 px-1.5 py-0.5 rounded border border-slate-800">
+          <span className="text-sm font-mono font-semibold text-slate-400 bg-slate-900 px-2 py-0.5 rounded border border-slate-800">
             {tasks.length}
           </span>
         </div>
@@ -65,7 +65,7 @@ export const LaneColumn: React.FC<LaneColumnProps> = ({
         {lane.wipLimit && (
           <div
             title={`WIP Limit: ${lane.wipLimit}`}
-            className={`flex items-center gap-1 text-[11px] font-mono px-1.5 py-0.5 rounded border ${
+            className={`flex items-center gap-1.5 text-xs font-mono font-medium px-2 py-0.5 rounded border ${
               isWipExceeded
                 ? 'bg-rose-950/50 text-rose-400 border-rose-800/70 animate-pulse'
                 : isAtWipLimit
@@ -73,7 +73,7 @@ export const LaneColumn: React.FC<LaneColumnProps> = ({
                 : 'bg-slate-900 text-slate-400 border-slate-800'
             }`}
           >
-            {isWipExceeded && <AlertTriangle className="w-2.5 h-2.5" />}
+            {isWipExceeded && <AlertTriangle className="w-3 h-3" />}
             <span>
               {tasks.length}/{lane.wipLimit}
             </span>
@@ -82,7 +82,7 @@ export const LaneColumn: React.FC<LaneColumnProps> = ({
       </div>
 
       {/* Cards List */}
-      <div className="flex-1 overflow-y-auto p-2 space-y-2 min-h-[10rem]">
+      <div className="flex-1 overflow-y-auto p-2.5 space-y-2.5 min-h-[10rem]">
         <SortableContext
           items={tasks.map((t) => t.id)}
           strategy={verticalListSortingStrategy}
@@ -99,14 +99,14 @@ export const LaneColumn: React.FC<LaneColumnProps> = ({
 
         {/* Empty Lane Placeholder */}
         {tasks.length === 0 && !isAdding && (
-          <div className="h-24 flex items-center justify-center text-xs text-slate-600 border border-dashed border-slate-800/60 rounded-xl select-none">
+          <div className="h-24 flex items-center justify-center text-sm text-slate-600 border border-dashed border-slate-800/60 rounded-xl select-none">
             Drop task here
           </div>
         )}
       </div>
 
       {/* Bottom Quick Add Action */}
-      <div className="p-2 border-t border-slate-800/60">
+      <div className="p-2.5 border-t border-slate-800/60">
         {isAdding ? (
           <form onSubmit={handleQuickAdd} className="space-y-2">
             <input
@@ -118,19 +118,19 @@ export const LaneColumn: React.FC<LaneColumnProps> = ({
               onKeyDown={(e) => {
                 if (e.key === 'Escape') setIsAdding(false);
               }}
-              className="w-full bg-slate-900 text-slate-100 text-xs px-2.5 py-1.5 rounded-lg border border-indigo-500/60 outline-none focus:ring-1 focus:ring-indigo-500 placeholder-slate-500"
+              className="w-full bg-slate-900 text-slate-100 text-sm px-3 py-2 rounded-lg border border-indigo-500/60 outline-none focus:ring-1 focus:ring-indigo-500 placeholder-slate-500"
             />
-            <div className="flex items-center gap-1.5 justify-end">
+            <div className="flex items-center gap-2 justify-end">
               <button
                 type="button"
                 onClick={() => setIsAdding(false)}
-                className="text-xs text-slate-400 hover:text-slate-200 px-2 py-1"
+                className="text-sm text-slate-400 hover:text-slate-200 px-2.5 py-1"
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                className="text-xs bg-indigo-600 hover:bg-indigo-500 text-white font-medium px-2.5 py-1 rounded-md"
+                className="text-sm bg-indigo-600 hover:bg-indigo-500 text-white font-medium px-3 py-1 rounded-md"
               >
                 Add
               </button>
@@ -139,9 +139,9 @@ export const LaneColumn: React.FC<LaneColumnProps> = ({
         ) : (
           <button
             onClick={() => setIsAdding(true)}
-            className="w-full flex items-center justify-center gap-1.5 text-xs text-slate-400 hover:text-slate-200 hover:bg-slate-900/80 py-1.5 rounded-lg transition-colors border border-transparent hover:border-slate-800/60"
+            className="w-full flex items-center justify-center gap-2 text-sm text-slate-400 hover:text-slate-200 hover:bg-slate-900/80 py-2 rounded-lg transition-colors border border-transparent hover:border-slate-800/60"
           >
-            <Plus className="w-3.5 h-3.5" />
+            <Plus className="w-4 h-4" />
             <span>Add task</span>
           </button>
         )}

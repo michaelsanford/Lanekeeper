@@ -97,7 +97,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
         <div className="flex items-center gap-1.5">
           {task.priority !== 'none' && (
             <span
-              className={`text-[10px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded border ${
+              className={`text-xs font-semibold uppercase tracking-wider px-2 py-0.5 rounded border ${
                 priorityConfig[task.priority].color
               }`}
             >
@@ -113,16 +113,16 @@ export const TaskCard: React.FC<TaskCardProps> = ({
               onToggleTimer(task.id);
             }}
             title={task.isTimerRunning ? 'Stop timer' : 'Start timer'}
-            className={`flex items-center gap-1 text-[11px] px-1.5 py-0.5 rounded transition-colors ${
+            className={`flex items-center gap-1.5 text-xs px-2 py-0.5 rounded transition-colors ${
               task.isTimerRunning
                 ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40 animate-pulse'
                 : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
             }`}
           >
             {task.isTimerRunning ? (
-              <Square className="w-2.5 h-2.5 fill-current" />
+              <Square className="w-3 h-3 fill-current" />
             ) : (
-              <Play className="w-2.5 h-2.5 fill-current" />
+              <Play className="w-3 h-3 fill-current" />
             )}
             {totalElapsedSeconds > 0 && <span>{formatTime(totalElapsedSeconds)}</span>}
           </button>
@@ -130,19 +130,19 @@ export const TaskCard: React.FC<TaskCardProps> = ({
       </div>
 
       {/* Task Title */}
-      <h3 className="text-sm font-medium text-slate-100 line-clamp-2 mb-2 group-hover:text-indigo-200 transition-colors">
+      <h3 className="text-base font-semibold text-slate-100 line-clamp-2 mb-2 leading-snug group-hover:text-indigo-200 transition-colors">
         {task.title}
       </h3>
 
       {/* Tags */}
       {task.tags.length > 0 && (
-        <div className="flex flex-wrap gap-1 mb-2">
+        <div className="flex flex-wrap gap-1.5 mb-2.5">
           {task.tags.map((tag) => (
             <span
               key={tag}
-              className="inline-flex items-center gap-1 text-[10px] text-slate-400 bg-slate-950/60 px-1.5 py-0.5 rounded border border-slate-800"
+              className="inline-flex items-center gap-1 text-xs text-slate-300 bg-slate-950/60 px-2 py-0.5 rounded border border-slate-800"
             >
-              <Tag className="w-2.5 h-2.5 text-slate-500" />
+              <Tag className="w-3 h-3 text-slate-400" />
               {tag}
             </span>
           ))}
@@ -150,10 +150,10 @@ export const TaskCard: React.FC<TaskCardProps> = ({
       )}
 
       {/* Bottom Metadata: Subtasks & Due Date */}
-      <div className="flex items-center justify-between text-[11px] text-slate-400 pt-1 border-t border-slate-800/80 mt-1">
+      <div className="flex items-center justify-between text-xs text-slate-400 pt-1.5 border-t border-slate-800/80 mt-1">
         {totalSubtasks > 0 ? (
-          <div className="flex items-center gap-1">
-            <CheckSquare className="w-3 h-3 text-slate-500" />
+          <div className="flex items-center gap-1.5">
+            <CheckSquare className="w-3.5 h-3.5 text-slate-500" />
             <span
               className={
                 completedSubtasks === totalSubtasks
@@ -170,7 +170,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
 
         {dueDateObj && (
           <div
-            className={`flex items-center gap-1 font-mono text-[10px] px-1.5 py-0.5 rounded ${
+            className={`flex items-center gap-1.5 font-mono text-xs px-2 py-0.5 rounded ${
               isOverdue
                 ? 'text-rose-400 bg-rose-950/40 border border-rose-800/50'
                 : isDueToday
@@ -178,8 +178,8 @@ export const TaskCard: React.FC<TaskCardProps> = ({
                 : 'text-slate-400'
             }`}
           >
-            {isOverdue && <AlertCircle className="w-2.5 h-2.5" />}
-            <Calendar className="w-2.5 h-2.5" />
+            {isOverdue && <AlertCircle className="w-3 h-3" />}
+            <Calendar className="w-3 h-3" />
             <span>{dueDateObj.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</span>
           </div>
         )}
