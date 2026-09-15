@@ -73,7 +73,9 @@ export function saveStoredProfile(profile: UserProfile): void {
   if (typeof localStorage !== 'undefined') {
     try {
       localStorage.setItem(USER_PROFILE_STORAGE_KEY, JSON.stringify(profile));
-      window.dispatchEvent(new CustomEvent(USER_PROFILE_CHANGE_EVENT, { detail: profile }));
+      if (typeof window !== 'undefined' && typeof window.dispatchEvent === 'function') {
+        window.dispatchEvent(new CustomEvent(USER_PROFILE_CHANGE_EVENT, { detail: profile }));
+      }
     } catch {}
   }
 }
