@@ -17,6 +17,7 @@ import { TaskDetailDrawer } from './components/task/TaskDetailDrawer.js';
 import { HelpModal } from './components/layout/HelpModal.js';
 import { AuthModal } from './components/auth/AuthModal.js';
 import { ProjectSettingsModal } from './components/project/ProjectSettingsModal.js';
+import { AppSettingsModal } from './components/settings/AppSettingsModal.js';
 import type { Task, AuthSession } from './types/index.js';
 
 export function App() {
@@ -52,6 +53,8 @@ export function App() {
   const [isHelpOpen, setIsHelpOpen] = useState(false);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [isProjectSettingsOpen, setIsProjectSettingsOpen] = useState(false);
+  const [projectSettingsTab, setProjectSettingsTab] = useState<'general' | 'lanes' | 'projects'>('lanes');
+  const [isAppSettingsOpen, setIsAppSettingsOpen] = useState(false);
   const [authSession, setAuthSession] = useState<AuthSession | null>(getStoredAuthSession);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
 
@@ -152,6 +155,7 @@ export function App() {
       setIsHelpOpen(false);
       setIsAuthOpen(false);
       setIsProjectSettingsOpen(false);
+      setIsAppSettingsOpen(false);
       setSelectedTask(null);
     },
     onToggleHelp: () => setIsHelpOpen((h) => !h)
@@ -190,14 +194,14 @@ export function App() {
         onViewChange={setActiveView}
         onOpenQuickCapture={() => setIsQuickCaptureOpen(true)}
         onOpenHelp={() => setIsHelpOpen(true)}
-        onOpenProjectSettings={() => setIsProjectSettingsOpen(true)}
+        onOpenProjectSettings={(tab) => {
+          setProjectSettingsTab(tab || 'lanes');
+          setIsProjectSettingsOpen(true);
+        }}
+        onOpenAppSettings={() => setIsAppSettingsOpen(true)}
         isOnline={isOnline}
         pushSubscribed={isSubscribed}
         onTogglePush={requestAndSubscribe}
-        currentTheme={theme}
-        currentMode={mode}
-        onSelectTheme={setTheme}
-        onSelectMode={setMode}
         projectsList={getProjectsList()}
         onSwitchProject={(id, name, pfx) => switchProject(id, name, pfx)}
       />
@@ -304,11 +308,18 @@ export function App() {
           setIsProjectSettingsOpen(false);
         }}
         onApplyTemplate={applyWorkflowTemplate}
+        onSeedSampleTasks={seedSampleTasks}
+        initialTab={projectSettingsTab}
+      />
+
+      {/* App Preferences & Feature Gates Modal (Theme & System) */}
+      <AppSettingsModal
+        isOpen={isAppSettingsOpen}
+        onClose={() => setIsAppSettingsOpen(false)}
         currentTheme={theme}
         currentMode={mode}
         onSelectTheme={setTheme}
         onSelectMode={setMode}
-        onSeedSampleTasks={seedSampleTasks}
       />
     </div>
     </FeatureGateProvider>

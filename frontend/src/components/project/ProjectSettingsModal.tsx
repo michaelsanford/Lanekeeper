@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Settings,
   X,
@@ -7,19 +7,12 @@ import {
   Plus,
   Check,
   ArrowRight,
-  Palette,
-  Sun,
-  Moon,
-  Sliders,
-  Clock,
   LayoutGrid
 } from 'lucide-react';
 import { SwimlaneIcon, TrafficLight } from '../icons/LaneIcons.js';
 import { LaneMarker } from '../icons/LaneMarker.js';
 import { LaneMarkerPickerModal } from './LaneMarkerPickerModal.js';
 import type { ProjectMetadata, Lane, LaneType } from '../../types/index.js';
-import { type ThemeId, type ThemeMode, THEMES, getThemePreview } from '../../utils/themes.js';
-import { useFeatureGate, getArchiveThresholdDays, setArchiveThresholdDays } from '../../features/index.js';
 import {
   WORKFLOW_TEMPLATES,
   getWorkflowTemplate,
@@ -39,11 +32,8 @@ interface ProjectSettingsModalProps {
   onCreateProject: (name: string, prefix: string, templateId?: string) => void;
   onSwitchProject: (projectId: string, name?: string, prefix?: string) => void;
   onApplyTemplate?: (templateId: string) => void;
-  currentTheme?: ThemeId;
-  currentMode?: ThemeMode;
-  onSelectTheme?: (themeId: ThemeId) => void;
-  onSelectMode?: (mode: ThemeMode) => void;
   onSeedSampleTasks?: () => void;
+  initialTab?: 'general' | 'lanes' | 'projects';
 }
 
 export const ProjectSettingsModal: React.FC<ProjectSettingsModalProps> = ({
@@ -59,26 +49,16 @@ export const ProjectSettingsModal: React.FC<ProjectSettingsModalProps> = ({
   onCreateProject,
   onSwitchProject,
   onApplyTemplate,
-  currentTheme,
-  currentMode,
-  onSelectTheme,
-  onSelectMode,
-  onSeedSampleTasks
+  onSeedSampleTasks,
+  initialTab = 'lanes'
 }) => {
-  const { definitions, isEnabled, toggleFlag, resetFlags } = useFeatureGate();
-  const [activeTab, setActiveTab] = useState<'general' | 'lanes' | 'projects' | 'themes' | 'features'>('general');
-  const [archiveDays, setArchiveDays] = useState<number>(() => getArchiveThresholdDays());
+  const [activeTab, setActiveTab] = useState<'general' | 'lanes' | 'projects'>(initialTab);
 
-  const handleSetArchiveDays = (days: number) => {
-    setArchiveDays(days);
-    setArchiveThresholdDays(days);
-  };
-
-  const handleResetFeatureFlags = () => {
-    resetFlags();
-    setArchiveDays(7);
-    setArchiveThresholdDays(7);
-  };
+  useEffect(() => {
+    if (initialTab) {
+      setActiveTab(initialTab);
+    }
+  }, [initialTab, isOpen]);
 
   // General tab state
   const [name, setName] = useState(metadata.name);
@@ -203,35 +183,13 @@ export const ProjectSettingsModal: React.FC<ProjectSettingsModalProps> = ({
           </button>
           <button
             onClick={() => setActiveTab('projects')}
-            className={`py-3.5 px-4 text-sm font-semibold border-b-2 transition-colors ${
+            className={`py-3.5 px-4 text-sm font-semibold border-b-2 transition-colors cursor-pointer ${
               activeTab === 'projects'
                 ? 'border-indigo-500 text-indigo-400'
                 : 'border-transparent text-slate-400 hover:text-slate-200'
             }`}
           >
             Switch / New Project ({projectsList.length})
-          </button>
-          <button
-            onClick={() => setActiveTab('themes')}
-            className={`py-3.5 px-4 text-sm font-semibold border-b-2 transition-colors flex items-center gap-1.5 ${
-              activeTab === 'themes'
-                ? 'border-indigo-500 text-indigo-400'
-                : 'border-transparent text-slate-400 hover:text-slate-200'
-            }`}
-          >
-            <Palette className="w-4 h-4" />
-            <span>Theme & Appearance</span>
-          </button>
-          <button
-            onClick={() => setActiveTab('features')}
-            className={`py-3.5 px-4 text-sm font-semibold border-b-2 transition-colors flex items-center gap-1.5 ${
-              activeTab === 'features'
-                ? 'border-indigo-500 text-indigo-400'
-                : 'border-transparent text-slate-400 hover:text-slate-200'
-            }`}
-          >
-            <Sliders className="w-4 h-4" />
-            <span>Feature Gates</span>
           </button>
         </div>
 
@@ -789,242 +747,6 @@ export const ProjectSettingsModal: React.FC<ProjectSettingsModalProps> = ({
                   Create and Open Project
                 </button>
               </form>
-            </div>
-          )}
-
-          {/* Tab 4: Theme & Appearance */}
-          {activeTab === 'themes' && (
-            <div className="space-y-5 text-sm">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-slate-800/80">
-                <div>
-                  <h3 className="text-sm font-bold text-slate-100">Coding Colour Schemes</h3>
-                  <p className="text-xs text-slate-400 mt-0.5">
-                    Select light or dark mode and an iconic coding palette to customize Lanekeeper.
-                  </p>
-                </div>
-
-                {/* Mode Switcher: Light vs Dark */}
-                <div className="flex items-center bg-slate-950/80 p-1 rounded-xl border border-slate-800 self-start sm:self-auto">
-                  <button
-                    type="button"
-                    onClick={() => onSelectMode?.('light')}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                      currentMode === 'light'
-                        ? 'bg-indigo-600 text-white shadow-sm'
-                        : 'text-slate-400 hover:text-slate-200'
-                    }`}
-                  >
-                    <Sun className="w-3.5 h-3.5" />
-                    <span>Light Mode</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => onSelectMode?.('dark')}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                      currentMode === 'dark'
-                        ? 'bg-indigo-600 text-white shadow-sm'
-                        : 'text-slate-400 hover:text-slate-200'
-                    }`}
-                  >
-                    <Moon className="w-3.5 h-3.5" />
-                    <span>Dark Mode</span>
-                  </button>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                {THEMES.map((th) => {
-                  const isActive = th.id === currentTheme;
-                  const preview = getThemePreview(th, currentMode || 'dark');
-                  return (
-                    <div
-                      key={th.id}
-                      onClick={() => onSelectTheme?.(th.id)}
-                      className={`p-4 rounded-xl border transition-all cursor-pointer flex flex-col justify-between space-y-3 ${
-                        isActive
-                          ? 'bg-indigo-950/40 border-indigo-500/70 shadow-lg ring-1 ring-indigo-500/50'
-                          : 'bg-slate-950/80 border-slate-800 hover:border-slate-700 hover:bg-slate-900/60'
-                      }`}
-                    >
-                      <div className="space-y-2">
-                        <div className="flex items-start justify-between gap-2">
-                          <div>
-                            <div className="font-semibold text-slate-100 text-sm">{th.name}</div>
-                            <div className="text-xs text-slate-400 font-mono">{th.authorOrOrigin}</div>
-                          </div>
-                          {isActive ? (
-                            <span className="text-xs font-semibold text-indigo-400 bg-indigo-950 px-2 py-0.5 rounded border border-indigo-800/60 flex items-center gap-1">
-                              <Check className="w-3.5 h-3.5" />
-                              Active
-                            </span>
-                          ) : (
-                            <span className="text-xs text-slate-500 font-mono">Select</span>
-                          )}
-                        </div>
-                        <p className="text-xs text-slate-400 leading-relaxed">{th.description}</p>
-                      </div>
-
-                      {/* Swatch Previews */}
-                      <div className="flex items-center gap-2 pt-2 border-t border-slate-800/80">
-                        <div className="flex items-center gap-1.5 flex-1">
-                          <span
-                            className="w-5 h-5 rounded-md border border-slate-700/80"
-                            style={{ backgroundColor: preview.bg }}
-                            title="Background"
-                          />
-                          <span
-                            className="w-5 h-5 rounded-md border border-slate-700/80"
-                            style={{ backgroundColor: preview.surface }}
-                            title="Surface"
-                          />
-                          <span
-                            className="w-5 h-5 rounded-md border border-slate-700/80"
-                            style={{ backgroundColor: preview.border }}
-                            title="Border"
-                          />
-                          <span
-                            className="w-5 h-5 rounded-md border border-slate-700/80"
-                            style={{ backgroundColor: preview.accent }}
-                            title="Accent"
-                          />
-                          <span
-                            className="w-5 h-5 rounded-md border border-slate-700/80"
-                            style={{ backgroundColor: preview.text }}
-                            title="Text"
-                          />
-                        </div>
-                        <span className="text-xs font-mono text-slate-400 uppercase">
-                          {currentMode === 'light' ? 'Light' : 'Dark'}
-                        </span>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
-          {/* Tab 5: Feature Gates */}
-          {activeTab === 'features' && (
-            <div className="space-y-6">
-              <div className="flex items-center justify-between pb-3 border-b border-slate-800">
-                <div>
-                  <h3 className="font-bold text-sm text-slate-100 flex items-center gap-2">
-                    <Sliders className="w-4 h-4 text-indigo-400" />
-                    <span>Feature Gates & System Modules</span>
-                  </h3>
-                  <p className="text-xs text-slate-400 mt-1">
-                    Enable or disable optional system capabilities. Settings persist locally per workspace.
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={handleResetFeatureFlags}
-                  className="text-xs text-slate-400 hover:text-slate-200 bg-slate-950 px-3 py-1.5 rounded-lg border border-slate-800 hover:border-slate-700 transition-colors"
-                >
-                  Reset Defaults
-                </button>
-              </div>
-
-              <div className="space-y-3">
-                {definitions.map((def) => {
-                  const isFlagActive = isEnabled(def.id);
-                  return (
-                    <div
-                      key={def.id}
-                      className={`p-4 rounded-xl border transition-all flex flex-col gap-3 ${
-                        isFlagActive
-                          ? 'bg-slate-950/80 border-indigo-500/40 shadow-sm'
-                          : 'bg-slate-950/40 border-slate-800/80'
-                      }`}
-                    >
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="space-y-1.5 flex-1">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <span className="font-semibold text-sm text-slate-200">{def.name}</span>
-                            <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-slate-800 text-slate-400 border border-slate-700">
-                              {def.category}
-                            </span>
-                            <span
-                              className={`text-[10px] font-mono px-2 py-0.5 rounded border ${
-                                isFlagActive
-                                  ? 'bg-emerald-950/60 text-emerald-400 border-emerald-800/60'
-                                  : 'bg-slate-900 text-slate-500 border-slate-800'
-                              }`}
-                            >
-                              {isFlagActive ? 'Active' : 'Disabled'}
-                            </span>
-                            <span className="text-[10px] text-slate-500 font-mono">
-                              {def.defaultValue ? 'Default: On' : 'Default: Off'}
-                            </span>
-                          </div>
-                          <p className="text-xs text-slate-400 leading-relaxed">{def.description}</p>
-                        </div>
-
-                        {/* Interactive Toggle Switch */}
-                        <button
-                          type="button"
-                          role="switch"
-                          aria-checked={isFlagActive}
-                          onClick={() => toggleFlag(def.id)}
-                          className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-slate-900 ${
-                            isFlagActive ? 'bg-indigo-600' : 'bg-slate-800'
-                          }`}
-                        >
-                          <span className="sr-only">Toggle {def.name}</span>
-                          <span
-                            className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out ${
-                              isFlagActive ? 'translate-x-5' : 'translate-x-0'
-                            }`}
-                          />
-                        </button>
-                      </div>
-
-                      {/* Configurable threshold days for doneLaneArchiving */}
-                      {def.id === 'doneLaneArchiving' && isFlagActive && (
-                        <div className="pt-3 border-t border-slate-800/80 flex flex-wrap items-center justify-between gap-2.5 bg-slate-900/60 p-2.5 rounded-lg text-xs">
-                          <div className="flex items-center gap-2 text-slate-300">
-                            <Clock className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
-                            <span>Archive completed tasks older than:</span>
-                          </div>
-                          <div className="flex items-center gap-1.5 flex-wrap">
-                            {[1, 3, 7, 14, 30].map((days) => (
-                              <button
-                                key={days}
-                                type="button"
-                                onClick={() => handleSetArchiveDays(days)}
-                                className={`px-2 py-0.5 rounded text-xs font-mono font-medium border transition-colors ${
-                                  archiveDays === days
-                                    ? 'bg-indigo-600 text-white border-indigo-500'
-                                    : 'bg-slate-950 text-slate-400 border-slate-800 hover:text-slate-200'
-                                }`}
-                              >
-                                {days}d
-                              </button>
-                            ))}
-                            <div className="flex items-center gap-1 ml-1">
-                              <input
-                                type="number"
-                                min={0}
-                                max={365}
-                                value={archiveDays}
-                                onChange={(e) => {
-                                  const val = parseInt(e.target.value, 10);
-                                  if (!isNaN(val) && val >= 0) {
-                                    handleSetArchiveDays(val);
-                                  }
-                                }}
-                                className="w-12 bg-slate-950 text-slate-200 px-1.5 py-0.5 rounded border border-slate-800 text-xs font-mono text-center outline-none focus:border-indigo-500"
-                              />
-                              <span className="text-slate-400 font-mono">days</span>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
             </div>
           )}
         </div>

@@ -7,13 +7,12 @@ import {
   WifiOff,
   HelpCircle,
   Settings,
-  Palette,
   Check,
   Table as TableIcon,
   Calendar as CalendarIcon,
-  Sun,
-  Moon,
-  ChevronDown
+  ChevronDown,
+  Layers,
+  FolderPlus
 } from 'lucide-react';
 import {
   LanekeeperLogo,
@@ -21,7 +20,6 @@ import {
   LaneKeepIcon
 } from '../icons/LaneIcons.js';
 import type { ProjectMetadata } from '../../types/index.js';
-import { type ThemeId, type ThemeMode, THEMES, getThemePreview } from '../../utils/themes.js';
 import { getWorkflowTemplate } from '../../utils/templates.js';
 
 export type ActiveView = 'board' | 'table' | 'calendar' | 'flightdeck';
@@ -32,14 +30,11 @@ interface HeaderProps {
   onViewChange: (view: ActiveView) => void;
   onOpenQuickCapture: () => void;
   onOpenHelp: () => void;
-  onOpenProjectSettings: () => void;
+  onOpenProjectSettings: (tab?: 'general' | 'lanes' | 'projects') => void;
+  onOpenAppSettings: () => void;
   isOnline: boolean;
   pushSubscribed: boolean;
   onTogglePush: () => void;
-  currentTheme: ThemeId;
-  currentMode: ThemeMode;
-  onSelectTheme: (themeId: ThemeId) => void;
-  onSelectMode: (mode: ThemeMode) => void;
   projectsList?: ProjectMetadata[];
   onSwitchProject?: (projectId: string, name?: string, prefix?: string) => void;
 }
@@ -51,37 +46,29 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenQuickCapture,
   onOpenHelp,
   onOpenProjectSettings,
+  onOpenAppSettings,
   isOnline,
   pushSubscribed,
   onTogglePush,
-  currentTheme,
-  currentMode,
-  onSelectTheme,
-  onSelectMode,
   projectsList,
   onSwitchProject
 }) => {
-  const [isThemeMenuOpen, setIsThemeMenuOpen] = useState(false);
-  const themeMenuRef = useRef<HTMLDivElement>(null);
   const [isProjectMenuOpen, setIsProjectMenuOpen] = useState(false);
   const projectMenuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
-      if (themeMenuRef.current && !themeMenuRef.current.contains(e.target as Node)) {
-        setIsThemeMenuOpen(false);
-      }
       if (projectMenuRef.current && !projectMenuRef.current.contains(e.target as Node)) {
         setIsProjectMenuOpen(false);
       }
     };
-    if (isThemeMenuOpen || isProjectMenuOpen) {
+    if (isProjectMenuOpen) {
       document.addEventListener('mousedown', handleClickOutside);
     }
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [isThemeMenuOpen, isProjectMenuOpen]);
+  }, [isProjectMenuOpen]);
   return (
     <header className="h-16 border-b border-slate-800 bg-slate-900/90 backdrop-blur-md px-5 flex items-center justify-between sticky top-0 z-30 select-none">
       {/* Left: Brand & Project Info */}
@@ -163,16 +150,36 @@ export const Header: React.FC<HeaderProps> = ({
                 })}
               </div>
 
-              <div className="pt-1 border-t border-slate-800/80 px-1 space-y-0.5">
+              <div className="pt-1.5 border-t border-slate-800/80 px-1 space-y-0.5">
                 <button
                   onClick={() => {
                     setIsProjectMenuOpen(false);
-                    onOpenProjectSettings();
+                    onOpenProjectSettings('lanes');
+                  }}
+                  className="w-full px-3 py-1.5 text-xs text-slate-300 hover:text-slate-100 hover:bg-slate-800/60 rounded-md transition-colors flex items-center gap-2 cursor-pointer"
+                >
+                  <Layers className="w-3.5 h-3.5 text-indigo-400" />
+                  <span>Workflow Lanes & Templates...</span>
+                </button>
+                <button
+                  onClick={() => {
+                    setIsProjectMenuOpen(false);
+                    onOpenProjectSettings('projects');
+                  }}
+                  className="w-full px-3 py-1.5 text-xs text-slate-300 hover:text-slate-100 hover:bg-slate-800/60 rounded-md transition-colors flex items-center gap-2 cursor-pointer"
+                >
+                  <FolderPlus className="w-3.5 h-3.5 text-indigo-400" />
+                  <span>Switch / New Project...</span>
+                </button>
+                <button
+                  onClick={() => {
+                    setIsProjectMenuOpen(false);
+                    onOpenProjectSettings('general');
                   }}
                   className="w-full px-3 py-1.5 text-xs text-slate-300 hover:text-slate-100 hover:bg-slate-800/60 rounded-md transition-colors flex items-center gap-2 cursor-pointer"
                 >
                   <Settings className="w-3.5 h-3.5 text-slate-400" />
-                  <span>Project & Workflow Settings...</span>
+                  <span>Project Identifiers & Key...</span>
                 </button>
               </div>
             </div>
@@ -279,113 +286,11 @@ export const Header: React.FC<HeaderProps> = ({
           <span className="hidden sm:inline">{isOnline ? 'Online' : 'Offline'}</span>
         </div>
 
-        {/* Coding Theme Selector */}
-        <div className="relative" ref={themeMenuRef}>
-          <button
-            onClick={() => setIsThemeMenuOpen((o) => !o)}
-            title="Colour Scheme / Theme"
-            className={`p-2 rounded-lg border transition-colors ${
-              isThemeMenuOpen
-                ? 'bg-indigo-950/80 border-indigo-700/70 text-indigo-300'
-                : 'border-slate-800 text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
-            }`}
-          >
-            <Palette className="w-4 h-4" />
-          </button>
-
-          {isThemeMenuOpen && (
-            <div className="absolute right-0 mt-2 w-72 bg-slate-900 border border-slate-800 rounded-xl shadow-2xl overflow-hidden py-1.5 z-50 animate-fade-in">
-              {/* Display Mode Switcher (Light vs Dark) */}
-              <div className="px-3 py-2 border-b border-slate-800/80 bg-slate-950/40">
-                <div className="text-[11px] font-mono uppercase tracking-wider text-slate-400 mb-1.5">
-                  Display Mode
-                </div>
-                <div className="grid grid-cols-2 gap-1 p-1 bg-slate-950/80 rounded-lg border border-slate-800">
-                  <button
-                    type="button"
-                    onClick={() => onSelectMode('light')}
-                    className={`flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-md text-xs font-semibold transition-all ${
-                      currentMode === 'light'
-                        ? 'bg-indigo-600 text-white shadow-sm'
-                        : 'text-slate-400 hover:text-slate-200'
-                    }`}
-                  >
-                    <Sun className="w-3.5 h-3.5" />
-                    <span>Light</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => onSelectMode('dark')}
-                    className={`flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-md text-xs font-semibold transition-all ${
-                      currentMode === 'dark'
-                        ? 'bg-indigo-600 text-white shadow-sm'
-                        : 'text-slate-400 hover:text-slate-200'
-                    }`}
-                  >
-                    <Moon className="w-3.5 h-3.5" />
-                    <span>Dark</span>
-                  </button>
-                </div>
-              </div>
-
-              <div className="px-3.5 py-2 border-b border-slate-800/80 flex items-center justify-between text-xs text-slate-400 font-mono uppercase tracking-wider">
-                <span>Colour Schemes</span>
-                <span className="text-[11px] text-slate-500 lowercase">({THEMES.length} themes)</span>
-              </div>
-
-              <div className="max-h-80 overflow-y-auto py-1">
-                {THEMES.map((th) => {
-                  const isSelected = th.id === currentTheme;
-                  const preview = getThemePreview(th, currentMode);
-                  return (
-                    <button
-                      key={th.id}
-                      onClick={() => {
-                        onSelectTheme(th.id);
-                        setIsThemeMenuOpen(false);
-                      }}
-                      className={`w-full px-3.5 py-2 flex items-center justify-between text-left transition-colors text-xs ${
-                        isSelected
-                          ? 'bg-indigo-950/60 text-indigo-400 font-semibold'
-                          : 'text-slate-300 hover:bg-slate-800/70'
-                      }`}
-                    >
-                      <div className="flex items-center gap-2.5">
-                        {/* 3-Color Swatch Preview */}
-                        <div className="flex -space-x-1 items-center">
-                          <span
-                            className="w-3.5 h-3.5 rounded-full border border-slate-700"
-                            style={{ backgroundColor: preview.bg }}
-                          />
-                          <span
-                            className="w-3.5 h-3.5 rounded-full border border-slate-700"
-                            style={{ backgroundColor: preview.surface }}
-                          />
-                          <span
-                            className="w-3.5 h-3.5 rounded-full border border-slate-700"
-                            style={{ backgroundColor: preview.accent }}
-                          />
-                        </div>
-                        <div>
-                          <div className="font-medium text-slate-100">{th.name}</div>
-                          <div className="text-[10px] text-slate-400 font-mono">{th.authorOrOrigin}</div>
-                        </div>
-                      </div>
-
-                      {isSelected && <Check className="w-4 h-4 text-indigo-400" />}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Project & Workflow Settings */}
+        {/* App Preferences & Feature Gates (Theme & Settings) */}
         <button
-          onClick={onOpenProjectSettings}
-          title="Project & Workflow Settings"
-          className="p-2 rounded-lg border border-slate-800 text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 transition-colors"
+          onClick={onOpenAppSettings}
+          title="Preferences & Feature Gates (Themes & Settings)"
+          className="p-2 rounded-lg border border-slate-800 text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 transition-colors cursor-pointer"
         >
           <Settings className="w-4 h-4" />
         </button>
