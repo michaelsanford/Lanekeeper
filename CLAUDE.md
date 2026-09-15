@@ -4,8 +4,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Development & Git Workflow
 
-- **Do NOT create Pull Requests**: This project is in rapid single-developer development. Do not open PRs or create extraneous branches.
-- **Work directly on `main`**: All commits must be made directly on `main` with a clean, linear history.
+- **Do NOT create Pull Requests**: This project is in rapid single-developer development. Do not open PRs to GitHub.
+- **Work directly on `main`**: Production work commits directly on `main` with a clean, linear history.
+- **Local-only exploratory branches**: Hypothetical or test-the-waters work may happen on local branches, but those must remain local and are never pushed to remote or made into PRs. Integrate onto `main` via clean rebase/fast-forward only.
 - **No merge commits**: Fast-forward only. Never produce merge commits.
 - **Author identity**: All git commits must be authored by `Michael Sanford <michaelsanford@users.noreply.github.com>`.
 - **Naming restrictions**: Never use `stelvio` anywhere in this project.
