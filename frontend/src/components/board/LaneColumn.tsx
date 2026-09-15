@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useDroppable } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
-import { Plus } from 'lucide-react';
+import { Plus, Archive } from 'lucide-react';
 import { SwimlaneBuoyIcon, TrafficLight } from '../icons/LaneIcons.js';
 import type { Lane, Task } from '../../types/index.js';
 import { TaskCard } from './TaskCard.js';
+import { useFeatureGate, getArchiveThresholdDays } from '../../features/index.js';
 
 interface LaneColumnProps {
   lane: Lane;
@@ -12,6 +13,7 @@ interface LaneColumnProps {
   onSelectTask: (task: Task) => void;
   onToggleTimer: (taskId: string) => void;
   onAddTask: (laneId: string, title: string) => void;
+  onArchiveCompletedTasks?: (olderThanDays: number) => number;
 }
 
 export const LaneColumn: React.FC<LaneColumnProps> = ({
@@ -19,8 +21,31 @@ export const LaneColumn: React.FC<LaneColumnProps> = ({
   tasks,
   onSelectTask,
   onToggleTimer,
-  onAddTask
+  onAddTask,
+  onArchiveCompletedTasks
 }) => {
+  const { isEnabled } = useFeatureGate();
+  const isArchivingEnabled = isEnabled('doneLaneArchiving');
+  const isCompletedLane = lane.type === 'completed';
+  const thresholdDays = getArchiveThresholdDays();
+
+  // Find tasks eligible for archive
+  const eligibleArchiveCount = useMemo(() => {
+    if (!isCompletedLane || !isArchivingEnabled) return 0;
+    const cutoff = Date.now() - thresholdDays * 86400000;
+    return tasks.filter((t) => !t.archived && new Date(t.updatedAt).getTime() <= cutoff).length;
+  }, [tasks, isCompletedLane, isArchivingEnabled, thresholdDays]);
+
+  const [archiveSuccess, setArchiveSuccess] = useState<number | null>(null);
+
+  const handleArchive = () => {
+    if (onArchiveCompletedTasks && eligibleArchiveCount > 0) {
+      const count = onArchiveCompletedTasks(thresholdDays);
+      setArchiveSuccess(count);
+      setTimeout(() => setArchiveSuccess(null), 3000);
+    }
+  };
+
   const { setNodeRef, isOver } = useDroppable({
     id: lane.id
   });
@@ -67,6 +92,24 @@ export const LaneColumn: React.FC<LaneColumnProps> = ({
 
         {/* Traffic Flow & WIP Control */}
         <div className="flex items-center gap-1.5">
+          {/* Archive Done Action (Feature 5 - Gated) */}
+          {isCompletedLane && isArchivingEnabled && eligibleArchiveCount > 0 && (
+            <button
+              type="button"
+              onClick={handleArchive}
+              title={`Archive ${eligibleArchiveCount} tasks completed >${thresholdDays}d ago`}
+              className="flex items-center gap-1 text-[11px] font-mono text-indigo-300 hover:text-white bg-indigo-950/60 hover:bg-indigo-900/80 px-2 py-0.5 rounded border border-indigo-800/60 transition-colors"
+            >
+              <Archive className="w-3 h-3" />
+              <span>Archive ({eligibleArchiveCount})</span>
+            </button>
+          )}
+          {archiveSuccess !== null && (
+            <span className="text-[11px] font-mono text-emerald-400 bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-800/60">
+              Archived {archiveSuccess}
+            </span>
+          )}
+
           {lane.wipLimit ? (
             <div
               title={`Lane Flow Capacity: ${tasks.length}/${lane.wipLimit} (${

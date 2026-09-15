@@ -369,7 +369,7 @@ class CrdtStore {
       const updated: Task = {
         ...existing,
         ...updates,
-        updatedAt: new Date().toISOString()
+        updatedAt: updates.updatedAt || new Date().toISOString()
       };
       tasksMap.set(taskId, updated);
     }
@@ -430,13 +430,67 @@ class CrdtStore {
     // 2. Create new child task with parent reference
     const childTask = this.addTask({
       title: subtask.title,
-      description: `> 🔗 Child task promoted from parent **${parent.key}** (${parent.title})\n\n`,
+      description: `> Child task promoted from parent **${parent.key}** (${parent.title})\n\n`,
       priority: parent.priority,
       laneId: parent.laneId,
       tags: [...parent.tags]
     });
 
     return childTask;
+  }
+
+  public archiveTask(taskId: string): void {
+    const task = this.doc.getMap<Task>('tasks').get(taskId);
+    if (!task) return;
+
+    const updates: Partial<Task> = {
+      archived: true,
+      archivedAt: new Date().toISOString()
+    };
+
+    if (task.isTimerRunning) {
+      updates.isTimerRunning = false;
+      if (task.timerStartedAt) {
+        const elapsedSeconds = Math.floor((Date.now() - task.timerStartedAt) / 1000);
+        updates.timeSpentSeconds = (task.timeSpentSeconds || 0) + elapsedSeconds;
+        updates.timerStartedAt = undefined;
+      }
+    }
+
+    this.updateTask(taskId, updates);
+  }
+
+  public unarchiveTask(taskId: string): void {
+    this.updateTask(taskId, {
+      archived: false,
+      archivedAt: undefined
+    });
+  }
+
+  public archiveCompletedTasks(olderThanDays: number = 7): number {
+    const tasksMap = this.doc.getMap<Task>('tasks');
+    const lanes = this.getLanes();
+    const completedLaneIds = new Set(
+      lanes.filter((l) => l.type === 'completed').map((l) => l.id)
+    );
+    if (completedLaneIds.size === 0) {
+      completedLaneIds.add('done');
+    }
+
+    const cutoffMs = Date.now() - olderThanDays * 86400000;
+    let count = 0;
+
+    for (const [taskId, task] of tasksMap.entries()) {
+      if (!task.archived && completedLaneIds.has(task.laneId)) {
+        const taskTime = new Date(task.updatedAt || task.createdAt).getTime();
+        if (taskTime <= cutoffMs) {
+          this.archiveTask(taskId);
+          count++;
+        }
+      }
+    }
+
+    return count;
   }
 
   public toggleTimer(taskId: string): void {

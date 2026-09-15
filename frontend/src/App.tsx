@@ -39,7 +39,10 @@ export function App() {
     getProjectsList,
     createProject,
     switchProject,
-    seedSampleTasks
+    seedSampleTasks,
+    archiveTask,
+    unarchiveTask,
+    archiveCompletedTasks
   } = useCrdt();
 
   const [activeView, setActiveView] = useState<ActiveView>('board');
@@ -206,6 +209,7 @@ export function App() {
             onToggleTimer={toggleTimer}
             onMoveTask={moveTask}
             onAddTask={(laneId, title) => addTask({ laneId, title })}
+            onArchiveCompletedTasks={archiveCompletedTasks}
           />
         )}
         {activeView === 'table' && (
@@ -216,6 +220,7 @@ export function App() {
             onToggleTimer={toggleTimer}
             onUpdateTask={updateTask}
             onAddTask={(taskData) => addTask(taskData)}
+            onUnarchiveTask={unarchiveTask}
           />
         )}
         {activeView === 'calendar' && (
@@ -262,6 +267,8 @@ export function App() {
             setSelectedTask(child);
           }
         }}
+        onArchiveTask={archiveTask}
+        onUnarchiveTask={unarchiveTask}
       />
 
       {/* Keyboard Shortcuts & Syntax Help Modal */}

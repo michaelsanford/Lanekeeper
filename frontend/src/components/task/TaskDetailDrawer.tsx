@@ -6,7 +6,9 @@ import {
   Play,
   Square,
   CheckSquare,
-  ArrowUpRight
+  ArrowUpRight,
+  Archive,
+  RotateCcw
 } from 'lucide-react';
 import type { Task, Lane, TaskPriority } from '../../types/index.js';
 import { useFeatureGate } from '../../features/index.js';
@@ -21,6 +23,8 @@ interface TaskDetailDrawerProps {
   onToggleSubtask: (taskId: string, subtaskId: string) => void;
   onAddSubtask: (taskId: string, title: string) => void;
   onPromoteSubtask: (parentTaskId: string, subtaskId: string) => void;
+  onArchiveTask?: (taskId: string) => void;
+  onUnarchiveTask?: (taskId: string) => void;
 }
 
 export const TaskDetailDrawer: React.FC<TaskDetailDrawerProps> = ({
@@ -32,7 +36,9 @@ export const TaskDetailDrawer: React.FC<TaskDetailDrawerProps> = ({
   onToggleTimer,
   onToggleSubtask,
   onAddSubtask,
-  onPromoteSubtask
+  onPromoteSubtask,
+  onArchiveTask,
+  onUnarchiveTask
 }) => {
   const { isEnabled } = useFeatureGate();
   const isTimeTrackingEnabled = isEnabled('timeTracking');
@@ -109,6 +115,34 @@ export const TaskDetailDrawer: React.FC<TaskDetailDrawerProps> = ({
           </div>
 
           <div className="flex items-center gap-2">
+            {task.archived ? (
+              onUnarchiveTask && (
+                <button
+                  onClick={() => {
+                    onUnarchiveTask(task.id);
+                    onClose();
+                  }}
+                  title="Restore task to board"
+                  className="p-2 rounded-lg text-slate-400 hover:text-indigo-400 hover:bg-indigo-950/40 transition-colors"
+                >
+                  <RotateCcw className="w-4 h-4" />
+                </button>
+              )
+            ) : (
+              onArchiveTask && (
+                <button
+                  onClick={() => {
+                    onArchiveTask(task.id);
+                    onClose();
+                  }}
+                  title="Archive task"
+                  className="p-2 rounded-lg text-slate-400 hover:text-amber-400 hover:bg-amber-950/40 transition-colors"
+                >
+                  <Archive className="w-4 h-4" />
+                </button>
+              )
+            )}
+
             <button
               onClick={() => {
                 if (confirm(`Delete task ${task.key}?`)) {

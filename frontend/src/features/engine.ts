@@ -1,4 +1,4 @@
-export type FeatureFlagId = 'timeTracking';
+export type FeatureFlagId = 'timeTracking' | 'doneLaneArchiving';
 
 export type FeatureFlagCategory = 'productivity' | 'experimental' | 'collaboration' | 'appearance';
 export type FeatureFlagStage = 'alpha' | 'beta' | 'stable' | 'preview';
@@ -20,11 +20,54 @@ export const FEATURE_DEFINITIONS: Record<FeatureFlagId, FeatureFlagDefinition> =
     defaultValue: false,
     category: 'productivity',
     stage: 'stable'
+  },
+  doneLaneArchiving: {
+    id: 'doneLaneArchiving',
+    name: 'Done Lane Auto-Archive & Clean Up',
+    description: 'Clean up completed swimlanes by archiving tasks older than a configurable number of days. Preserves data in Table View.',
+    defaultValue: false,
+    category: 'productivity',
+    stage: 'stable'
   }
 };
 
 export const FEATURE_STORAGE_KEY = 'lanekeeper_feature_flags';
 export const FEATURE_CHANGE_EVENT = 'lanekeeper_feature_flags_change';
+
+export const ARCHIVE_DAYS_STORAGE_KEY = 'lanekeeper_archive_threshold_days';
+export const ARCHIVE_DAYS_CHANGE_EVENT = 'lanekeeper_archive_days_change';
+const DEFAULT_ARCHIVE_THRESHOLD_DAYS = 7;
+let inMemoryArchiveDays: number | null = null;
+
+export function getArchiveThresholdDays(): number {
+  if (typeof localStorage !== 'undefined') {
+    try {
+      const val = localStorage.getItem(ARCHIVE_DAYS_STORAGE_KEY);
+      if (val !== null) {
+        const parsed = parseInt(val, 10);
+        if (!isNaN(parsed) && parsed >= 0) {
+          return parsed;
+        }
+      }
+    } catch {}
+  }
+  return inMemoryArchiveDays ?? DEFAULT_ARCHIVE_THRESHOLD_DAYS;
+}
+
+export function setArchiveThresholdDays(days: number): void {
+  const safeDays = Math.max(0, Math.floor(days));
+  inMemoryArchiveDays = safeDays;
+  if (typeof localStorage !== 'undefined') {
+    try {
+      localStorage.setItem(ARCHIVE_DAYS_STORAGE_KEY, safeDays.toString());
+    } catch {}
+  }
+  if (typeof window !== 'undefined') {
+    try {
+      window.dispatchEvent(new CustomEvent(ARCHIVE_DAYS_CHANGE_EVENT, { detail: safeDays }));
+    } catch {}
+  }
+}
 
 let inMemoryStore: Record<string, boolean> = {};
 
@@ -133,14 +176,17 @@ export function toggleFeatureFlag(id: FeatureFlagId): boolean {
  */
 export function resetAllFeatureFlags(): void {
   inMemoryStore = {};
+  inMemoryArchiveDays = null;
   if (typeof localStorage !== 'undefined') {
     try {
       localStorage.removeItem(FEATURE_STORAGE_KEY);
+      localStorage.removeItem(ARCHIVE_DAYS_STORAGE_KEY);
     } catch {}
   }
   if (typeof window !== 'undefined') {
     try {
       window.dispatchEvent(new CustomEvent(FEATURE_CHANGE_EVENT, { detail: {} }));
+      window.dispatchEvent(new CustomEvent(ARCHIVE_DAYS_CHANGE_EVENT, { detail: DEFAULT_ARCHIVE_THRESHOLD_DAYS }));
     } catch {}
   }
 }

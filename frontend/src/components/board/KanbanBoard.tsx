@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   DndContext,
   DragOverlay,
@@ -11,9 +11,10 @@ import {
   type DragStartEvent
 } from '@dnd-kit/core';
 import { arrayMove } from '@dnd-kit/sortable';
-import type { Lane, Task } from '../../types/index.js';
+import type { Lane, Task, TaskPriority } from '../../types/index.js';
 import { LaneColumn } from './LaneColumn.js';
 import { TaskCard } from './TaskCard.js';
+import { BoardFilterBar } from './BoardFilterBar.js';
 import { getRankBetween, sortTasksByRank } from '../../utils/rank.js';
 
 interface KanbanBoardProps {
@@ -23,6 +24,7 @@ interface KanbanBoardProps {
   onToggleTimer: (taskId: string) => void;
   onMoveTask: (taskId: string, targetLaneId: string, newRank: string) => void;
   onAddTask: (laneId: string, title: string) => void;
+  onArchiveCompletedTasks?: (olderThanDays: number) => number;
 }
 
 export const KanbanBoard: React.FC<KanbanBoardProps> = ({
@@ -31,9 +33,49 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
   onSelectTask,
   onToggleTimer,
   onMoveTask,
-  onAddTask
+  onAddTask,
+  onArchiveCompletedTasks
 }) => {
   const [activeTask, setActiveTask] = useState<Task | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedPriority, setSelectedPriority] = useState<TaskPriority | 'all'>('all');
+  const [selectedTag, setSelectedTag] = useState<string | 'all'>('all');
+
+  // Filter out archived tasks on the board
+  const activeTasks = useMemo(() => tasks.filter((t) => !t.archived), [tasks]);
+
+  // Extract all unique tags
+  const availableTags = useMemo(() => {
+    const tags = new Set<string>();
+    for (const t of activeTasks) {
+      for (const tag of t.tags) {
+        tags.add(tag);
+      }
+    }
+    return Array.from(tags).sort();
+  }, [activeTasks]);
+
+  // Apply filters to active tasks
+  const filteredTasks = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase();
+    return activeTasks.filter((t) => {
+      if (selectedPriority !== 'all' && t.priority !== selectedPriority) {
+        return false;
+      }
+      if (selectedTag !== 'all' && !t.tags.includes(selectedTag)) {
+        return false;
+      }
+      if (query) {
+        const matchKey = t.key.toLowerCase().includes(query);
+        const matchTitle = t.title.toLowerCase().includes(query);
+        const matchTag = t.tags.some((tag) => tag.toLowerCase().includes(query));
+        if (!matchKey && !matchTitle && !matchTag) {
+          return false;
+        }
+      }
+      return true;
+    });
+  }, [activeTasks, searchQuery, selectedPriority, selectedTag]);
 
   // Configure sensors for smooth desktop & touch mobile interaction
   const pointerSensor = useSensor(PointerSensor, {
@@ -130,20 +172,42 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >
-      <div className="flex-1 flex gap-4 p-4 overflow-x-auto h-[calc(100vh-3.5rem)] items-start">
-        {lanes.map((lane) => {
-          const laneTasks = sortTasksByRank(tasks.filter((t) => t.laneId === lane.id));
-          return (
-            <LaneColumn
-              key={lane.id}
-              lane={lane}
-              tasks={laneTasks}
-              onSelectTask={onSelectTask}
-              onToggleTimer={onToggleTimer}
-              onAddTask={onAddTask}
-            />
-          );
-        })}
+      <div className="flex-1 flex flex-col h-[calc(100vh-3.5rem)] overflow-hidden">
+        {/* Board Search & Filter Bar (Feature 1 - Always On) */}
+        <BoardFilterBar
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          selectedPriority={selectedPriority}
+          onPriorityChange={setSelectedPriority}
+          selectedTag={selectedTag}
+          onTagChange={setSelectedTag}
+          availableTags={availableTags}
+          totalCount={activeTasks.length}
+          filteredCount={filteredTasks.length}
+          onResetFilters={() => {
+            setSearchQuery('');
+            setSelectedPriority('all');
+            setSelectedTag('all');
+          }}
+        />
+
+        {/* Swimlanes container */}
+        <div className="flex-1 flex gap-4 p-4 pt-2 overflow-x-auto items-start">
+          {lanes.map((lane) => {
+            const laneTasks = sortTasksByRank(filteredTasks.filter((t) => t.laneId === lane.id));
+            return (
+              <LaneColumn
+                key={lane.id}
+                lane={lane}
+                tasks={laneTasks}
+                onSelectTask={onSelectTask}
+                onToggleTimer={onToggleTimer}
+                onAddTask={onAddTask}
+                onArchiveCompletedTasks={onArchiveCompletedTasks}
+              />
+            );
+          })}
+        </div>
       </div>
 
       {/* Drag Overlay for smooth preview */}

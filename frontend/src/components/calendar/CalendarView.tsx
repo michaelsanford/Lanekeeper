@@ -145,10 +145,12 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
     return days;
   }, [year, month]);
 
+  const activeTasks = useMemo(() => tasks.filter((t) => !t.archived), [tasks]);
+
   // Index tasks by dateStr (YYYY-MM-DD)
   const tasksByDate = useMemo(() => {
     const map = new Map<string, Task[]>();
-    for (const task of tasks) {
+    for (const task of activeTasks) {
       if (task.dueDate) {
         try {
           const d = new Date(task.dueDate);
@@ -160,23 +162,23 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
       }
     }
     return map;
-  }, [tasks]);
+  }, [activeTasks]);
 
   // Unscheduled tasks and overdue tasks
   const now = new Date();
   const todayKey = formatDateKey(now);
 
   const unscheduledTasks = useMemo(() => {
-    return tasks.filter((t) => !t.dueDate && t.laneId !== 'done');
-  }, [tasks]);
+    return activeTasks.filter((t) => !t.dueDate && t.laneId !== 'done');
+  }, [activeTasks]);
 
   const overdueTasks = useMemo(() => {
-    return tasks.filter((t) => {
+    return activeTasks.filter((t) => {
       if (!t.dueDate || t.laneId === 'done') return false;
       const d = new Date(t.dueDate);
       return formatDateKey(d) < todayKey;
     });
-  }, [tasks, todayKey]);
+  }, [activeTasks, todayKey]);
 
   const handleQuickAddSubmit = (dateStr: string) => {
     if (quickAddTitle.trim()) {

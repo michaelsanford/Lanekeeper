@@ -24,6 +24,8 @@ export interface Task {
   timeSpentSeconds?: number;
   isTimerRunning?: boolean;
   timerStartedAt?: number;
+  archived?: boolean;
+  archivedAt?: string;
   createdAt: string;
   updatedAt: string;
 }

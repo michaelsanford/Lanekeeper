@@ -7,7 +7,9 @@ import {
   Play,
   Square,
   Plus,
-  AlertCircle
+  AlertCircle,
+  Archive,
+  RotateCcw
 } from 'lucide-react';
 import type { Task, Lane, TaskPriority } from '../../types/index.js';
 import { SwimlaneBuoyIcon } from '../icons/LaneIcons.js';
@@ -21,6 +23,7 @@ interface TableViewProps {
   onUpdateTask: (taskId: string, updates: Partial<Task>) => void;
   onAddTask: (task: { title: string; laneId: string; priority?: TaskPriority; dueDate?: string }) => void;
   enableTimeTracking?: boolean;
+  onUnarchiveTask?: (taskId: string) => void;
 }
 
 type SortField = 'key' | 'title' | 'lane' | 'priority' | 'dueDate' | 'estimate' | 'timeSpent';
@@ -49,7 +52,8 @@ export const TableView: React.FC<TableViewProps> = ({
   onToggleTimer,
   onUpdateTask,
   onAddTask,
-  enableTimeTracking
+  enableTimeTracking,
+  onUnarchiveTask
 }) => {
   const { isEnabled } = useFeatureGate();
   const isTimeTrackingEnabled = enableTimeTracking ?? isEnabled('timeTracking');
@@ -57,6 +61,7 @@ export const TableView: React.FC<TableViewProps> = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedLaneFilter, setSelectedLaneFilter] = useState<string>('all');
   const [selectedPriorityFilter, setSelectedPriorityFilter] = useState<string>('all');
+  const [showArchived, setShowArchived] = useState(false);
   const [sortField, setSortField] = useState<SortField>('key');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
   const [quickTitle, setQuickTitle] = useState('');
@@ -80,8 +85,17 @@ export const TableView: React.FC<TableViewProps> = ({
     }
   };
 
+  const archivedCount = useMemo(() => tasks.filter((t) => t.archived).length, [tasks]);
+
   const filteredTasks = useMemo(() => {
     return tasks.filter((task) => {
+      // Archive filter
+      if (showArchived) {
+        if (!task.archived) return false;
+      } else {
+        if (task.archived) return false;
+      }
+
       // Search filter
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase();
@@ -105,7 +119,7 @@ export const TableView: React.FC<TableViewProps> = ({
 
       return true;
     });
-  }, [tasks, searchQuery, selectedLaneFilter, selectedPriorityFilter]);
+  }, [tasks, searchQuery, selectedLaneFilter, selectedPriorityFilter, showArchived]);
 
   const sortedTasks = useMemo(() => {
     const sorted = [...filteredTasks];
@@ -223,6 +237,23 @@ export const TableView: React.FC<TableViewProps> = ({
               <option value="none">None</option>
             </select>
           </div>
+
+          {/* Archived Filter Toggle */}
+          {archivedCount > 0 && (
+            <button
+              type="button"
+              onClick={() => setShowArchived((prev) => !prev)}
+              className={`flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-lg border transition-colors ${
+                showArchived
+                  ? 'bg-amber-950/70 text-amber-300 border-amber-700/80 font-medium'
+                  : 'bg-slate-950 text-slate-400 border-slate-800 hover:text-slate-200 hover:border-slate-700'
+              }`}
+              title={showArchived ? 'Switch back to active tasks' : 'View archived tasks'}
+            >
+              <Archive className="w-3.5 h-3.5" />
+              <span>{showArchived ? 'Archived Only' : 'Archived'} ({archivedCount})</span>
+            </button>
+          )}
         </div>
 
         {/* Right: Quick Add Form */}
@@ -314,8 +345,23 @@ export const TableView: React.FC<TableViewProps> = ({
             {sortedTasks.length === 0 ? (
               <tr>
                 <td colSpan={8} className="py-16 text-center text-slate-500">
-                  <p className="text-base font-medium text-slate-400">No tasks found</p>
-                  <p className="text-xs text-slate-500 mt-1">Try changing your search query or filters.</p>
+                  <p className="text-base font-medium text-slate-400">
+                    {showArchived ? 'No archived tasks found' : 'No tasks found'}
+                  </p>
+                  <p className="text-xs text-slate-500 mt-1">
+                    {showArchived
+                      ? 'Archived tasks from the Done lane will appear here.'
+                      : 'Try changing your search query or filters.'}
+                  </p>
+                  {showArchived && (
+                    <button
+                      type="button"
+                      onClick={() => setShowArchived(false)}
+                      className="mt-3 text-xs text-indigo-400 hover:underline"
+                    >
+                      Back to active tasks
+                    </button>
+                  )}
                 </td>
               </tr>
             ) : (
@@ -350,9 +396,14 @@ export const TableView: React.FC<TableViewProps> = ({
                     {/* Title & Subtasks pill */}
                     <td className="py-2.5 px-4">
                       <div className="flex items-center gap-2 max-w-xl">
+                        {task.archived && (
+                          <span className="text-[10px] font-medium tracking-wide uppercase px-1.5 py-0.5 rounded bg-amber-950/80 text-amber-300 border border-amber-800/80 shrink-0">
+                            Archived
+                          </span>
+                        )}
                         <span
                           className={`font-medium truncate ${
-                            isCompleted ? 'line-through text-slate-500' : 'text-slate-200'
+                            isCompleted || task.archived ? 'line-through text-slate-500' : 'text-slate-200'
                           }`}
                         >
                           {task.title}
@@ -483,23 +534,37 @@ export const TableView: React.FC<TableViewProps> = ({
                     {/* Actions */}
                     <td className="py-2.5 px-4 text-right" onClick={(e) => e.stopPropagation()}>
                       <div className="flex items-center justify-end gap-1.5">
-                        {isTimeTrackingEnabled && (
-                          <button
-                            type="button"
-                            onClick={() => onToggleTimer(task.id)}
-                            title={task.isTimerRunning ? 'Stop Timer' : 'Start Timer'}
-                            className={`p-1.5 rounded-md transition-colors ${
-                              task.isTimerRunning
-                                ? 'bg-rose-500/20 text-rose-400 hover:bg-rose-500/30'
-                                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
-                            }`}
-                          >
-                            {task.isTimerRunning ? (
-                              <Square className="w-3.5 h-3.5 fill-current" />
-                            ) : (
-                              <Play className="w-3.5 h-3.5 fill-current" />
-                            )}
-                          </button>
+                        {task.archived ? (
+                          onUnarchiveTask && (
+                            <button
+                              type="button"
+                              onClick={() => onUnarchiveTask(task.id)}
+                              title="Restore task to board"
+                              className="flex items-center gap-1 text-xs px-2 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white rounded border border-slate-700 transition-colors"
+                            >
+                              <RotateCcw className="w-3 h-3 text-indigo-400" />
+                              <span>Restore</span>
+                            </button>
+                          )
+                        ) : (
+                          isTimeTrackingEnabled && (
+                            <button
+                              type="button"
+                              onClick={() => onToggleTimer(task.id)}
+                              title={task.isTimerRunning ? 'Stop Timer' : 'Start Timer'}
+                              className={`p-1.5 rounded-md transition-colors ${
+                                task.isTimerRunning
+                                  ? 'bg-rose-500/20 text-rose-400 hover:bg-rose-500/30'
+                                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
+                              }`}
+                            >
+                              {task.isTimerRunning ? (
+                                <Square className="w-3.5 h-3.5 fill-current" />
+                              ) : (
+                                <Play className="w-3.5 h-3.5 fill-current" />
+                              )}
+                            </button>
+                          )
                         )}
                       </div>
                     </td>
@@ -514,13 +579,13 @@ export const TableView: React.FC<TableViewProps> = ({
       {/* Table Footer Status Bar */}
       <div className="px-4 py-2.5 border-t border-slate-800 bg-slate-900/80 flex items-center justify-between text-xs text-slate-400 font-mono">
         <div>
-          Showing {sortedTasks.length} of {tasks.length} tasks
+          Showing {sortedTasks.length} {showArchived ? 'archived ' : ''}of {tasks.length} tasks
         </div>
         <div className="flex items-center gap-4">
           {isTimeTrackingEnabled && (
             <span>{tasks.filter((t) => t.isTimerRunning).length} active timer</span>
           )}
-          <span>{tasks.filter((t) => t.dueDate && new Date(t.dueDate) < now && t.laneId !== 'done').length} overdue</span>
+          <span>{tasks.filter((t) => t.dueDate && new Date(t.dueDate) < now && t.laneId !== 'done' && !t.archived).length} overdue</span>
         </div>
       </div>
     </div>

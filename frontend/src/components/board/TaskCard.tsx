@@ -157,19 +157,39 @@ export const TaskCard: React.FC<TaskCardProps> = ({
         </div>
       )}
 
+      {/* Subtask Visual Progress Bar */}
+      {totalSubtasks > 0 && (
+        <div className="mb-2 mt-1">
+          <div className="w-full bg-slate-800/80 rounded-full h-1.5 overflow-hidden">
+            <div
+              className={`h-full transition-all duration-300 rounded-full ${
+                completedSubtasks === totalSubtasks
+                  ? 'bg-emerald-500'
+                  : 'bg-gradient-to-r from-indigo-500 to-indigo-400'
+              }`}
+              style={{ width: `${Math.round((completedSubtasks / totalSubtasks) * 100)}%` }}
+            />
+          </div>
+        </div>
+      )}
+
       {/* Bottom Metadata: Subtasks & Due Date */}
       <div className="flex items-center justify-between text-xs text-slate-400 pt-1.5 border-t border-slate-800/80 mt-1">
         {totalSubtasks > 0 ? (
           <div className="flex items-center gap-1.5">
-            <CheckSquare className="w-3.5 h-3.5 text-slate-500" />
+            <CheckSquare
+              className={`w-3.5 h-3.5 ${
+                completedSubtasks === totalSubtasks ? 'text-emerald-400' : 'text-slate-500'
+              }`}
+            />
             <span
               className={
                 completedSubtasks === totalSubtasks
-                  ? 'text-emerald-400 font-medium'
-                  : 'text-slate-400'
+                  ? 'text-emerald-400 font-semibold font-mono'
+                  : 'text-slate-400 font-mono'
               }
             >
-              {completedSubtasks}/{totalSubtasks}
+              {completedSubtasks}/{totalSubtasks} ({Math.round((completedSubtasks / totalSubtasks) * 100)}%)
             </span>
           </div>
         ) : (

@@ -44,13 +44,13 @@ export const FlightDeckView: React.FC<FlightDeckViewProps> = ({
   }, [scratchpadText]);
 
   // Tasks in progress (Flight deck strict limit: 1-3)
-  const inFlightTasks = sortTasksByRank(tasks.filter((t) => t.laneId === 'inprogress'));
+  const inFlightTasks = sortTasksByRank(tasks.filter((t) => !t.archived && t.laneId === 'inprogress'));
 
   // Tasks due today or overdue
   const now = new Date();
   const todayDateStr = now.toDateString();
   const dueTodayOrOverdueTasks = tasks.filter((t) => {
-    if (!t.dueDate || t.laneId === 'done') return false;
+    if (t.archived || !t.dueDate || t.laneId === 'done') return false;
     const d = new Date(t.dueDate);
     return d.toDateString() === todayDateStr || d.getTime() < now.getTime();
   });
