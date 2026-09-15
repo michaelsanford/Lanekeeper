@@ -12,7 +12,8 @@ import {
   Calendar as CalendarIcon,
   ChevronDown,
   Layers,
-  FolderPlus
+  FolderPlus,
+  KeyRound
 } from 'lucide-react';
 import {
   LanekeeperLogo,
@@ -178,7 +179,7 @@ export const Header: React.FC<HeaderProps> = ({
                   }}
                   className="w-full px-3 py-1.5 text-xs text-slate-300 hover:text-slate-100 hover:bg-slate-800/60 rounded-md transition-colors flex items-center gap-2 cursor-pointer"
                 >
-                  <Settings className="w-3.5 h-3.5 text-slate-400" />
+                  <KeyRound className="w-3.5 h-3.5 text-indigo-400" />
                   <span>Project Identifiers & Key...</span>
                 </button>
               </div>
@@ -286,11 +287,11 @@ export const Header: React.FC<HeaderProps> = ({
           <span className="hidden sm:inline">{isOnline ? 'Online' : 'Offline'}</span>
         </div>
 
-        {/* App Preferences & Feature Gates (Theme & Settings) */}
+        {/* Preferences & System Settings */}
         <button
           onClick={onOpenAppSettings}
-          title="Preferences & Feature Gates (Themes & Settings)"
-          className="p-2 rounded-lg border border-slate-800 text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 transition-colors cursor-pointer"
+          title="Preferences & System Settings"
+          className="p-2 rounded-lg border border-slate-800 text-indigo-400 hover:text-indigo-300 hover:bg-slate-800/60 hover:border-indigo-800/60 transition-colors cursor-pointer"
         >
           <Settings className="w-4 h-4" />
         </button>

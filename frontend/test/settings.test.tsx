@@ -81,10 +81,10 @@ describe('Settings Modals and Header Grouping', () => {
       />
     );
 
-    expect(html).toContain('Project Settings &amp; Configuration');
-    expect(html).toContain('Workflow Lanes');
-    expect(html).toContain('General &amp; Identifiers');
+    expect(html).toContain('Project &amp; Workflow Settings');
+    expect(html).toContain('Workflow Lanes &amp; Templates');
     expect(html).toContain('Switch / New Project');
+    expect(html).toContain('Project Identifiers &amp; Key');
     // Ensure Theme and Feature Gates were removed from ProjectSettingsModal
     expect(html).not.toContain('Colour Schemes');
     expect(html).not.toContain('Feature Gates &amp; Experiments');
@@ -110,8 +110,8 @@ describe('Settings Modals and Header Grouping', () => {
 
     // Standalone theme button title removed
     expect(html).not.toContain('Colour Scheme / Theme');
-    // Right pane preferences gear button present
-    expect(html).toContain('Preferences &amp; Feature Gates (Themes &amp; Settings)');
+    // Right pane preferences gear button present with harmonized title
+    expect(html).toContain('Preferences &amp; System Settings');
     // Project name and prefix displayed prominently
     expect(html).toContain('Core Platform');
     expect(html).toContain('CORE');

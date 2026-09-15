@@ -7,7 +7,8 @@ import {
   Plus,
   Check,
   ArrowRight,
-  LayoutGrid
+  LayoutGrid,
+  KeyRound
 } from 'lucide-react';
 import { SwimlaneIcon, TrafficLight } from '../icons/LaneIcons.js';
 import { LaneMarker } from '../icons/LaneMarker.js';
@@ -145,14 +146,14 @@ export const ProjectSettingsModal: React.FC<ProjectSettingsModalProps> = ({
         <div className="px-6 py-4 border-b border-slate-800 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             <Settings className="w-4 h-4 text-indigo-400" />
-            <h2 className="font-bold text-sm text-slate-100">Project Settings & Configuration</h2>
+            <h2 className="font-bold text-sm text-slate-100">Project & Workflow Settings</h2>
             <span className="text-xs font-mono text-indigo-400 bg-indigo-950/80 px-2 py-0.5 rounded border border-indigo-800/60">
               {metadata.prefix}
             </span>
           </div>
           <button
             onClick={onClose}
-            className="p-1 rounded-md text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-colors"
+            className="p-1 rounded-md text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-colors cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>
@@ -161,43 +162,58 @@ export const ProjectSettingsModal: React.FC<ProjectSettingsModalProps> = ({
         {/* Tab Navigation */}
         <div className="flex border-b border-slate-800 bg-slate-950/50 px-6">
           <button
-            onClick={() => setActiveTab('general')}
-            className={`py-3.5 px-4 text-sm font-semibold border-b-2 transition-colors ${
-              activeTab === 'general'
-                ? 'border-indigo-500 text-indigo-400'
-                : 'border-transparent text-slate-400 hover:text-slate-200'
-            }`}
-          >
-            General & Identifiers
-          </button>
-          <button
             onClick={() => setActiveTab('lanes')}
-            className={`py-3.5 px-4 text-sm font-semibold border-b-2 transition-colors flex items-center gap-1.5 ${
+            className={`py-3.5 px-4 text-sm font-semibold border-b-2 transition-colors flex items-center gap-1.5 cursor-pointer ${
               activeTab === 'lanes'
                 ? 'border-indigo-500 text-indigo-400'
                 : 'border-transparent text-slate-400 hover:text-slate-200'
             }`}
           >
             <SwimlaneIcon size={16} />
-            <span>Workflow Lanes ({lanes.length})</span>
+            <span>Workflow Lanes & Templates ({lanes.length})</span>
           </button>
           <button
             onClick={() => setActiveTab('projects')}
-            className={`py-3.5 px-4 text-sm font-semibold border-b-2 transition-colors cursor-pointer ${
+            className={`py-3.5 px-4 text-sm font-semibold border-b-2 transition-colors flex items-center gap-1.5 cursor-pointer ${
               activeTab === 'projects'
                 ? 'border-indigo-500 text-indigo-400'
                 : 'border-transparent text-slate-400 hover:text-slate-200'
             }`}
           >
-            Switch / New Project ({projectsList.length})
+            <FolderPlus className="w-4 h-4" />
+            <span>Switch / New Project ({projectsList.length})</span>
+          </button>
+          <button
+            onClick={() => setActiveTab('general')}
+            className={`py-3.5 px-4 text-sm font-semibold border-b-2 transition-colors flex items-center gap-1.5 cursor-pointer ${
+              activeTab === 'general'
+                ? 'border-indigo-500 text-indigo-400'
+                : 'border-transparent text-slate-400 hover:text-slate-200'
+            }`}
+          >
+            <KeyRound className="w-4 h-4" />
+            <span>Project Identifiers & Key</span>
           </button>
         </div>
 
         {/* Tab Contents */}
         <div className="p-6 overflow-y-auto flex-1 space-y-6">
-          {/* Tab 1: General */}
+          {/* Tab 3: Project Identifiers & Key */}
           {activeTab === 'general' && (
-            <form onSubmit={handleGeneralSubmit} className="space-y-4 text-sm">
+            <div className="space-y-4 text-sm">
+              <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+                <div>
+                  <h3 className="font-bold text-sm text-slate-100 flex items-center gap-2">
+                    <KeyRound className="w-4 h-4 text-indigo-400" />
+                    <span>Project Identifiers & Key</span>
+                  </h3>
+                  <p className="text-xs text-slate-400 mt-1">
+                    Configure project name, ticket prefix, and sequential ID counters.
+                  </p>
+                </div>
+              </div>
+
+              <form onSubmit={handleGeneralSubmit} className="space-y-4 text-sm">
               <div className="space-y-1.5">
                 <label className="text-slate-400 uppercase font-mono text-xs">
                   Project Name
@@ -272,6 +288,7 @@ export const ProjectSettingsModal: React.FC<ProjectSettingsModalProps> = ({
                 </div>
               )}
             </form>
+            </div>
           )}
 
           {/* Tab 2: Workflow Lanes */}
