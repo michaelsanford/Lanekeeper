@@ -74,30 +74,37 @@ export const Header: React.FC<HeaderProps> = ({
   return (
     <header className="h-16 border-b border-slate-800 bg-slate-900/90 backdrop-blur-md px-5 flex items-center justify-between sticky top-0 z-30 select-none">
       {/* Left: Brand & Project Info */}
-      <div className="flex items-center gap-3.5">
-        <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-cyan-500 flex items-center justify-center shadow-md shadow-indigo-500/20">
+      <div className="flex items-center gap-3">
+        {/* Brand Icon with slide-out name on hover */}
+        <div
+          className="group flex items-center cursor-pointer select-none"
+          title="Lanekeeper"
+        >
+          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-cyan-500 flex items-center justify-center shadow-md shadow-indigo-500/20 flex-shrink-0 transition-transform duration-200 group-hover:scale-105">
             <LanekeeperLogo size={18} className="text-white" />
           </div>
-          <span className="font-bold text-lg text-slate-100 tracking-tight">Lanekeeper</span>
+          <div className="max-w-0 overflow-hidden opacity-0 group-hover:max-w-[120px] group-hover:opacity-100 group-hover:ml-2.5 transition-all duration-300 ease-out whitespace-nowrap">
+            <span className="font-semibold text-sm text-slate-300 tracking-tight">Lanekeeper</span>
+          </div>
         </div>
 
-        {/* Project Selector & Settings Trigger */}
+        <div className="h-5 w-px bg-slate-800 mx-0.5 hidden sm:block" />
+
+        {/* Prominent Project Display */}
         <button
           onClick={onOpenProjectSettings}
-          title="Project Settings & Workflow Lanes"
-          className="flex items-center gap-2 bg-slate-950/80 hover:bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-800 hover:border-slate-700 transition-colors text-sm"
+          title={`Project: ${metadata.name} (${metadata.prefix})`}
+          className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg hover:bg-slate-800/70 border border-transparent hover:border-slate-800 transition-all text-left group/proj"
         >
-          <span className="text-xs text-indigo-400 font-mono font-bold bg-indigo-950/80 px-1.5 py-0.5 rounded border border-indigo-800/60">
+          <span className="text-xs font-mono font-bold text-indigo-300 bg-indigo-950/90 px-2 py-0.5 rounded border border-indigo-800/70 shadow-sm group-hover/proj:border-indigo-600 transition-colors">
             {metadata.prefix}
           </span>
-          <span className="font-medium text-slate-200 hidden md:inline max-w-[140px] truncate">
+          <span className="font-bold text-base sm:text-lg text-slate-100 tracking-tight max-w-[160px] sm:max-w-[240px] md:max-w-[320px] truncate group-hover/proj:text-white transition-colors">
             {metadata.name}
           </span>
-          <Settings className="w-4 h-4 text-slate-400 ml-0.5" />
         </button>
 
-        <div className="h-5 w-px bg-slate-800 mx-1 hidden sm:block" />
+        <div className="h-5 w-px bg-slate-800 mx-0.5 hidden sm:block" />
 
         {/* View Switcher: Board vs Table vs Calendar vs Flight Deck */}
         <div className="flex items-center bg-slate-950/80 p-1 rounded-lg border border-slate-800">
@@ -298,6 +305,15 @@ export const Header: React.FC<HeaderProps> = ({
             </div>
           )}
         </div>
+
+        {/* Project & Workflow Settings */}
+        <button
+          onClick={onOpenProjectSettings}
+          title="Project & Workflow Settings"
+          className="p-2 rounded-lg border border-slate-800 text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 transition-colors"
+        >
+          <Settings className="w-4 h-4" />
+        </button>
 
         {/* Shortcuts Help */}
         <button
