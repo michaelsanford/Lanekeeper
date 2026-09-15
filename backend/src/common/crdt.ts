@@ -59,13 +59,18 @@ export function applyClientUpdate(doc: Y.Doc, clientUpdateBase64: string): void 
 /**
  * Initializes a new project CRDT doc with default lanes if empty.
  */
-export function initializeProjectDoc(doc: Y.Doc, projectPrefix: string, projectName: string): void {
+export function initializeProjectDoc(doc: Y.Doc, projectPrefix: string, projectName: string = 'Lanekeeper Core'): void {
   const lanesMap = doc.getMap<Lane>('lanes');
   const laneOrder = doc.getArray<string>('laneOrder');
   const metaMap = doc.getMap<string>('metadata');
 
-  metaMap.set('name', projectName);
-  metaMap.set('prefix', projectPrefix);
+  const existingName = metaMap.get('name');
+  if (!existingName || existingName === 'General') {
+    metaMap.set('name', projectName);
+  }
+  if (!metaMap.has('prefix')) {
+    metaMap.set('prefix', projectPrefix);
+  }
 
   const defaultLanes: Lane[] = [
     { id: 'triage', name: 'Triage / Inbox', color: '#64748b', type: 'backlog' },

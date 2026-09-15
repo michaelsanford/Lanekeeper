@@ -67,7 +67,7 @@ export async function handler(event: APIGatewayProxyEventV2): Promise<APIGateway
     const doc = loadDocFromBase64(existing?.yDocState);
 
     if (!existing) {
-      initializeProjectDoc(doc, prefix, 'General');
+      initializeProjectDoc(doc, prefix, (payload as any).projectName || 'Lanekeeper Core');
     }
 
     // 3. Check if task with identical title already exists to prevent duplicate seeding

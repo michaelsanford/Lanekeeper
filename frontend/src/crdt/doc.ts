@@ -64,6 +64,12 @@ class CrdtStore {
 
   private setupListeners(): void {
     this.doc.on('update', () => {
+      const metaMap = this.doc.getMap<string>('metadata');
+      if (metaMap.get('name') === 'General') {
+        const activeId = metaMap.get('id') || this.getActiveProjectId() || 'default';
+        const projectFromList = this.getProjectsList().find((p) => p.id === activeId);
+        metaMap.set('name', projectFromList?.name || (activeId === 'default' ? 'Lanekeeper Core' : activeId));
+      }
       this.sanitizeLaneOrder();
       this.notifyListeners();
     });
@@ -89,8 +95,12 @@ class CrdtStore {
 
     const activeId = metaMap.get('id') || this.getActiveProjectId() || 'default';
     metaMap.set('id', activeId);
-    if (!metaMap.has('name')) metaMap.set('name', activeId === 'default' ? 'Lanekeeper Core' : activeId);
-    if (!metaMap.has('prefix')) metaMap.set('prefix', activeId === 'default' ? 'LK' : 'KEY');
+    const existingProject = this.getProjectsList().find((p) => p.id === activeId);
+    const currentName = metaMap.get('name');
+    if (!currentName || currentName === 'General') {
+      metaMap.set('name', existingProject?.name || (activeId === 'default' ? 'Lanekeeper Core' : activeId));
+    }
+    if (!metaMap.has('prefix')) metaMap.set('prefix', existingProject?.prefix || (activeId === 'default' ? 'LK' : 'KEY'));
 
     // Only populate if lanesMap is empty (new project or fresh store)
     if (lanesMap.size === 0) {
@@ -159,12 +169,23 @@ class CrdtStore {
 
   public getMetadata(): ProjectMetadata {
     const metaMap = this.doc.getMap<string>('metadata');
+    const activeId = metaMap.get('id') || this.getActiveProjectId() || 'default';
+    const projectFromList = this.getProjectsList().find((p) => p.id === activeId);
+    const rawName = metaMap.get('name');
+    const resolvedName = (rawName && rawName !== 'General')
+      ? rawName
+      : (projectFromList?.name || (activeId === 'default' ? 'Lanekeeper Core' : activeId));
+
+    if (rawName === 'General') {
+      metaMap.set('name', resolvedName);
+    }
+
     return {
-      id: metaMap.get('id') || this.getActiveProjectId() || 'default',
-      name: metaMap.get('name') || 'Lanekeeper Core',
-      prefix: metaMap.get('prefix') || 'LK',
+      id: activeId,
+      name: resolvedName,
+      prefix: metaMap.get('prefix') || projectFromList?.prefix || 'LK',
       description: metaMap.get('description'),
-      templateId: metaMap.get('templateId') || DEFAULT_TEMPLATE_ID
+      templateId: metaMap.get('templateId') || projectFromList?.templateId || DEFAULT_TEMPLATE_ID
     };
   }
 

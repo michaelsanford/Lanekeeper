@@ -44,7 +44,7 @@ export async function handler(event: APIGatewayProxyEventV2): Promise<APIGateway
 
     // 2. Initialize project defaults if document is newly created
     if (!existing) {
-      initializeProjectDoc(doc, 'LK', 'General');
+      initializeProjectDoc(doc, 'LK', 'Lanekeeper Core');
       docModified = true;
     }
 

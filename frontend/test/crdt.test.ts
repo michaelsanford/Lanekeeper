@@ -158,4 +158,13 @@ describe("Frontend Local-First CRDT & Store", () => {
     const tasksAfter = crdtStore.getTasks().filter((t) => t.title === "Identical duplicate title");
     expect(tasksAfter.length).toBe(1);
   });
+
+  it("resolves and auto-heals legacy 'General' project name to Lanekeeper Core", () => {
+    const metaMap = crdtStore.doc.getMap<string>("metadata");
+    metaMap.set("name", "General");
+
+    const meta = crdtStore.getMetadata();
+    expect(meta.name).toBe("Lanekeeper Core");
+    expect(metaMap.get("name")).toBe("Lanekeeper Core");
+  });
 });
