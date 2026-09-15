@@ -291,8 +291,13 @@ export function App() {
         onUnarchiveTask={unarchiveTask}
       />
 
-      {/* Keyboard Shortcuts & Syntax Help Modal */}
-      <HelpModal isOpen={isHelpOpen} onClose={() => setIsHelpOpen(false)} />
+      {/* Keyboard Shortcuts, Syntax & `lk` cli Help Modal */}
+      <HelpModal
+        isOpen={isHelpOpen}
+        onClose={() => setIsHelpOpen(false)}
+        profile={profile}
+        onGenerateCliToken={generateCliToken}
+      />
 
       {/* Cognito TOTP MFA Auth Modal */}
       <AuthModal
@@ -338,6 +343,7 @@ export function App() {
         onUpdateProfile={updateProfile}
         onGenerateCliToken={generateCliToken}
         onOpenAuth={() => setIsAuthOpen(true)}
+        onOpenHelp={() => setIsHelpOpen(true)}
       />
     </div>
     </FeatureGateProvider>

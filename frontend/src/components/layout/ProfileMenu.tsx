@@ -1,11 +1,9 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useRef, useEffect } from 'react';
 import {
   User,
   Palette,
   Sliders,
   Terminal,
-  Copy,
-  Check,
   ShieldCheck,
   LogOut,
   LogIn,
@@ -34,7 +32,6 @@ export const ProfileMenu: React.FC<ProfileMenuProps> = ({
   onOpenAuth,
   onSignOut
 }) => {
-  const [copied, setCopied] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -62,28 +59,12 @@ export const ProfileMenu: React.FC<ProfileMenuProps> = ({
   if (!isOpen) return null;
 
   const initials = getInitials(profile.displayName, profile.email);
-  const cliToken = profile.cliToken || 'lk_dev_seed_token';
   const isCognito = profile.provider === 'cognito';
-
-  const handleCopyToken = async (e: React.MouseEvent) => {
-    e.stopPropagation();
-    try {
-      if (navigator.clipboard?.writeText) {
-        await navigator.clipboard.writeText(cliToken);
-      }
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch {
-      // Fallback
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    }
-  };
 
   return (
     <div
       ref={menuRef}
-      className="absolute right-0 top-full mt-2 w-80 bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden z-50 animate-fade-in divide-y divide-slate-800/80"
+      className="absolute right-0 top-full mt-2 w-72 bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden z-50 animate-fade-in divide-y divide-slate-800/80"
       role="menu"
       aria-label="User Profile and Settings Menu"
     >
@@ -133,37 +114,6 @@ export const ProfileMenu: React.FC<ProfileMenuProps> = ({
         </div>
       </div>
 
-      {/* CLI Personal Access Token Quick Bar */}
-      <div className="p-3 bg-slate-900/90 text-xs">
-        <div className="flex items-center justify-between text-slate-400 font-mono text-[11px] mb-1.5">
-          <span>Personal Access Token (lk CLI)</span>
-          <span className="text-[10px] text-slate-500">4 Scopes</span>
-        </div>
-        <div className="flex items-center gap-2 bg-slate-950 px-2.5 py-1.5 rounded-lg border border-slate-800">
-          <span className="font-mono text-[11px] text-indigo-300 truncate flex-1 select-all">
-            {cliToken.slice(0, 10)}...{cliToken.slice(-6)}
-          </span>
-          <button
-            type="button"
-            onClick={handleCopyToken}
-            title={copied ? 'Copied token!' : 'Copy Personal Access Token'}
-            className="flex items-center gap-1 px-2 py-0.5 text-[11px] font-medium bg-slate-800 hover:bg-slate-700 text-slate-200 rounded border border-slate-700 transition-colors cursor-pointer shrink-0"
-          >
-            {copied ? (
-              <>
-                <Check className="w-3 h-3 text-emerald-400" />
-                <span className="text-emerald-400">Copied</span>
-              </>
-            ) : (
-              <>
-                <Copy className="w-3 h-3 text-slate-400" />
-                <span>Copy</span>
-              </>
-            )}
-          </button>
-        </div>
-      </div>
-
       {/* Main Settings Navigation Items */}
       <div className="py-1.5 px-1 space-y-0.5 text-xs">
         <button
@@ -176,7 +126,7 @@ export const ProfileMenu: React.FC<ProfileMenuProps> = ({
         >
           <div className="flex items-center gap-2.5">
             <User className="w-4 h-4 text-indigo-400" />
-            <span className="font-medium">Profile & Account</span>
+            <span className="font-medium">Profile &amp; Account</span>
           </div>
           <span className="text-[10px] font-mono text-slate-500">
             {profile.defaultAssigneeHandle ? `@${profile.defaultAssigneeHandle}` : 'Configure'}
@@ -193,7 +143,7 @@ export const ProfileMenu: React.FC<ProfileMenuProps> = ({
         >
           <div className="flex items-center gap-2.5">
             <Palette className="w-4 h-4 text-cyan-400" />
-            <span className="font-medium">Theme & Appearance</span>
+            <span className="font-medium">Theme &amp; Appearance</span>
           </div>
         </button>
 
@@ -218,13 +168,18 @@ export const ProfileMenu: React.FC<ProfileMenuProps> = ({
               onClose();
               onOpenHelp();
             }}
-            className="w-full px-3 py-2 text-slate-300 hover:text-white hover:bg-slate-800/70 rounded-lg transition-colors flex items-center justify-between cursor-pointer"
+            className="w-full px-3 py-2 text-slate-300 hover:text-white hover:bg-slate-800/70 rounded-lg transition-colors flex items-center justify-between cursor-pointer group"
           >
             <div className="flex items-center gap-2.5">
               <Terminal className="w-4 h-4 text-emerald-400" />
-              <span className="font-medium">Developer CLI Companion</span>
+              <span className="font-medium font-mono text-xs">`lk` cli</span>
             </div>
-            <ExternalLink className="w-3 h-3 text-slate-500" />
+            <div className="flex items-center gap-1.5">
+              <span className="text-[10px] font-mono text-indigo-400 bg-indigo-950/80 px-1.5 py-0.5 rounded border border-indigo-800/60">
+                PAT &amp; Docs
+              </span>
+              <ExternalLink className="w-3 h-3 text-slate-500 group-hover:text-slate-300 transition-colors" />
+            </div>
           </button>
         )}
       </div>

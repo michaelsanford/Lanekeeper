@@ -10,8 +10,6 @@ import {
   RotateCcw,
   Clock,
   User,
-  Copy,
-  RotateCw,
   Terminal,
   ShieldCheck,
   ShieldAlert,
@@ -43,6 +41,7 @@ interface AppSettingsModalProps {
   onUpdateProfile?: (updates: Partial<UserProfile>) => void;
   onGenerateCliToken?: () => string;
   onOpenAuth?: () => void;
+  onOpenHelp?: () => void;
 }
 
 const FALLBACK_PROFILE: UserProfile = {
@@ -69,14 +68,13 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
   initialTab = 'profile',
   profile = FALLBACK_PROFILE,
   onUpdateProfile,
-  onGenerateCliToken,
-  onOpenAuth
+  onGenerateCliToken: _onGenerateCliToken,
+  onOpenAuth,
+  onOpenHelp
 }) => {
   const [activeTab, setActiveTab] = useState<AppSettingsTab>(initialTab);
   const { definitions, isEnabled, toggleFlag, resetFlags } = useFeatureGate();
   const [archiveDays, setArchiveDays] = useState<number>(() => getArchiveThresholdDays());
-  const [copiedToken, setCopiedToken] = useState(false);
-  const [copiedSnippet, setCopiedSnippet] = useState<'pwsh' | 'bash' | null>(null);
 
   useEffect(() => {
     if (initialTab) {
@@ -88,7 +86,6 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
 
   const currentProfile = profile || FALLBACK_PROFILE;
   const initials = getInitials(currentProfile.displayName, currentProfile.email);
-  const cliToken = currentProfile.cliToken || 'lk_dev_seed_token';
   const isCognito = currentProfile.provider === 'cognito';
 
   const handleSetArchiveDays = (days: number) => {
@@ -100,36 +97,6 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
     resetFlags();
     setArchiveDays(7);
     setArchiveThresholdDays(7);
-  };
-
-  const handleCopyToken = async () => {
-    try {
-      if (navigator.clipboard?.writeText) {
-        await navigator.clipboard.writeText(cliToken);
-      }
-      setCopiedToken(true);
-      setTimeout(() => setCopiedToken(false), 2000);
-    } catch {
-      setCopiedToken(true);
-      setTimeout(() => setCopiedToken(false), 2000);
-    }
-  };
-
-  const handleCopySnippet = async (type: 'pwsh' | 'bash') => {
-    const text =
-      type === 'pwsh'
-        ? `$env:LANEKEEPER_API_TOKEN = "${cliToken}"`
-        : `export LANEKEEPER_API_TOKEN="${cliToken}"`;
-    try {
-      if (navigator.clipboard?.writeText) {
-        await navigator.clipboard.writeText(text);
-      }
-      setCopiedSnippet(type);
-      setTimeout(() => setCopiedSnippet(null), 2000);
-    } catch {
-      setCopiedSnippet(type);
-      setTimeout(() => setCopiedSnippet(null), 2000);
-    }
   };
 
   return (
@@ -335,155 +302,30 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
                 </p>
               </div>
 
-              {/* Personal Access Token (lk CLI) & Scopes */}
-              <div className="space-y-4">
-                <div className="pb-1 border-b border-slate-800/80">
-                  <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
-                    <Terminal className="w-3.5 h-3.5 text-indigo-400" />
-                    <span>Personal Access Token (lk CLI Companion)</span>
-                  </h4>
-                  <p className="text-xs text-slate-400 mt-0.5">
-                    Authenticate the local terminal companion tool to capture tasks and sync with the board.
-                  </p>
-                </div>
-
-                {/* Token string & Actions */}
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <div className="flex-1 bg-slate-950 px-3 py-2 rounded-lg border border-slate-800 font-mono text-xs text-indigo-300 flex items-center justify-between overflow-hidden">
-                      <span className="truncate select-all">{cliToken}</span>
+              {/* Personal Access Token (PAT) & lk CLI Link */}
+              <div className="p-4 bg-slate-950/80 rounded-xl border border-slate-800 space-y-2">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="space-y-0.5">
+                    <div className="text-xs font-bold text-slate-200 flex items-center gap-1.5">
+                      <Terminal className="w-3.5 h-3.5 text-indigo-400" />
+                      <span>Personal Access Token (PAT) &amp; `lk` cli</span>
                     </div>
-
+                    <p className="text-xs text-slate-400">
+                      Personal access tokens, PowerShell/Bash export snippets, and scopes are managed in `lk` cli.
+                    </p>
+                  </div>
+                  {onOpenHelp && (
                     <button
                       type="button"
-                      onClick={handleCopyToken}
-                      className="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer shrink-0"
+                      onClick={() => {
+                        onClose();
+                        onOpenHelp();
+                      }}
+                      className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-lg text-xs font-semibold transition-colors cursor-pointer shrink-0"
                     >
-                      {copiedToken ? (
-                        <>
-                          <Check className="w-3.5 h-3.5 text-emerald-400" />
-                          <span className="text-emerald-400">Copied</span>
-                        </>
-                      ) : (
-                        <>
-                          <Copy className="w-3.5 h-3.5 text-slate-400" />
-                          <span>Copy Token</span>
-                        </>
-                      )}
+                      Open `lk` cli
                     </button>
-
-                    {onGenerateCliToken && (
-                      <button
-                        type="button"
-                        onClick={onGenerateCliToken}
-                        title="Generate a fresh Personal Access Token"
-                        className="p-2 bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-slate-200 border border-slate-700 rounded-lg transition-colors cursor-pointer shrink-0"
-                      >
-                        <RotateCw className="w-3.5 h-3.5" />
-                      </button>
-                    )}
-                  </div>
-
-                  {/* Shell Export Helpers */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-                    <button
-                      type="button"
-                      onClick={() => handleCopySnippet('pwsh')}
-                      className="text-left p-2.5 bg-slate-950/60 rounded-lg border border-slate-800/80 hover:border-slate-700 transition-colors flex items-center justify-between group cursor-pointer"
-                    >
-                      <div>
-                        <div className="text-[10px] text-slate-400 font-mono uppercase">PowerShell</div>
-                        <code className="text-[11px] text-slate-300 font-mono truncate block max-w-[200px]">
-                          $env:LANEKEEPER_API_TOKEN = "{cliToken.slice(0, 10)}..."
-                        </code>
-                      </div>
-                      <span className="text-[10px] text-indigo-400 font-medium group-hover:underline">
-                        {copiedSnippet === 'pwsh' ? 'Copied!' : 'Copy'}
-                      </span>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => handleCopySnippet('bash')}
-                      className="text-left p-2.5 bg-slate-950/60 rounded-lg border border-slate-800/80 hover:border-slate-700 transition-colors flex items-center justify-between group cursor-pointer"
-                    >
-                      <div>
-                        <div className="text-[10px] text-slate-400 font-mono uppercase">Bash / Zsh</div>
-                        <code className="text-[11px] text-slate-300 font-mono truncate block max-w-[200px]">
-                          export LANEKEEPER_API_TOKEN="{cliToken.slice(0, 10)}..."
-                        </code>
-                      </div>
-                      <span className="text-[10px] text-indigo-400 font-medium group-hover:underline">
-                        {copiedSnippet === 'bash' ? 'Copied!' : 'Copy'}
-                      </span>
-                    </button>
-                  </div>
-                </div>
-
-                {/* Token Scopes Checklist */}
-                <div className="p-3.5 bg-slate-950/90 rounded-xl border border-slate-800 space-y-2.5">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-slate-200">Token Scopes</span>
-                    <span className="text-[10px] font-mono text-indigo-400 bg-indigo-950/80 px-2 py-0.5 rounded border border-indigo-800/60">
-                      All Scopes Active (Locked)
-                    </span>
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-                    <label className="flex items-center gap-2 p-2 rounded-lg bg-slate-900/60 border border-slate-800/60 opacity-80 cursor-not-allowed">
-                      <input
-                        type="checkbox"
-                        checked={true}
-                        disabled={true}
-                        className="rounded border-slate-700 text-indigo-600 focus:ring-indigo-500"
-                      />
-                      <div>
-                        <span className="font-mono text-indigo-300 font-semibold">tasks:read</span>
-                        <p className="text-[11px] text-slate-400">Read boards, lanes, and cards</p>
-                      </div>
-                    </label>
-
-                    <label className="flex items-center gap-2 p-2 rounded-lg bg-slate-900/60 border border-slate-800/60 opacity-80 cursor-not-allowed">
-                      <input
-                        type="checkbox"
-                        checked={true}
-                        disabled={true}
-                        className="rounded border-slate-700 text-indigo-600 focus:ring-indigo-500"
-                      />
-                      <div>
-                        <span className="font-mono text-indigo-300 font-semibold">tasks:write</span>
-                        <p className="text-[11px] text-slate-400">Create, transition, and close tasks</p>
-                      </div>
-                    </label>
-
-                    <label className="flex items-center gap-2 p-2 rounded-lg bg-slate-900/60 border border-slate-800/60 opacity-80 cursor-not-allowed">
-                      <input
-                        type="checkbox"
-                        checked={true}
-                        disabled={true}
-                        className="rounded border-slate-700 text-indigo-600 focus:ring-indigo-500"
-                      />
-                      <div>
-                        <span className="font-mono text-indigo-300 font-semibold">sync:rw</span>
-                        <p className="text-[11px] text-slate-400">CRDT delta synchronization</p>
-                      </div>
-                    </label>
-
-                    <label className="flex items-center gap-2 p-2 rounded-lg bg-slate-900/60 border border-slate-800/60 opacity-80 cursor-not-allowed">
-                      <input
-                        type="checkbox"
-                        checked={true}
-                        disabled={true}
-                        className="rounded border-slate-700 text-indigo-600 focus:ring-indigo-500"
-                      />
-                      <div>
-                        <span className="font-mono text-indigo-300 font-semibold">leases:issue</span>
-                        <p className="text-[11px] text-slate-400">Focus lease reservations</p>
-                      </div>
-                    </label>
-                  </div>
-                  <p className="text-[11px] text-slate-500 italic pt-1">
-                    Select All is permanently enabled to remind you to configure granular scope restrictions in an upcoming update.
-                  </p>
+                  )}
                 </div>
               </div>
 

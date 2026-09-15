@@ -71,6 +71,7 @@ describe('User Profile Utilities and Logic', () => {
       delete (globalThis as any).localStorage;
     }
   });
+
   it('derives clean assignee handles from email addresses', () => {
     expect(deriveHandleFromEmail('michaelsanford@users.noreply.github.com')).toBe('michaelsanford');
     expect(deriveHandleFromEmail('john.doe+lk@example.com')).toBe('john.doe');
@@ -218,7 +219,7 @@ describe('ProfileMenu Component', () => {
     expect(html).toBe('');
   });
 
-  it('renders local dev profile card with CLI token and navigation options', () => {
+  it('renders local dev profile card with `lk` cli navigation option', () => {
     const html = renderToString(
       <ProfileMenu
         isOpen={true}
@@ -233,12 +234,12 @@ describe('ProfileMenu Component', () => {
     expect(html).toContain('Michael Sanford');
     expect(html).toContain('michaelsanford@users.noreply.github.com');
     expect(html).toContain('Local Dev');
-    expect(html).toContain('Personal Access Token (lk CLI)');
     expect(html).toContain('Profile &amp; Account');
     expect(html).toContain('@michaelsanford');
     expect(html).toContain('Theme &amp; Appearance');
     expect(html).toContain('Feature Gates');
-    expect(html).toContain('Developer CLI Companion');
+    expect(html).toContain('`lk` cli');
+    expect(html).toContain('PAT &amp; Docs');
     expect(html).toContain('Connect AWS Cognito Account...');
   });
 
@@ -285,7 +286,7 @@ describe('ProfileMenu Component', () => {
 });
 
 describe('AppSettingsModal Profile & Account Tab', () => {
-  it('renders Profile & Account tab with Git Author, PAT, and locked scopes', () => {
+  it('renders Profile & Account tab with Git Author, Cognito status, and link to `lk` cli', () => {
     const html = renderToString(
       <FeatureGateProvider>
         <AppSettingsModal
@@ -300,6 +301,7 @@ describe('AppSettingsModal Profile & Account Tab', () => {
           onUpdateProfile={vi.fn()}
           onGenerateCliToken={vi.fn()}
           onOpenAuth={vi.fn()}
+          onOpenHelp={vi.fn()}
         />
       </FeatureGateProvider>
     );
@@ -307,15 +309,8 @@ describe('AppSettingsModal Profile & Account Tab', () => {
     expect(html).toContain('Personal Identity');
     expect(html).toContain('Git Author &amp; Assignment Configuration');
     expect(html).toContain('michaelsanford@users.noreply.github.com');
-    expect(html).toContain('Personal Access Token (lk CLI Companion)');
-    expect(html).toContain('lk_dev_seed_token');
-    expect(html).toContain('All Scopes Active (Locked)');
-    expect(html).toContain('tasks:read');
-    expect(html).toContain('tasks:write');
-    expect(html).toContain('sync:rw');
-    expect(html).toContain('leases:issue');
-    expect(html).toContain('$env:LANEKEEPER_API_TOKEN');
-    expect(html).toContain('export LANEKEEPER_API_TOKEN');
+    expect(html).toContain('Personal Access Token (PAT) &amp; `lk` cli');
+    expect(html).toContain('Open `lk` cli');
     expect(html).toContain('Authenticate with Cognito...');
   });
 
@@ -406,16 +401,29 @@ describe('Header Profile Integration', () => {
   });
 });
 
-describe('HelpModal CLI Companion Section', () => {
-  it('renders Developer CLI Companion guide with setup and commands', () => {
+describe('HelpModal `lk` cli and PAT Section', () => {
+  it('renders `lk` cli guide with live PAT, scopes, setup and commands', () => {
     const html = renderToString(
-      <HelpModal isOpen={true} onClose={vi.fn()} />
+      <HelpModal
+        isOpen={true}
+        onClose={vi.fn()}
+        profile={mockProfile}
+        onGenerateCliToken={vi.fn()}
+      />
     );
 
-    expect(html).toContain('Developer CLI Companion (lk)');
+    expect(html).toContain('`lk` cli');
     expect(html).toContain('cli/lk.mjs');
+    expect(html).toContain('Personal Access Token (PAT)');
+    expect(html).toContain('lk_dev_seed_token');
+    expect(html).toContain('All Scopes Active (Locked)');
+    expect(html).toContain('tasks:read');
+    expect(html).toContain('tasks:write');
+    expect(html).toContain('sync:rw');
+    expect(html).toContain('leases:issue');
     expect(html).toContain('npm link');
     expect(html).toContain('$env:LANEKEEPER_API_TOKEN');
+    expect(html).toContain('export LANEKEEPER_API_TOKEN');
     expect(html).toContain('lk add');
     expect(html).toContain('lk list');
     expect(html).toContain('lk start');
