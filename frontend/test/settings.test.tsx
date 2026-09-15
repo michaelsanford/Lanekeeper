@@ -116,4 +116,83 @@ describe('Settings Modals and Header Grouping', () => {
     expect(html).toContain('Core Platform');
     expect(html).toContain('CORE');
   });
+
+  it('renders online badge and notification button with matching h-9 height and expand-on-hover classes', () => {
+    const htmlOnline = renderToString(
+      <Header
+        metadata={mockMetadata}
+        activeView="board"
+        onViewChange={vi.fn()}
+        onOpenQuickCapture={vi.fn()}
+        onOpenHelp={vi.fn()}
+        onOpenProjectSettings={vi.fn()}
+        onOpenAppSettings={vi.fn()}
+        isOnline={true}
+        pushSubscribed={true}
+        pushPermission="granted"
+        onTogglePush={vi.fn()}
+      />
+    );
+
+    // Online badge
+    expect(htmlOnline).toContain('group/badge');
+    expect(htmlOnline).toContain('Online');
+    expect(htmlOnline).toContain('group-hover/badge:max-w-[100px]');
+    expect(htmlOnline).toContain('border-emerald-800/50');
+
+    // Notifications subscribed
+    expect(htmlOnline).toContain('group/notify');
+    expect(htmlOnline).toContain('Notifications: On');
+    expect(htmlOnline).toContain('group-hover/notify:max-w-[140px]');
+    expect(htmlOnline).toContain('bg-emerald-950/50');
+  });
+
+  it('renders offline badge and denied notification button appropriately', () => {
+    const htmlOffline = renderToString(
+      <Header
+        metadata={mockMetadata}
+        activeView="board"
+        onViewChange={vi.fn()}
+        onOpenQuickCapture={vi.fn()}
+        onOpenHelp={vi.fn()}
+        onOpenProjectSettings={vi.fn()}
+        onOpenAppSettings={vi.fn()}
+        isOnline={false}
+        pushSubscribed={false}
+        pushPermission="denied"
+        onTogglePush={vi.fn()}
+      />
+    );
+
+    // Offline badge
+    expect(htmlOffline).toContain('group/badge');
+    expect(htmlOffline).toContain('Offline');
+    expect(htmlOffline).toContain('border-amber-800/50');
+
+    // Notifications denied
+    expect(htmlOffline).toContain('Notifications: Denied');
+    expect(htmlOffline).toContain('bg-rose-950/50');
+  });
+
+  it('renders notification button in default off state when not subscribed and permission is default', () => {
+    const htmlDefault = renderToString(
+      <Header
+        metadata={mockMetadata}
+        activeView="board"
+        onViewChange={vi.fn()}
+        onOpenQuickCapture={vi.fn()}
+        onOpenHelp={vi.fn()}
+        onOpenProjectSettings={vi.fn()}
+        onOpenAppSettings={vi.fn()}
+        isOnline={true}
+        pushSubscribed={false}
+        pushPermission="default"
+        onTogglePush={vi.fn()}
+      />
+    );
+
+    expect(htmlDefault).toContain('Notifications: Off');
+    expect(htmlDefault).toContain('bg-slate-800/50');
+  });
 });
+

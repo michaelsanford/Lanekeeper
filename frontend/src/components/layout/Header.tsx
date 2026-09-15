@@ -3,6 +3,7 @@ import {
   Zap,
   Bell,
   BellRing,
+  BellOff,
   Wifi,
   WifiOff,
   HelpCircle,
@@ -37,6 +38,7 @@ interface HeaderProps {
   onOpenAppSettings: (tab?: 'profile' | 'themes' | 'features') => void;
   isOnline: boolean;
   pushSubscribed: boolean;
+  pushPermission?: NotificationPermission;
   onTogglePush: () => void;
   projectsList?: ProjectMetadata[];
   onSwitchProject?: (projectId: string, name?: string, prefix?: string) => void;
@@ -55,6 +57,7 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenAppSettings,
   isOnline,
   pushSubscribed,
+  pushPermission = 'default',
   onTogglePush,
   projectsList,
   onSwitchProject,
@@ -273,7 +276,7 @@ export const Header: React.FC<HeaderProps> = ({
         {/* Quick Capture Button */}
         <button
           onClick={onOpenQuickCapture}
-          className="flex items-center gap-2 bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white text-sm font-semibold px-3.5 py-2 rounded-lg shadow-sm shadow-indigo-600/30 transition-all active:scale-95"
+          className="h-9 flex items-center gap-2 bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white text-sm font-semibold px-3.5 rounded-lg shadow-sm shadow-indigo-600/30 transition-all active:scale-95 cursor-pointer"
         >
           <Zap className="w-4 h-4 fill-current" />
           <span>Capture</span>
@@ -282,36 +285,63 @@ export const Header: React.FC<HeaderProps> = ({
           </kbd>
         </button>
 
-        <div className="h-5 w-px bg-slate-800 mx-1" />
+        <div className="h-5 w-px bg-slate-800 mx-0.5" />
 
-        {/* Push Notification Toggle */}
+        {/* Push Notification Toggle (Icon only resting, expands on hover) */}
         <button
           onClick={onTogglePush}
-          title={pushSubscribed ? 'Push Notifications Enabled' : 'Enable Web Push Notifications'}
-          className={`p-2 rounded-lg border transition-colors ${
+          title={
             pushSubscribed
-              ? 'bg-emerald-950/60 border-emerald-800/70 text-emerald-400 hover:bg-emerald-900/60'
-              : 'bg-slate-800/60 border-slate-700/60 text-slate-400 hover:text-slate-200 hover:bg-slate-800'
+              ? 'Push Notifications: Enabled'
+              : pushPermission === 'denied'
+              ? 'Push Notifications: Blocked / Denied by browser'
+              : 'Enable Web Push Notifications'
+          }
+          className={`group/notify h-9 px-2.5 flex items-center rounded-lg border transition-all duration-300 ease-out cursor-pointer select-none ${
+            pushSubscribed
+              ? 'bg-emerald-950/50 border-emerald-800/60 text-emerald-400 hover:bg-emerald-900/50'
+              : pushPermission === 'denied'
+              ? 'bg-rose-950/50 border-rose-800/60 text-rose-400 hover:bg-rose-900/50'
+              : 'bg-slate-800/50 border-slate-700/60 text-slate-400 hover:text-slate-200 hover:bg-slate-800/80'
           }`}
         >
-          {pushSubscribed ? <BellRing className="w-4 h-4" /> : <Bell className="w-4 h-4" />}
+          {pushSubscribed ? (
+            <BellRing className="w-4 h-4 shrink-0" />
+          ) : pushPermission === 'denied' ? (
+            <BellOff className="w-4 h-4 shrink-0" />
+          ) : (
+            <Bell className="w-4 h-4 shrink-0" />
+          )}
+          <span className="max-w-0 overflow-hidden opacity-0 group-hover/notify:max-w-[140px] group-hover/notify:opacity-100 group-hover/notify:ml-1.5 transition-all duration-300 ease-out whitespace-nowrap text-xs font-mono font-medium">
+            {pushSubscribed
+              ? 'Notifications: On'
+              : pushPermission === 'denied'
+              ? 'Notifications: Denied'
+              : 'Notifications: Off'}
+          </span>
         </button>
 
-        {/* Online / Offline Status Badge */}
+        {/* Online / Offline Status Badge (Icon only resting, expands on hover) */}
         <div
           title={isOnline ? 'Connected to local & cloud sync' : 'Offline mode - changes saved locally'}
-          className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-mono font-medium border ${
+          className={`group/badge h-9 px-2.5 flex items-center rounded-lg border transition-all duration-300 ease-out cursor-default select-none ${
             isOnline
-              ? 'bg-emerald-950/40 text-emerald-400 border-emerald-800/50'
-              : 'bg-amber-950/40 text-amber-400 border-amber-800/50'
+              ? 'bg-emerald-950/40 text-emerald-400 border-emerald-800/50 hover:bg-emerald-950/60'
+              : 'bg-amber-950/40 text-amber-400 border-amber-800/50 hover:bg-amber-950/60'
           }`}
         >
-          {isOnline ? <Wifi className="w-3.5 h-3.5" /> : <WifiOff className="w-3.5 h-3.5" />}
-          <span className="hidden sm:inline">{isOnline ? 'Online' : 'Offline'}</span>
+          {isOnline ? (
+            <Wifi className="w-4 h-4 shrink-0 text-emerald-400" />
+          ) : (
+            <WifiOff className="w-4 h-4 shrink-0 text-amber-400" />
+          )}
+          <span className="max-w-0 overflow-hidden opacity-0 group-hover/badge:max-w-[100px] group-hover/badge:opacity-100 group-hover/badge:ml-1.5 transition-all duration-300 ease-out whitespace-nowrap text-xs font-mono font-medium">
+            {isOnline ? 'Online' : 'Offline'}
+          </span>
         </div>
 
         {/* User Profile Avatar & Dropdown Menu */}
-        <div className="relative">
+        <div className="relative flex items-center h-9">
           <UserAvatar
             initials={initials}
             displayName={currentProfile.displayName}
@@ -338,7 +368,7 @@ export const Header: React.FC<HeaderProps> = ({
         <button
           onClick={onOpenHelp}
           title="Keyboard Shortcuts (?)"
-          className="p-2 rounded-lg border border-slate-800 text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 transition-colors"
+          className="h-9 w-9 flex items-center justify-center rounded-lg border border-slate-800 text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 transition-colors cursor-pointer"
         >
           <HelpCircle className="w-4 h-4" />
         </button>

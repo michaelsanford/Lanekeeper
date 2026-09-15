@@ -67,7 +67,7 @@ export function App() {
   const apiUrl = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:3001' : '');
   const syncToken = authSession?.accessToken || (import.meta.env.DEV ? 'lk_dev_seed_token' : undefined);
 
-  const { isSubscribed, requestAndSubscribe } = useWebPush(
+  const { isSubscribed, requestAndSubscribe, permission } = useWebPush(
     apiUrl,
     syncToken
   );
@@ -208,6 +208,7 @@ export function App() {
         }}
         isOnline={isOnline}
         pushSubscribed={isSubscribed}
+        pushPermission={permission}
         onTogglePush={requestAndSubscribe}
         projectsList={getProjectsList()}
         onSwitchProject={(id, name, pfx) => switchProject(id, name, pfx)}
