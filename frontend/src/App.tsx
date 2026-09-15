@@ -5,6 +5,7 @@ import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts.js';
 import { useTheme } from './hooks/useTheme.js';
 import { getStoredAuthSession, saveAuthSession } from './auth/cognito.js';
 import { scheduleSync, syncWithServer } from './crdt/sync.js';
+import { useNetworkStatus } from './hooks/useNetworkStatus.js';
 import { FeatureGateProvider } from './features/index.js';
 
 import { Header, type ActiveView } from './components/layout/Header.js';
@@ -59,41 +60,25 @@ export function App() {
   const [isAppSettingsOpen, setIsAppSettingsOpen] = useState(false);
   const [appSettingsTab, setAppSettingsTab] = useState<AppSettingsTab>('profile');
   const [authSession, setAuthSession] = useState<AuthSession | null>(getStoredAuthSession);
-  const [isOnline, setIsOnline] = useState(navigator.onLine);
-
-  const { profile, updateProfile, generateCliToken } = useUserProfile(authSession);
-
-  const { theme, mode, setTheme, setMode } = useTheme();
 
   const apiUrl = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:3001' : '');
   const syncToken = authSession?.accessToken || (import.meta.env.DEV ? 'lk_dev_seed_token' : undefined);
+
+  const { status: networkStatus, isOnline } = useNetworkStatus(apiUrl, syncToken);
+  const { profile, updateProfile, generateCliToken } = useUserProfile(authSession);
+  const { theme, mode, setTheme, setMode } = useTheme();
 
   const { isSubscribed, requestAndSubscribe, permission } = useWebPush(
     apiUrl,
     syncToken
   );
 
-  // Synchronize with backend on mount, network transitions, tab focus, and polling interval
+  // Periodic background synchronization (3s in dev mode to immediately reflect CLI & seed actions)
   useEffect(() => {
-    if (apiUrl && syncToken && navigator.onLine) {
+    if (apiUrl && syncToken && isOnline) {
       syncWithServer(apiUrl, syncToken);
     }
 
-    const handleOnline = () => {
-      setIsOnline(true);
-      if (apiUrl && syncToken) {
-        scheduleSync(apiUrl, syncToken, 100);
-      }
-    };
-    const handleOffline = () => setIsOnline(false);
-
-    const handleFocus = () => {
-      if (apiUrl && syncToken && navigator.onLine) {
-        syncWithServer(apiUrl, syncToken);
-      }
-    };
-
-    // Periodic background synchronization (3s in dev mode to immediately reflect CLI & seed actions)
     const pollIntervalMs = import.meta.env.DEV ? 3000 : 30000;
     const interval = setInterval(() => {
       if (apiUrl && syncToken && navigator.onLine) {
@@ -101,17 +86,8 @@ export function App() {
       }
     }, pollIntervalMs);
 
-    window.addEventListener('online', handleOnline);
-    window.addEventListener('offline', handleOffline);
-    window.addEventListener('focus', handleFocus);
-
-    return () => {
-      clearInterval(interval);
-      window.removeEventListener('online', handleOnline);
-      window.removeEventListener('offline', handleOffline);
-      window.removeEventListener('focus', handleFocus);
-    };
-  }, [apiUrl, syncToken]);
+    return () => clearInterval(interval);
+  }, [apiUrl, syncToken, isOnline]);
 
   // Handle PWA Web Share Target and App Shortcuts jumplist on mount
   useEffect(() => {
@@ -208,6 +184,7 @@ export function App() {
           setIsAppSettingsOpen(true);
         }}
         isOnline={isOnline}
+        networkStatus={networkStatus}
         pushSubscribed={isSubscribed}
         pushPermission={permission}
         onTogglePush={requestAndSubscribe}

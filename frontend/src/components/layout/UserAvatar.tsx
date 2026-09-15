@@ -1,10 +1,12 @@
 import React from 'react';
+import type { NetworkStatus } from '../../hooks/useNetworkStatus.js';
 
 interface UserAvatarProps {
   initials: string;
   displayName?: string;
   avatarUrl?: string;
   isOnline?: boolean;
+  networkStatus?: NetworkStatus;
   mfaEnabled?: boolean;
   size?: 'sm' | 'md' | 'lg';
   className?: string;
@@ -17,6 +19,7 @@ export const UserAvatar: React.FC<UserAvatarProps> = ({
   displayName,
   avatarUrl,
   isOnline = true,
+  networkStatus,
   mfaEnabled = false,
   size = 'md',
   className = '',
@@ -37,9 +40,16 @@ export const UserAvatar: React.FC<UserAvatarProps> = ({
 
   // Status indicator color:
   // Green = Online
-  // Amber = Offline
+  // Amber = Server Offline or Browser Offline
   // Violet dot border/ring = MFA active
-  const statusColor = isOnline ? 'bg-emerald-400 ring-slate-900' : 'bg-amber-400 ring-slate-900';
+  const effectiveStatus: NetworkStatus = networkStatus || (isOnline ? 'online' : 'offline');
+  const statusColor = effectiveStatus === 'online' ? 'bg-emerald-400 ring-slate-900' : 'bg-amber-400 ring-slate-900';
+  const statusLabel =
+    effectiveStatus === 'online'
+      ? 'Online'
+      : effectiveStatus === 'server_offline'
+      ? 'Server Offline'
+      : 'Offline';
 
   const content = (
     <div className="relative inline-flex items-center justify-center select-none">
@@ -64,8 +74,8 @@ export const UserAvatar: React.FC<UserAvatarProps> = ({
         }`}
         title={
           mfaEnabled
-            ? `Status: ${isOnline ? 'Online' : 'Offline'} (TOTP MFA Active)`
-            : `Status: ${isOnline ? 'Online' : 'Offline'}`
+            ? `Status: ${statusLabel} (TOTP MFA Active)`
+            : `Status: ${statusLabel}`
         }
       />
     </div>
@@ -85,5 +95,5 @@ export const UserAvatar: React.FC<UserAvatarProps> = ({
     );
   }
 
-  return <div className={className}>{content}</div>;
+  return content;
 };

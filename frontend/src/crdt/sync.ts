@@ -6,6 +6,94 @@ let lastServerVector: Uint8Array | null = null;
 let isSyncing = false;
 let syncTimeout: number | null = null;
 
+export interface SyncStatus {
+  reachable: boolean;
+  lastSyncTime: number | null;
+  isSyncing: boolean;
+}
+
+export type SyncStatusListener = (status: SyncStatus) => void;
+
+let isServerReachable = true;
+let lastSuccessfulSyncTime: number | null = null;
+const syncStatusListeners: Set<SyncStatusListener> = new Set();
+
+export function getSyncStatus(): SyncStatus {
+  return {
+    reachable: isServerReachable,
+    lastSyncTime: lastSuccessfulSyncTime,
+    isSyncing
+  };
+}
+
+export function subscribeSyncStatus(listener: SyncStatusListener): () => void {
+  syncStatusListeners.add(listener);
+  listener(getSyncStatus());
+  return () => {
+    syncStatusListeners.delete(listener);
+  };
+}
+
+export function resetSyncStatusForTesting(): void {
+  isServerReachable = true;
+  lastSuccessfulSyncTime = null;
+  isSyncing = false;
+  lastServerVector = null;
+  syncStatusListeners.clear();
+}
+
+function notifySyncStatusChange(): void {
+  const current = getSyncStatus();
+  syncStatusListeners.forEach((listener) => {
+    try {
+      listener(current);
+    } catch (err) {
+      console.error('Error in sync status listener:', err);
+    }
+  });
+}
+
+function updateSyncStatus(reachable: boolean, syncTime?: number): void {
+  const statusChanged = isServerReachable !== reachable;
+  const timeChanged = syncTime !== undefined && syncTime !== lastSuccessfulSyncTime;
+
+  isServerReachable = reachable;
+  if (syncTime !== undefined) {
+    lastSuccessfulSyncTime = syncTime;
+  }
+
+  if (statusChanged || timeChanged) {
+    notifySyncStatusChange();
+  }
+}
+
+export async function checkServerHealth(apiUrl?: string): Promise<boolean> {
+  const resolvedUrl = apiUrl || getDefaultApiUrl();
+  const isBrowserOffline = typeof navigator !== 'undefined' && navigator.onLine === false;
+  if (!resolvedUrl || isBrowserOffline) {
+    updateSyncStatus(false);
+    return false;
+  }
+
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 2000);
+
+    const res = await fetch(`${resolvedUrl}/health`, {
+      method: 'GET',
+      signal: controller.signal
+    });
+    clearTimeout(timeoutId);
+
+    const healthy = res.ok;
+    updateSyncStatus(healthy);
+    return healthy;
+  } catch {
+    updateSyncStatus(false);
+    return false;
+  }
+}
+
 export function uint8ArrayToBase64(bytes: Uint8Array): string {
   let binary = '';
   const chunkSize = 8192;
@@ -41,11 +129,14 @@ export async function syncWithServer(apiUrl?: string, authToken?: string): Promi
   const resolvedUrl = apiUrl || getDefaultApiUrl();
   const resolvedToken = authToken || getDefaultAuthToken();
 
-  if (isSyncing || !navigator.onLine || !resolvedUrl || !resolvedToken) {
+  const isBrowserOffline = typeof navigator !== 'undefined' && navigator.onLine === false;
+  if (isSyncing || isBrowserOffline || !resolvedUrl || !resolvedToken) {
     return false;
   }
 
   isSyncing = true;
+  notifySyncStatusChange();
+
   try {
     const doc = crdtStore.doc;
     const meta = crdtStore.getMetadata();
@@ -80,6 +171,12 @@ export async function syncWithServer(apiUrl?: string, authToken?: string): Promi
 
     if (!res.ok) {
       console.warn('Sync responded with status:', res.status);
+      if (res.status >= 500) {
+        updateSyncStatus(false);
+      } else {
+        // 4xx responses mean the server is running and reachable, even if unauthorized
+        updateSyncStatus(true);
+      }
       return false;
     }
 
@@ -113,12 +210,15 @@ export async function syncWithServer(apiUrl?: string, authToken?: string): Promi
       }
     }
 
+    updateSyncStatus(true, Date.now());
     return true;
   } catch (err) {
     console.warn('CRDT sync error:', err);
+    updateSyncStatus(false);
     return false;
   } finally {
     isSyncing = false;
+    notifySyncStatusChange();
   }
 }
 

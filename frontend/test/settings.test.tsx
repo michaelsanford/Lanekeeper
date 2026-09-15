@@ -137,7 +137,7 @@ describe('Settings Modals and Header Grouping', () => {
     // Online badge
     expect(htmlOnline).toContain('group/badge');
     expect(htmlOnline).toContain('Online');
-    expect(htmlOnline).toContain('group-hover/badge:max-w-[100px]');
+    expect(htmlOnline).toContain('group-hover/badge:max-w-[140px]');
     expect(htmlOnline).toContain('border-emerald-800/50');
 
     // Notifications subscribed

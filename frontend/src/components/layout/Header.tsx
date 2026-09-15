@@ -6,6 +6,7 @@ import {
   BellOff,
   Wifi,
   WifiOff,
+  CloudOff,
   HelpCircle,
   Check,
   Table as TableIcon,
@@ -21,6 +22,7 @@ import {
   LaneKeepIcon
 } from '../icons/LaneIcons.js';
 import type { ProjectMetadata, UserProfile } from '../../types/index.js';
+import type { NetworkStatus } from '../../hooks/useNetworkStatus.js';
 import { getWorkflowTemplate } from '../../utils/templates.js';
 import { UserAvatar } from './UserAvatar.js';
 import { ProfileMenu } from './ProfileMenu.js';
@@ -36,7 +38,8 @@ interface HeaderProps {
   onOpenHelp: () => void;
   onOpenProjectSettings: (tab?: 'general' | 'lanes' | 'projects') => void;
   onOpenAppSettings: (tab?: 'profile' | 'themes' | 'features') => void;
-  isOnline: boolean;
+  isOnline?: boolean;
+  networkStatus?: NetworkStatus;
   pushSubscribed: boolean;
   pushPermission?: NotificationPermission;
   onTogglePush: () => void;
@@ -56,6 +59,7 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenProjectSettings,
   onOpenAppSettings,
   isOnline,
+  networkStatus,
   pushSubscribed,
   pushPermission = 'default',
   onTogglePush,
@@ -68,6 +72,8 @@ export const Header: React.FC<HeaderProps> = ({
   const [isProjectMenuOpen, setIsProjectMenuOpen] = useState(false);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const projectMenuRef = useRef<HTMLDivElement>(null);
+
+  const effectiveStatus: NetworkStatus = networkStatus || (isOnline === false ? 'offline' : 'online');
 
   const currentProfile: UserProfile = profile || {
     id: 'dev-user-01',
@@ -323,20 +329,32 @@ export const Header: React.FC<HeaderProps> = ({
 
         {/* Online / Offline Status Badge (Icon only resting, expands on hover) */}
         <div
-          title={isOnline ? 'Connected to local & cloud sync' : 'Offline mode - changes saved locally'}
+          title={
+            effectiveStatus === 'online'
+              ? 'Connected to local & cloud sync'
+              : effectiveStatus === 'server_offline'
+              ? 'Server unreachable - changes saved locally and will sync when server reconnects'
+              : 'Offline mode - changes saved locally'
+          }
           className={`group/badge h-9 px-2.5 flex items-center rounded-lg border transition-all duration-300 ease-out cursor-default select-none ${
-            isOnline
+            effectiveStatus === 'online'
               ? 'bg-emerald-950/40 text-emerald-400 border-emerald-800/50 hover:bg-emerald-950/60'
               : 'bg-amber-950/40 text-amber-400 border-amber-800/50 hover:bg-amber-950/60'
           }`}
         >
-          {isOnline ? (
+          {effectiveStatus === 'online' ? (
             <Wifi className="w-4 h-4 shrink-0 text-emerald-400" />
+          ) : effectiveStatus === 'server_offline' ? (
+            <CloudOff className="w-4 h-4 shrink-0 text-amber-400" />
           ) : (
             <WifiOff className="w-4 h-4 shrink-0 text-amber-400" />
           )}
-          <span className="max-w-0 overflow-hidden opacity-0 group-hover/badge:max-w-[100px] group-hover/badge:opacity-100 group-hover/badge:ml-1.5 transition-all duration-300 ease-out whitespace-nowrap text-xs font-mono font-medium">
-            {isOnline ? 'Online' : 'Offline'}
+          <span className="max-w-0 overflow-hidden opacity-0 group-hover/badge:max-w-[140px] group-hover/badge:opacity-100 group-hover/badge:ml-1.5 transition-all duration-300 ease-out whitespace-nowrap text-xs font-mono font-medium">
+            {effectiveStatus === 'online'
+              ? 'Online'
+              : effectiveStatus === 'server_offline'
+              ? 'Server Offline'
+              : 'Offline'}
           </span>
         </div>
 
@@ -346,7 +364,8 @@ export const Header: React.FC<HeaderProps> = ({
             initials={initials}
             displayName={currentProfile.displayName}
             avatarUrl={currentProfile.avatarUrl}
-            isOnline={isOnline}
+            isOnline={effectiveStatus === 'online'}
+            networkStatus={effectiveStatus}
             mfaEnabled={currentProfile.mfaEnabled}
             size="md"
             onClick={() => setIsProfileMenuOpen((o) => !o)}

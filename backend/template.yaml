@@ -190,6 +190,29 @@ Resources:
         EntryPoints:
           - src/handlers/sync.ts
 
+  HealthFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: .
+      Handler: src/handlers/health.handler
+      Events:
+        HealthCheck:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref HttpApi
+            Path: /health
+            Method: GET
+            Auth:
+              Authorizer: NONE
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: "node22"
+        Sourcemap: true
+        EntryPoints:
+          - src/handlers/health.ts
+
   IngestFunction:
     Type: AWS::Serverless::Function
     Properties:
