@@ -2,7 +2,8 @@ import React, { useState, useMemo } from 'react';
 import { useDroppable } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { Plus, Archive } from 'lucide-react';
-import { SwimlaneBuoyIcon, TrafficLight } from '../icons/LaneIcons.js';
+import { TrafficLight } from '../icons/LaneIcons.js';
+import { LaneMarker } from '../icons/LaneMarker.js';
 import type { Lane, Task } from '../../types/index.js';
 import { TaskCard } from './TaskCard.js';
 import { useFeatureGate, getArchiveThresholdDays } from '../../features/index.js';
@@ -80,7 +81,7 @@ export const LaneColumn: React.FC<LaneColumnProps> = ({
             style={{ color: lane.color }}
             title={`Swimlane: ${lane.name}`}
           >
-            <SwimlaneBuoyIcon size={16} />
+            <LaneMarker icon={lane.icon} color={lane.color} size={18} />
           </span>
           <h2 className="font-bold text-base text-slate-200 tracking-tight">
             {lane.name}

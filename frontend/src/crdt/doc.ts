@@ -64,12 +64,12 @@ class CrdtStore {
     metaMap.set('prefix', metaMap.get('prefix') || 'LK');
 
     const defaultLanes: Lane[] = [
-      { id: 'triage', name: 'Triage / Inbox', color: '#64748b', type: 'backlog' },
-      { id: 'backlog', name: 'Backlog', color: '#8b5cf6', type: 'unstarted' },
-      { id: 'todo', name: 'To Do', color: '#3b82f6', type: 'unstarted' },
-      { id: 'inprogress', name: 'In Progress', color: '#f59e0b', type: 'started', wipLimit: 3 },
-      { id: 'review', name: 'Review', color: '#06b6d4', type: 'started' },
-      { id: 'done', name: 'Done', color: '#10b981', type: 'completed' }
+      { id: 'triage', name: 'Triage / Inbox', color: '#64748b', type: 'backlog', icon: 'inbox' },
+      { id: 'backlog', name: 'Backlog', color: '#8b5cf6', type: 'unstarted', icon: 'layers' },
+      { id: 'todo', name: 'To Do', color: '#3b82f6', type: 'unstarted', icon: 'play' },
+      { id: 'inprogress', name: 'In Progress', color: '#f59e0b', type: 'started', wipLimit: 3, icon: 'zap' },
+      { id: 'review', name: 'Review', color: '#06b6d4', type: 'started', icon: 'eye' },
+      { id: 'done', name: 'Done', color: '#10b981', type: 'completed', icon: 'check-circle' }
     ];
 
     const existingOrder = new Set(laneOrder.toArray());
@@ -217,9 +217,15 @@ class CrdtStore {
     return result;
   }
 
-  public addLane(name: string, color = '#6366f1', type: any = 'unstarted', wipLimit?: number): Lane {
+  public addLane(
+    name: string,
+    color = '#6366f1',
+    type: any = 'unstarted',
+    wipLimit?: number,
+    icon?: string
+  ): Lane {
     const laneId = name.toLowerCase().replace(/[^a-z0-9]/g, '') + '-' + Math.floor(100 + Math.random() * 900);
-    const lane: Lane = { id: laneId, name, color, type, wipLimit };
+    const lane: Lane = { id: laneId, name, color, type, wipLimit, icon: icon || 'buoy' };
     const lanesMap = this.doc.getMap<Lane>('lanes');
     const laneOrder = this.doc.getArray<string>('laneOrder');
     lanesMap.set(laneId, lane);

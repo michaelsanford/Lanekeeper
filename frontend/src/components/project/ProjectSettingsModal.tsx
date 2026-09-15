@@ -13,7 +13,9 @@ import {
   Sliders,
   Clock
 } from 'lucide-react';
-import { SwimlaneIcon, SwimlaneBuoyIcon, TrafficLight } from '../icons/LaneIcons.js';
+import { SwimlaneIcon, TrafficLight } from '../icons/LaneIcons.js';
+import { LaneMarker } from '../icons/LaneMarker.js';
+import { LaneMarkerPickerModal } from './LaneMarkerPickerModal.js';
 import type { ProjectMetadata, Lane, LaneType } from '../../types/index.js';
 import { type ThemeId, type ThemeMode, THEMES, getThemePreview } from '../../utils/themes.js';
 import { useFeatureGate, getArchiveThresholdDays, setArchiveThresholdDays } from '../../features/index.js';
@@ -25,7 +27,7 @@ interface ProjectSettingsModalProps {
   lanes: Lane[];
   projectsList: ProjectMetadata[];
   onUpdateMetadata: (updates: Partial<ProjectMetadata>) => void;
-  onAddLane: (name: string, color?: string, type?: LaneType, wipLimit?: number) => void;
+  onAddLane: (name: string, color?: string, type?: LaneType, wipLimit?: number, icon?: string) => void;
   onUpdateLane: (laneId: string, updates: Partial<Lane>) => void;
   onDeleteLane: (laneId: string) => void;
   onCreateProject: (name: string, prefix: string) => void;
@@ -80,12 +82,30 @@ export const ProjectSettingsModal: React.FC<ProjectSettingsModalProps> = ({
   const [newLaneColor, setNewLaneColor] = useState('#3b82f6');
   const [newLaneType, setNewLaneType] = useState<LaneType>('unstarted');
   const [newLaneWip, setNewLaneWip] = useState<string>('');
+  const [newLaneIcon, setNewLaneIcon] = useState<string>('buoy');
+
+  // Marker Picker state
+  const [markerPickerTarget, setMarkerPickerTarget] = useState<{
+    laneId: string;
+    laneName: string;
+    laneColor: string;
+    currentIcon?: string;
+  } | null>(null);
 
   // New Project state
   const [newProjectName, setNewProjectName] = useState('');
   const [newProjectPrefix, setNewProjectPrefix] = useState('');
 
   if (!isOpen) return null;
+
+  const handleSelectMarker = (iconKey: string) => {
+    if (!markerPickerTarget) return;
+    if (markerPickerTarget.laneId === 'new') {
+      setNewLaneIcon(iconKey);
+    } else {
+      onUpdateLane(markerPickerTarget.laneId, { icon: iconKey });
+    }
+  };
 
   const handleGeneralSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -101,9 +121,10 @@ export const ProjectSettingsModal: React.FC<ProjectSettingsModalProps> = ({
     e.preventDefault();
     if (newLaneName.trim()) {
       const wip = newLaneWip ? parseInt(newLaneWip, 10) : undefined;
-      onAddLane(newLaneName.trim(), newLaneColor, newLaneType, isNaN(wip!) ? undefined : wip);
+      onAddLane(newLaneName.trim(), newLaneColor, newLaneType, isNaN(wip!) ? undefined : wip, newLaneIcon);
       setNewLaneName('');
       setNewLaneWip('');
+      setNewLaneIcon('buoy');
     }
   };
 
@@ -290,7 +311,7 @@ export const ProjectSettingsModal: React.FC<ProjectSettingsModalProps> = ({
                     className="p-3.5 bg-slate-950/80 rounded-xl border border-slate-800 flex items-center justify-between gap-3"
                   >
                     <div className="flex items-center gap-2.5 flex-1">
-                      {/* Color Picker & Buoy */}
+                      {/* Color Picker & Marker */}
                       <div className="flex items-center gap-1.5">
                         <input
                           type="color"
@@ -299,9 +320,21 @@ export const ProjectSettingsModal: React.FC<ProjectSettingsModalProps> = ({
                           className="w-7 h-7 rounded-md bg-transparent cursor-pointer border-0 p-0"
                           title="Change lane color"
                         />
-                        <span style={{ color: lane.color }} title="Swimlane marker">
-                          <SwimlaneBuoyIcon size={16} />
-                        </span>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setMarkerPickerTarget({
+                              laneId: lane.id,
+                              laneName: lane.name,
+                              laneColor: lane.color,
+                              currentIcon: lane.icon
+                            })
+                          }
+                          className="w-7 h-7 rounded-md bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-indigo-500/60 flex items-center justify-center transition-colors cursor-pointer"
+                          title="Change swimlane marker glyph"
+                        >
+                          <LaneMarker icon={lane.icon} color={lane.color} size={16} />
+                        </button>
                       </div>
 
                       {/* Lane Name */}
@@ -314,8 +347,8 @@ export const ProjectSettingsModal: React.FC<ProjectSettingsModalProps> = ({
                     </div>
 
                     <div className="flex items-center gap-2.5">
-                      {/* Lane Type & Signal */}
-                      <div className="flex items-center gap-1.5 bg-slate-900 px-2 py-1 rounded-md border border-slate-800">
+                      {/* Flow Signal & Category Select */}
+                      <div className="flex items-center gap-1.5">
                         <TrafficLight
                           state={
                             lane.type === 'completed'
@@ -332,13 +365,14 @@ export const ProjectSettingsModal: React.FC<ProjectSettingsModalProps> = ({
                           onChange={(e) =>
                             onUpdateLane(lane.id, { type: e.target.value as LaneType })
                           }
-                          className="bg-transparent text-slate-300 outline-none text-xs cursor-pointer"
+                          className="bg-slate-900 text-slate-300 px-2.5 py-1.5 rounded-lg border border-slate-800 outline-none focus:border-indigo-500 text-xs cursor-pointer"
+                          title="Workflow State Category"
                         >
-                          <option value="backlog">Backlog</option>
-                          <option value="unstarted">Unstarted</option>
-                          <option value="started">Started</option>
-                          <option value="completed">Completed</option>
-                          <option value="cancelled">Cancelled</option>
+                          <option value="backlog" className="bg-slate-900 text-slate-300">Backlog</option>
+                          <option value="unstarted" className="bg-slate-900 text-slate-300">Unstarted</option>
+                          <option value="started" className="bg-slate-900 text-slate-300">Started</option>
+                          <option value="completed" className="bg-slate-900 text-slate-300">Completed</option>
+                          <option value="cancelled" className="bg-slate-900 text-slate-300">Cancelled</option>
                         </select>
                       </div>
 
@@ -387,14 +421,30 @@ export const ProjectSettingsModal: React.FC<ProjectSettingsModalProps> = ({
                   <span>Add Workflow Lane</span>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-5 gap-2.5 items-center">
+                <div className="grid grid-cols-1 sm:grid-cols-6 gap-2.5 items-center">
                   <div className="flex items-center gap-2 sm:col-span-2">
                     <input
                       type="color"
                       value={newLaneColor}
                       onChange={(e) => setNewLaneColor(e.target.value)}
                       className="w-8 h-8 rounded-md bg-transparent cursor-pointer border-0 p-0 flex-shrink-0"
+                      title="Lane color"
                     />
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setMarkerPickerTarget({
+                          laneId: 'new',
+                          laneName: newLaneName || 'New Lane',
+                          laneColor: newLaneColor,
+                          currentIcon: newLaneIcon
+                        })
+                      }
+                      className="w-8 h-8 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-indigo-500/60 flex items-center justify-center transition-colors cursor-pointer flex-shrink-0"
+                      title="Choose lane marker glyph"
+                    >
+                      <LaneMarker icon={newLaneIcon} color={newLaneColor} size={18} />
+                    </button>
                     <input
                       type="text"
                       required
@@ -405,28 +455,42 @@ export const ProjectSettingsModal: React.FC<ProjectSettingsModalProps> = ({
                     />
                   </div>
 
-                  <select
-                    value={newLaneType}
-                    onChange={(e) => setNewLaneType(e.target.value as LaneType)}
-                    className="bg-slate-900 text-slate-300 px-2.5 py-2 rounded-lg border border-slate-800 outline-none text-xs"
-                  >
-                    <option value="unstarted">Unstarted</option>
-                    <option value="started">Started</option>
-                    <option value="completed">Completed</option>
-                    <option value="backlog">Backlog</option>
-                  </select>
+                  <div className="flex items-center gap-1.5 sm:col-span-2">
+                    <TrafficLight
+                      state={
+                        newLaneType === 'completed'
+                          ? 'green'
+                          : newLaneType === 'started'
+                          ? 'amber'
+                          : 'red'
+                      }
+                      size={16}
+                      title={`Flow Signal: ${newLaneType}`}
+                    />
+                    <select
+                      value={newLaneType}
+                      onChange={(e) => setNewLaneType(e.target.value as LaneType)}
+                      className="w-full bg-slate-900 text-slate-300 px-2.5 py-2 rounded-lg border border-slate-800 outline-none focus:border-indigo-500 text-xs cursor-pointer"
+                    >
+                      <option value="unstarted" className="bg-slate-900 text-slate-300">Unstarted</option>
+                      <option value="started" className="bg-slate-900 text-slate-300">Started</option>
+                      <option value="completed" className="bg-slate-900 text-slate-300">Completed</option>
+                      <option value="backlog" className="bg-slate-900 text-slate-300">Backlog</option>
+                      <option value="cancelled" className="bg-slate-900 text-slate-300">Cancelled</option>
+                    </select>
+                  </div>
 
                   <input
                     type="number"
                     placeholder="WIP (opt)"
                     value={newLaneWip}
                     onChange={(e) => setNewLaneWip(e.target.value)}
-                    className="bg-slate-900 text-slate-200 px-2.5 py-2 rounded-lg border border-slate-800 outline-none text-center font-mono text-xs"
+                    className="bg-slate-900 text-slate-200 px-2.5 py-2 rounded-lg border border-slate-800 outline-none text-center font-mono text-xs sm:col-span-1"
                   />
 
                   <button
                     type="submit"
-                    className="bg-indigo-600 hover:bg-indigo-500 text-white font-medium py-2 px-3.5 rounded-lg transition-colors text-sm"
+                    className="bg-indigo-600 hover:bg-indigo-500 text-white font-medium py-2 px-3.5 rounded-lg transition-colors text-sm sm:col-span-1"
                   >
                     Add Lane
                   </button>
@@ -763,6 +827,18 @@ export const ProjectSettingsModal: React.FC<ProjectSettingsModalProps> = ({
           )}
         </div>
       </div>
+
+      {/* Swimlane Marker Palette Modal */}
+      {markerPickerTarget && (
+        <LaneMarkerPickerModal
+          isOpen={!!markerPickerTarget}
+          onClose={() => setMarkerPickerTarget(null)}
+          currentIcon={markerPickerTarget.currentIcon}
+          laneColor={markerPickerTarget.laneColor}
+          laneName={markerPickerTarget.laneName}
+          onSelectIcon={handleSelectMarker}
+        />
+      )}
     </div>
   );
 };

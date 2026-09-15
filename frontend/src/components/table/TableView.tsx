@@ -12,7 +12,7 @@ import {
   RotateCcw
 } from 'lucide-react';
 import type { Task, Lane, TaskPriority } from '../../types/index.js';
-import { SwimlaneBuoyIcon } from '../icons/LaneIcons.js';
+import { LaneMarker } from '../icons/LaneMarker.js';
 import { useFeatureGate } from '../../features/index.js';
 
 interface TableViewProps {
@@ -425,9 +425,7 @@ export const TableView: React.FC<TableViewProps> = ({
                     {/* Status / Lane (Dropdown inside cell) */}
                     <td className="py-2.5 px-4" onClick={(e) => e.stopPropagation()}>
                       <div className="flex items-center gap-1.5">
-                        <span style={{ color: lane.color }} className="shrink-0">
-                          <SwimlaneBuoyIcon size={14} />
-                        </span>
+                        <LaneMarker icon={lane.icon} color={lane.color} size={14} className="shrink-0" />
                         <select
                           value={task.laneId}
                           onChange={(e) => onUpdateTask(task.id, { laneId: e.target.value })}

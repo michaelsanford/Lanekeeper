@@ -36,6 +36,7 @@ export interface Lane {
   color: string;
   type: LaneType;
   wipLimit?: number;
+  icon?: string;
 }
 
 export interface ProjectMetadata {

@@ -8,7 +8,7 @@ import {
   ListFilter
 } from 'lucide-react';
 import type { Task, Lane, TaskPriority } from '../../types/index.js';
-import { SwimlaneBuoyIcon } from '../icons/LaneIcons.js';
+import { LaneMarker } from '../icons/LaneMarker.js';
 
 interface CalendarViewProps {
   tasks: Task[];
@@ -432,9 +432,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                       <div className="flex items-center justify-between">
                         <span className="font-mono text-indigo-400 font-bold">{task.key}</span>
                         <div className="flex items-center gap-1">
-                          <span style={{ color: lane?.color }}>
-                            <SwimlaneBuoyIcon size={12} />
-                          </span>
+                          <LaneMarker icon={lane?.icon} color={lane?.color} size={12} />
                           <span className="text-[10px] text-slate-400">{lane?.name}</span>
                         </div>
                       </div>
