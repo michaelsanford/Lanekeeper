@@ -39,6 +39,7 @@ export function App() {
     getProjectsList,
     createProject,
     switchProject,
+    applyWorkflowTemplate,
     seedSampleTasks,
     archiveTask,
     unarchiveTask,
@@ -197,6 +198,8 @@ export function App() {
         currentMode={mode}
         onSelectTheme={setTheme}
         onSelectMode={setMode}
+        projectsList={getProjectsList()}
+        onSwitchProject={(id, name, pfx) => switchProject(id, name, pfx)}
       />
 
       {/* Main View Area */}
@@ -300,6 +303,7 @@ export function App() {
           switchProject(id, name, pfx);
           setIsProjectSettingsOpen(false);
         }}
+        onApplyTemplate={applyWorkflowTemplate}
         currentTheme={theme}
         currentMode={mode}
         onSelectTheme={setTheme}

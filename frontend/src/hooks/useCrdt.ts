@@ -41,6 +41,7 @@ export function useCrdt() {
     getProjectsList: crdtStore.getProjectsList.bind(crdtStore),
     createProject: crdtStore.createProject.bind(crdtStore),
     switchProject: crdtStore.switchProject.bind(crdtStore),
+    applyWorkflowTemplate: crdtStore.applyWorkflowTemplate.bind(crdtStore),
     seedSampleTasks: crdtStore.seedSampleTasks.bind(crdtStore),
     archiveTask: crdtStore.archiveTask.bind(crdtStore),
     unarchiveTask: crdtStore.unarchiveTask.bind(crdtStore),

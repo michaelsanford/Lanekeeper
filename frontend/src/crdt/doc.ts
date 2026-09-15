@@ -3,20 +3,48 @@ import { IndexeddbPersistence } from 'y-indexeddb';
 import type { Task, Lane, ProjectMetadata, Subtask } from '../types/index.js';
 import { getNextTaskKey } from './leases.js';
 import { getRankBetween, sortTasksByRank } from '../utils/rank.js';
+import {
+  getWorkflowTemplate,
+  DEFAULT_TEMPLATE_ID
+} from '../utils/templates.js';
 
 class CrdtStore {
   public doc: Y.Doc;
   public persistence: IndexeddbPersistence | null = null;
   public isSynced: boolean = false;
   private listeners: Set<() => void> = new Set();
+  private memoryDocs: Map<string, Y.Doc> = new Map();
 
   constructor() {
     this.doc = new Y.Doc();
-    this.initializePersistence('lanekeeper_default_project');
+    const activeId = this.getActiveProjectId();
+    const docName = this.getPersistenceDocName(activeId);
+    if (typeof indexedDB === 'undefined') {
+      this.memoryDocs.set(docName, this.doc);
+    }
+    this.initializePersistence(docName);
     this.setupListeners();
   }
 
-  public initializePersistence(docName: string): void {
+  public getActiveProjectId(): string {
+    try {
+      return localStorage.getItem('lanekeeper_active_project_id') || 'default';
+    } catch {
+      return 'default';
+    }
+  }
+
+  public setActiveProjectId(projectId: string): void {
+    try {
+      localStorage.setItem('lanekeeper_active_project_id', projectId);
+    } catch {}
+  }
+
+  private getPersistenceDocName(projectId: string): string {
+    return projectId === 'default' ? 'lanekeeper_default_project' : `lanekeeper_project_${projectId}`;
+  }
+
+  public initializePersistence(docName: string, templateId?: string): void {
     if (this.persistence) {
       this.persistence.destroy();
       this.persistence = null;
@@ -25,12 +53,12 @@ class CrdtStore {
       this.persistence = new IndexeddbPersistence(docName, this.doc);
       this.persistence.on('synced', () => {
         this.isSynced = true;
-        this.ensureDefaultLanes();
+        this.ensureDefaultLanes(templateId);
         this.notifyListeners();
       });
     } else {
       this.isSynced = true;
-      this.ensureDefaultLanes();
+      this.ensureDefaultLanes(templateId);
     }
   }
 
@@ -54,32 +82,25 @@ class CrdtStore {
     }
   }
 
-  public ensureDefaultLanes(): void {
+  public ensureDefaultLanes(preferredTemplateId?: string): void {
     const lanesMap = this.doc.getMap<Lane>('lanes');
     const laneOrder = this.doc.getArray<string>('laneOrder');
     const metaMap = this.doc.getMap<string>('metadata');
 
-    metaMap.set('id', metaMap.get('id') || 'default');
-    metaMap.set('name', metaMap.get('name') || 'Lanekeeper Core');
-    metaMap.set('prefix', metaMap.get('prefix') || 'LK');
+    const activeId = metaMap.get('id') || this.getActiveProjectId() || 'default';
+    metaMap.set('id', activeId);
+    if (!metaMap.has('name')) metaMap.set('name', activeId === 'default' ? 'Lanekeeper Core' : activeId);
+    if (!metaMap.has('prefix')) metaMap.set('prefix', activeId === 'default' ? 'LK' : 'KEY');
 
-    const defaultLanes: Lane[] = [
-      { id: 'triage', name: 'Triage / Inbox', color: '#64748b', type: 'backlog', icon: 'inbox' },
-      { id: 'backlog', name: 'Backlog', color: '#8b5cf6', type: 'unstarted', icon: 'layers' },
-      { id: 'todo', name: 'To Do', color: '#3b82f6', type: 'unstarted', icon: 'play' },
-      { id: 'inprogress', name: 'In Progress', color: '#f59e0b', type: 'started', wipLimit: 3, icon: 'zap' },
-      { id: 'review', name: 'Review', color: '#06b6d4', type: 'started', icon: 'eye' },
-      { id: 'done', name: 'Done', color: '#10b981', type: 'completed', icon: 'check-circle' }
-    ];
+    // Only populate if lanesMap is empty (new project or fresh store)
+    if (lanesMap.size === 0) {
+      const templateId = preferredTemplateId || metaMap.get('templateId') || DEFAULT_TEMPLATE_ID;
+      const template = getWorkflowTemplate(templateId);
+      metaMap.set('templateId', template.id);
 
-    const existingOrder = new Set(laneOrder.toArray());
-    for (const lane of defaultLanes) {
-      if (!lanesMap.has(lane.id)) {
+      for (const lane of template.lanes) {
         lanesMap.set(lane.id, lane);
-      }
-      if (!existingOrder.has(lane.id)) {
         laneOrder.push([lane.id]);
-        existingOrder.add(lane.id);
       }
     }
 
@@ -139,9 +160,11 @@ class CrdtStore {
   public getMetadata(): ProjectMetadata {
     const metaMap = this.doc.getMap<string>('metadata');
     return {
-      id: metaMap.get('id') || 'default',
+      id: metaMap.get('id') || this.getActiveProjectId() || 'default',
       name: metaMap.get('name') || 'Lanekeeper Core',
-      prefix: metaMap.get('prefix') || 'LK'
+      prefix: metaMap.get('prefix') || 'LK',
+      description: metaMap.get('description'),
+      templateId: metaMap.get('templateId') || DEFAULT_TEMPLATE_ID
     };
   }
 
@@ -149,13 +172,21 @@ class CrdtStore {
     const metaMap = this.doc.getMap<string>('metadata');
     if (updates.name) metaMap.set('name', updates.name);
     if (updates.prefix) metaMap.set('prefix', updates.prefix.toUpperCase());
+    if (updates.description !== undefined) metaMap.set('description', updates.description);
+    if (updates.templateId) metaMap.set('templateId', updates.templateId);
 
     // Update in stored projects list
-    const currentId = metaMap.get('id') || 'default';
+    const currentId = metaMap.get('id') || this.getActiveProjectId() || 'default';
     const list = this.getProjectsList();
     const updatedList = list.map((p) =>
       p.id === currentId
-        ? { ...p, name: updates.name || p.name, prefix: updates.prefix || p.prefix }
+        ? {
+            ...p,
+            name: updates.name || p.name,
+            prefix: updates.prefix || p.prefix,
+            description: updates.description !== undefined ? updates.description : p.description,
+            templateId: updates.templateId || p.templateId
+          }
         : p
     );
     this.saveProjectsList(updatedList);
@@ -165,9 +196,15 @@ class CrdtStore {
   public getProjectsList(): ProjectMetadata[] {
     try {
       const raw = localStorage.getItem('lanekeeper_projects_list');
-      if (raw) return JSON.parse(raw);
+      if (raw) {
+        const parsed: ProjectMetadata[] = JSON.parse(raw);
+        return parsed.map((p) => ({
+          ...p,
+          templateId: p.templateId || DEFAULT_TEMPLATE_ID
+        }));
+      }
     } catch {}
-    return [{ id: 'default', name: 'Lanekeeper Core', prefix: 'LK' }];
+    return [{ id: 'default', name: 'Lanekeeper Core', prefix: 'LK', templateId: DEFAULT_TEMPLATE_ID }];
   }
 
   private saveProjectsList(projects: ProjectMetadata[]): void {
@@ -176,28 +213,118 @@ class CrdtStore {
     } catch {}
   }
 
-  public createProject(name: string, prefix: string): ProjectMetadata {
+  public createProject(
+    name: string,
+    prefix: string,
+    templateId: string = DEFAULT_TEMPLATE_ID
+  ): ProjectMetadata {
     const id = prefix.toLowerCase().replace(/[^a-z0-9]/g, '');
     const newProject: ProjectMetadata = {
       id: `${id}-${Date.now().toString().slice(-4)}`,
       name,
-      prefix: prefix.toUpperCase()
+      prefix: prefix.toUpperCase(),
+      templateId
     };
     const current = this.getProjectsList();
     this.saveProjectsList([...current, newProject]);
-    this.switchProject(newProject.id, newProject.name, newProject.prefix);
+    this.switchProject(newProject.id, newProject.name, newProject.prefix, templateId);
     return newProject;
   }
 
-  public switchProject(projectId: string, name?: string, prefix?: string): void {
-    this.doc = new Y.Doc();
-    this.initializePersistence(`lanekeeper_project_${projectId}`);
+  public switchProject(
+    projectId: string,
+    name?: string,
+    prefix?: string,
+    templateId?: string
+  ): void {
+    const existing = this.getProjectsList().find((p) => p.id === projectId);
+    const resolvedName = name || existing?.name;
+    const resolvedPrefix = prefix || existing?.prefix;
+    const resolvedTemplateId = templateId || existing?.templateId || DEFAULT_TEMPLATE_ID;
+
+    this.setActiveProjectId(projectId);
+    const docName = this.getPersistenceDocName(projectId);
+    if (typeof indexedDB === 'undefined') {
+      if (!this.memoryDocs.has(docName)) {
+        this.memoryDocs.set(docName, new Y.Doc());
+      }
+      this.doc = this.memoryDocs.get(docName)!;
+    } else {
+      this.doc = new Y.Doc();
+    }
+
+    this.initializePersistence(docName, resolvedTemplateId);
     const metaMap = this.doc.getMap<string>('metadata');
     metaMap.set('id', projectId);
-    if (name) metaMap.set('name', name);
-    if (prefix) metaMap.set('prefix', prefix.toUpperCase());
-    this.ensureDefaultLanes();
+    if (resolvedName) metaMap.set('name', resolvedName);
+    if (resolvedPrefix) metaMap.set('prefix', resolvedPrefix.toUpperCase());
+    if (resolvedTemplateId) metaMap.set('templateId', resolvedTemplateId);
     this.setupListeners();
+    this.notifyListeners();
+  }
+
+  public applyWorkflowTemplate(
+    templateId: string,
+    options?: { preserveTasks?: boolean }
+  ): void {
+    const template = getWorkflowTemplate(templateId);
+    const lanesMap = this.doc.getMap<Lane>('lanes');
+    const laneOrder = this.doc.getArray<string>('laneOrder');
+    const metaMap = this.doc.getMap<string>('metadata');
+    const tasksMap = this.doc.getMap<Task>('tasks');
+
+    const preserve = options?.preserveTasks !== false;
+    const newLanes = template.lanes;
+    const newLaneIds = new Set(newLanes.map((l) => l.id));
+    const firstLaneId = newLanes[0]?.id || 'todo';
+
+    this.doc.transact(() => {
+      if (preserve && tasksMap.size > 0) {
+        for (const [taskId, task] of tasksMap.entries()) {
+          if (!newLaneIds.has(task.laneId)) {
+            const oldLane = lanesMap.get(task.laneId);
+            let targetLaneId = firstLaneId;
+            if (oldLane) {
+              const matchingTypeLane = newLanes.find((l) => l.type === oldLane.type);
+              if (matchingTypeLane) {
+                targetLaneId = matchingTypeLane.id;
+              }
+            }
+            tasksMap.set(taskId, {
+              ...task,
+              laneId: targetLaneId,
+              updatedAt: new Date().toISOString()
+            });
+          }
+        }
+      }
+
+      // Clear lanesMap first so listeners don't re-inject old lanes
+      for (const key of Array.from(lanesMap.keys())) {
+        lanesMap.delete(key);
+      }
+
+      // Clear laneOrder array
+      if (laneOrder.length > 0) {
+        laneOrder.delete(0, laneOrder.length);
+      }
+
+      // Insert new template lanes
+      for (const lane of newLanes) {
+        lanesMap.set(lane.id, lane);
+        laneOrder.push([lane.id]);
+      }
+
+      metaMap.set('templateId', template.id);
+    });
+
+    const currentId = metaMap.get('id') || this.getActiveProjectId() || 'default';
+    const list = this.getProjectsList();
+    const updatedList = list.map((p) =>
+      p.id === currentId ? { ...p, templateId: template.id } : p
+    );
+    this.saveProjectsList(updatedList);
+
     this.notifyListeners();
   }
 

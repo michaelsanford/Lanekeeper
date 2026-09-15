@@ -12,7 +12,8 @@ import {
   Table as TableIcon,
   Calendar as CalendarIcon,
   Sun,
-  Moon
+  Moon,
+  ChevronDown
 } from 'lucide-react';
 import {
   LanekeeperLogo,
@@ -21,6 +22,7 @@ import {
 } from '../icons/LaneIcons.js';
 import type { ProjectMetadata } from '../../types/index.js';
 import { type ThemeId, type ThemeMode, THEMES, getThemePreview } from '../../utils/themes.js';
+import { getWorkflowTemplate } from '../../utils/templates.js';
 
 export type ActiveView = 'board' | 'table' | 'calendar' | 'flightdeck';
 
@@ -38,6 +40,8 @@ interface HeaderProps {
   currentMode: ThemeMode;
   onSelectTheme: (themeId: ThemeId) => void;
   onSelectMode: (mode: ThemeMode) => void;
+  projectsList?: ProjectMetadata[];
+  onSwitchProject?: (projectId: string, name?: string, prefix?: string) => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -53,24 +57,31 @@ export const Header: React.FC<HeaderProps> = ({
   currentTheme,
   currentMode,
   onSelectTheme,
-  onSelectMode
+  onSelectMode,
+  projectsList,
+  onSwitchProject
 }) => {
   const [isThemeMenuOpen, setIsThemeMenuOpen] = useState(false);
   const themeMenuRef = useRef<HTMLDivElement>(null);
+  const [isProjectMenuOpen, setIsProjectMenuOpen] = useState(false);
+  const projectMenuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (themeMenuRef.current && !themeMenuRef.current.contains(e.target as Node)) {
         setIsThemeMenuOpen(false);
       }
+      if (projectMenuRef.current && !projectMenuRef.current.contains(e.target as Node)) {
+        setIsProjectMenuOpen(false);
+      }
     };
-    if (isThemeMenuOpen) {
+    if (isThemeMenuOpen || isProjectMenuOpen) {
       document.addEventListener('mousedown', handleClickOutside);
     }
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [isThemeMenuOpen]);
+  }, [isThemeMenuOpen, isProjectMenuOpen]);
   return (
     <header className="h-16 border-b border-slate-800 bg-slate-900/90 backdrop-blur-md px-5 flex items-center justify-between sticky top-0 z-30 select-none">
       {/* Left: Brand & Project Info */}
@@ -90,19 +101,83 @@ export const Header: React.FC<HeaderProps> = ({
 
         <div className="h-5 w-px bg-slate-800 mx-0.5 hidden sm:block" />
 
-        {/* Prominent Project Display */}
-        <button
-          onClick={onOpenProjectSettings}
-          title={`Project: ${metadata.name} (${metadata.prefix})`}
-          className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg hover:bg-slate-800/70 border border-transparent hover:border-slate-800 transition-all text-left group/proj"
-        >
-          <span className="text-xs font-mono font-bold text-indigo-300 bg-indigo-950/90 px-2 py-0.5 rounded border border-indigo-800/70 shadow-sm group-hover/proj:border-indigo-600 transition-colors">
-            {metadata.prefix}
-          </span>
-          <span className="font-bold text-base sm:text-lg text-slate-100 tracking-tight max-w-[160px] sm:max-w-[240px] md:max-w-[320px] truncate group-hover/proj:text-white transition-colors">
-            {metadata.name}
-          </span>
-        </button>
+        {/* Prominent Project Display & Switcher */}
+        <div className="relative" ref={projectMenuRef}>
+          <button
+            onClick={() => setIsProjectMenuOpen((o) => !o)}
+            title={`Project: ${metadata.name} (${metadata.prefix}) - Click to switch`}
+            className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg hover:bg-slate-800/70 border border-transparent hover:border-slate-800 transition-all text-left group/proj cursor-pointer"
+          >
+            <span className="text-xs font-mono font-bold text-indigo-300 bg-indigo-950/90 px-2 py-0.5 rounded border border-indigo-800/70 shadow-sm group-hover/proj:border-indigo-600 transition-colors">
+              {metadata.prefix}
+            </span>
+            <span className="font-bold text-base sm:text-lg text-slate-100 tracking-tight max-w-[160px] sm:max-w-[240px] md:max-w-[320px] truncate group-hover/proj:text-white transition-colors">
+              {metadata.name}
+            </span>
+            <ChevronDown
+              className={`w-3.5 h-3.5 text-slate-400 group-hover/proj:text-slate-200 transition-transform ${
+                isProjectMenuOpen ? 'rotate-180' : ''
+              }`}
+            />
+          </button>
+
+          {isProjectMenuOpen && (
+            <div className="absolute left-0 mt-2 w-72 bg-slate-900 border border-slate-800 rounded-xl shadow-2xl overflow-hidden py-1.5 z-50 animate-fade-in">
+              <div className="px-3.5 py-2 border-b border-slate-800/80 flex items-center justify-between text-xs text-slate-400 font-mono uppercase tracking-wider">
+                <span>Workspaces</span>
+                <span className="text-[11px] text-slate-500 lowercase">({projectsList?.length || 1} projects)</span>
+              </div>
+
+              <div className="max-h-60 overflow-y-auto py-1">
+                {(projectsList || [metadata]).map((proj) => {
+                  const isSelected = proj.id === metadata.id;
+                  const tmpl = getWorkflowTemplate(proj.templateId);
+                  return (
+                    <button
+                      key={proj.id}
+                      onClick={() => {
+                        if (!isSelected && onSwitchProject) {
+                          onSwitchProject(proj.id, proj.name, proj.prefix);
+                        }
+                        setIsProjectMenuOpen(false);
+                      }}
+                      className={`w-full px-3.5 py-2 flex items-center justify-between text-left transition-colors text-xs ${
+                        isSelected
+                          ? 'bg-indigo-950/60 text-indigo-400 font-semibold'
+                          : 'text-slate-300 hover:bg-slate-800/70 cursor-pointer'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <span className="text-xs font-mono font-bold text-indigo-300 bg-indigo-950/90 px-1.5 py-0.5 rounded border border-indigo-800/70">
+                          {proj.prefix}
+                        </span>
+                        <div>
+                          <div className="font-medium text-slate-100">{proj.name}</div>
+                          <div className="text-[10px] text-slate-400 font-mono">{tmpl.name}</div>
+                        </div>
+                      </div>
+
+                      {isSelected && <Check className="w-4 h-4 text-indigo-400" />}
+                    </button>
+                  );
+                })}
+              </div>
+
+              <div className="pt-1 border-t border-slate-800/80 px-1 space-y-0.5">
+                <button
+                  onClick={() => {
+                    setIsProjectMenuOpen(false);
+                    onOpenProjectSettings();
+                  }}
+                  className="w-full px-3 py-1.5 text-xs text-slate-300 hover:text-slate-100 hover:bg-slate-800/60 rounded-md transition-colors flex items-center gap-2 cursor-pointer"
+                >
+                  <Settings className="w-3.5 h-3.5 text-slate-400" />
+                  <span>Project & Workflow Settings...</span>
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
 
         <div className="h-5 w-px bg-slate-800 mx-0.5 hidden sm:block" />
 

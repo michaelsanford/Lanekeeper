@@ -43,6 +43,8 @@ export interface ProjectMetadata {
   id: string;
   name: string;
   prefix: string;
+  description?: string;
+  templateId?: string;
 }
 
 export interface QuickParseResult {

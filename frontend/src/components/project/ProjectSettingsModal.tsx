@@ -11,7 +11,8 @@ import {
   Sun,
   Moon,
   Sliders,
-  Clock
+  Clock,
+  LayoutGrid
 } from 'lucide-react';
 import { SwimlaneIcon, TrafficLight } from '../icons/LaneIcons.js';
 import { LaneMarker } from '../icons/LaneMarker.js';
@@ -19,6 +20,11 @@ import { LaneMarkerPickerModal } from './LaneMarkerPickerModal.js';
 import type { ProjectMetadata, Lane, LaneType } from '../../types/index.js';
 import { type ThemeId, type ThemeMode, THEMES, getThemePreview } from '../../utils/themes.js';
 import { useFeatureGate, getArchiveThresholdDays, setArchiveThresholdDays } from '../../features/index.js';
+import {
+  WORKFLOW_TEMPLATES,
+  getWorkflowTemplate,
+  type WorkflowTemplate
+} from '../../utils/templates.js';
 
 interface ProjectSettingsModalProps {
   isOpen: boolean;
@@ -30,8 +36,9 @@ interface ProjectSettingsModalProps {
   onAddLane: (name: string, color?: string, type?: LaneType, wipLimit?: number, icon?: string) => void;
   onUpdateLane: (laneId: string, updates: Partial<Lane>) => void;
   onDeleteLane: (laneId: string) => void;
-  onCreateProject: (name: string, prefix: string) => void;
+  onCreateProject: (name: string, prefix: string, templateId?: string) => void;
   onSwitchProject: (projectId: string, name?: string, prefix?: string) => void;
+  onApplyTemplate?: (templateId: string) => void;
   currentTheme?: ThemeId;
   currentMode?: ThemeMode;
   onSelectTheme?: (themeId: ThemeId) => void;
@@ -51,6 +58,7 @@ export const ProjectSettingsModal: React.FC<ProjectSettingsModalProps> = ({
   onDeleteLane,
   onCreateProject,
   onSwitchProject,
+  onApplyTemplate,
   currentTheme,
   currentMode,
   onSelectTheme,
@@ -76,6 +84,13 @@ export const ProjectSettingsModal: React.FC<ProjectSettingsModalProps> = ({
   const [name, setName] = useState(metadata.name);
   const [prefix, setPrefix] = useState(metadata.prefix);
   const [generalSaved, setGeneralSaved] = useState(false);
+
+  // Template state
+  const activeTemplate = getWorkflowTemplate(metadata.templateId);
+  const [isTemplateBrowserOpen, setIsTemplateBrowserOpen] = useState(false);
+  const [templateConfirmTarget, setTemplateConfirmTarget] = useState<WorkflowTemplate | null>(null);
+  const [selectedNewProjectTemplate, setSelectedNewProjectTemplate] = useState<string>('software-dev');
+  const selectedTemplateObj = getWorkflowTemplate(selectedNewProjectTemplate);
 
   // New Lane state
   const [newLaneName, setNewLaneName] = useState('');
@@ -131,10 +146,15 @@ export const ProjectSettingsModal: React.FC<ProjectSettingsModalProps> = ({
   const handleCreateProjectSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (newProjectName.trim() && newProjectPrefix.trim()) {
-      onCreateProject(newProjectName.trim(), newProjectPrefix.trim().toUpperCase());
+      onCreateProject(
+        newProjectName.trim(),
+        newProjectPrefix.trim().toUpperCase(),
+        selectedNewProjectTemplate
+      );
       setNewProjectName('');
       setNewProjectPrefix('');
-      setActiveTab('general');
+      setSelectedNewProjectTemplate('software-dev');
+      setActiveTab('lanes');
     }
   };
 
@@ -299,9 +319,153 @@ export const ProjectSettingsModal: React.FC<ProjectSettingsModalProps> = ({
           {/* Tab 2: Workflow Lanes */}
           {activeTab === 'lanes' && (
             <div className="space-y-5 text-sm">
-              <p className="text-slate-400 text-sm">
-                Configure your Kanban workflow columns, column colors, and WIP limits.
-              </p>
+              {/* Project Scope & Template Banner */}
+              <div className="p-4 bg-slate-950/80 rounded-xl border border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-indigo-400 font-mono font-bold bg-indigo-950 px-2 py-0.5 rounded border border-indigo-800/60">
+                      {metadata.prefix}
+                    </span>
+                    <span className="font-bold text-slate-100 text-sm">{metadata.name}</span>
+                    <span className="text-xs text-slate-500 font-mono">({lanes.length} lanes)</span>
+                  </div>
+                  <div className="text-xs text-slate-400 mt-1 flex items-center gap-1.5">
+                    <span>Workflow Template:</span>
+                    <span className="text-indigo-300 font-medium">{activeTemplate.name}</span>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsTemplateBrowserOpen((o) => !o);
+                    setTemplateConfirmTarget(null);
+                  }}
+                  className="flex items-center gap-1.5 text-xs bg-indigo-950/70 hover:bg-indigo-900/80 text-indigo-300 px-3 py-1.5 rounded-lg border border-indigo-800/70 transition-colors font-medium self-start sm:self-auto cursor-pointer"
+                >
+                  <LayoutGrid className="w-3.5 h-3.5" />
+                  <span>{isTemplateBrowserOpen ? 'Hide Templates' : 'Change Template / Preset'}</span>
+                </button>
+              </div>
+
+              {/* Template Confirmation Dialog */}
+              {templateConfirmTarget && (
+                <div className="p-4 bg-amber-950/40 border border-amber-800/70 rounded-xl space-y-3 animate-fade-in text-sm">
+                  <div className="font-semibold text-amber-200">
+                    Apply &quot;{templateConfirmTarget.name}&quot; Template to {metadata.name}?
+                  </div>
+                  <p className="text-xs text-amber-300/80">
+                    This will configure your board with {templateConfirmTarget.lanes.length} workflow lanes ({templateConfirmTarget.lanes.map((l) => l.name).join(', ')}). All existing tasks will be preserved and mapped to matching workflow stages.
+                  </p>
+                  <div className="flex items-center gap-2 pt-1">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onApplyTemplate?.(templateConfirmTarget.id);
+                        setTemplateConfirmTarget(null);
+                        setIsTemplateBrowserOpen(false);
+                      }}
+                      className="px-3.5 py-1.5 bg-amber-600 hover:bg-amber-500 text-white font-medium text-xs rounded-lg transition-colors shadow-sm cursor-pointer"
+                    >
+                      Yes, Apply Template
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setTemplateConfirmTarget(null)}
+                      className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs rounded-lg transition-colors cursor-pointer"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Template Library Selection */}
+              {isTemplateBrowserOpen && (
+                <div className="p-4 bg-slate-950/90 rounded-xl border border-indigo-900/50 space-y-3.5 animate-fade-in">
+                  <div className="flex items-center justify-between border-b border-slate-800 pb-2.5">
+                    <div>
+                      <h4 className="text-sm font-bold text-slate-100">Workflow Templates</h4>
+                      <p className="text-xs text-slate-400 mt-0.5">
+                        Select a curated workflow template for {metadata.name}.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 gap-3">
+                    {WORKFLOW_TEMPLATES.map((tmpl) => {
+                      const isCurrent = (metadata.templateId || 'software-dev') === tmpl.id;
+                      return (
+                        <div
+                          key={tmpl.id}
+                          className={`p-3.5 rounded-xl border transition-all ${
+                            isCurrent
+                              ? 'bg-indigo-950/30 border-indigo-600/70 shadow-sm'
+                              : 'bg-slate-900/80 border-slate-800 hover:border-slate-700'
+                          }`}
+                        >
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                            <div className="space-y-1">
+                              <div className="flex items-center gap-2">
+                                <LaneMarker icon={tmpl.icon} color="#818cf8" size={16} />
+                                <span className="font-semibold text-slate-100 text-sm">{tmpl.name}</span>
+                                <span className="text-[10px] font-mono uppercase px-1.5 py-0.5 rounded bg-slate-800 text-slate-400">
+                                  {tmpl.category}
+                                </span>
+                                {isCurrent && (
+                                  <span className="text-[11px] font-medium text-indigo-400 bg-indigo-950 px-1.5 py-0.5 rounded border border-indigo-800/60">
+                                    Current
+                                  </span>
+                                )}
+                              </div>
+                              <p className="text-xs text-slate-400">{tmpl.description}</p>
+                            </div>
+
+                            <button
+                              type="button"
+                              onClick={() => setTemplateConfirmTarget(tmpl)}
+                              disabled={isCurrent}
+                              className={`text-xs px-3 py-1.5 rounded-lg border font-medium transition-all shrink-0 cursor-pointer ${
+                                isCurrent
+                                  ? 'bg-slate-800/50 text-slate-500 border-slate-800 cursor-not-allowed'
+                                  : 'bg-indigo-600 hover:bg-indigo-500 text-white border-indigo-500 shadow-sm active:scale-95'
+                              }`}
+                            >
+                              {isCurrent ? 'Active Template' : 'Apply Template'}
+                            </button>
+                          </div>
+
+                          {/* Lane Preview Chips */}
+                          <div className="flex flex-wrap gap-1.5 mt-3 pt-2.5 border-t border-slate-800/70">
+                            {tmpl.lanes.map((l) => (
+                              <div
+                                key={l.id}
+                                className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-slate-950 border border-slate-800 text-[11px] text-slate-300"
+                              >
+                                <span className="w-2 h-2 rounded-full" style={{ backgroundColor: l.color }} />
+                                <LaneMarker icon={l.icon} color={l.color} size={11} />
+                                <span>{l.name}</span>
+                                {l.wipLimit && (
+                                  <span className="text-[9px] font-mono text-slate-500">WIP:{l.wipLimit}</span>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              <div className="flex items-center justify-between pt-1">
+                <span className="text-xs text-slate-400 uppercase font-mono tracking-wider">
+                  Configured Lanes ({lanes.length})
+                </span>
+                <span className="text-xs text-slate-500">
+                  Custom column adjustments for this project
+                </span>
+              </div>
 
               {/* Existing Lanes List */}
               <div className="space-y-2.5">
@@ -524,7 +688,12 @@ export const ProjectSettingsModal: React.FC<ProjectSettingsModalProps> = ({
                           {proj.prefix}
                         </span>
                         <div>
-                          <div className="font-semibold text-slate-200 text-sm">{proj.name}</div>
+                          <div className="flex items-center gap-2">
+                            <span className="font-semibold text-slate-200 text-sm">{proj.name}</span>
+                            <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-900 border border-slate-800 text-slate-400">
+                              {getWorkflowTemplate(proj.templateId).name}
+                            </span>
+                          </div>
                           <div className="text-xs text-slate-400 font-mono">{proj.id}</div>
                         </div>
                       </div>
@@ -537,7 +706,7 @@ export const ProjectSettingsModal: React.FC<ProjectSettingsModalProps> = ({
                       ) : (
                         <button
                           onClick={() => onSwitchProject(proj.id, proj.name, proj.prefix)}
-                          className="flex items-center gap-1.5 text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-1.5 rounded-lg border border-slate-700 transition-colors font-medium"
+                          className="flex items-center gap-1.5 text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-1.5 rounded-lg border border-slate-700 transition-colors font-medium cursor-pointer"
                         >
                           <span>Switch</span>
                           <ArrowRight className="w-3.5 h-3.5" />
@@ -579,10 +748,43 @@ export const ProjectSettingsModal: React.FC<ProjectSettingsModalProps> = ({
                   />
                 </div>
 
+                <div className="space-y-1.5">
+                  <label className="text-slate-400 uppercase font-mono text-[11px]">
+                    Workflow Template
+                  </label>
+                  <select
+                    value={selectedNewProjectTemplate}
+                    onChange={(e) => setSelectedNewProjectTemplate(e.target.value)}
+                    className="w-full bg-slate-900 text-slate-200 px-3 py-2 rounded-lg border border-slate-800 outline-none focus:border-indigo-500 text-xs cursor-pointer"
+                  >
+                    {WORKFLOW_TEMPLATES.map((tmpl) => (
+                      <option key={tmpl.id} value={tmpl.id} className="bg-slate-900 text-slate-200">
+                        {tmpl.name} ({tmpl.lanes.length} lanes) - {tmpl.description}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Selected Template Lane Preview */}
+                {selectedTemplateObj && (
+                  <div className="flex flex-wrap gap-1.5 p-2.5 bg-slate-950/80 rounded-lg border border-slate-800">
+                    {selectedTemplateObj.lanes.map((l) => (
+                      <div
+                        key={l.id}
+                        className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-slate-900 border border-slate-800 text-[11px] text-slate-300"
+                      >
+                        <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: l.color }} />
+                        <LaneMarker icon={l.icon} color={l.color} size={11} />
+                        <span>{l.name}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
                 <button
                   type="submit"
                   disabled={!newProjectName.trim() || !newProjectPrefix.trim()}
-                  className="w-full bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 text-white font-medium py-2 rounded-lg transition-all"
+                  className="w-full bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 text-white font-medium py-2 rounded-lg transition-all cursor-pointer"
                 >
                   Create and Open Project
                 </button>
