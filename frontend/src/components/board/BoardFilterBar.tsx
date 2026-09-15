@@ -1,5 +1,5 @@
-import React from 'react';
-import { Search, X, Filter, Tag as TagIcon, RotateCcw } from 'lucide-react';
+import React, { useState } from 'react';
+import { Search, X, Filter, Tag as TagIcon, RotateCcw, AlertOctagon, Copy, Check } from 'lucide-react';
 import type { TaskPriority } from '../../types/index.js';
 
 interface BoardFilterBarProps {
@@ -9,10 +9,14 @@ interface BoardFilterBarProps {
   onPriorityChange: (priority: TaskPriority | 'all') => void;
   selectedTag: string | 'all';
   onTagChange: (tag: string | 'all') => void;
+  onlyBlocked?: boolean;
+  onToggleOnlyBlocked?: () => void;
+  blockedCount?: number;
   availableTags: string[];
   totalCount: number;
   filteredCount: number;
   onResetFilters: () => void;
+  onCopyMarkdown?: () => void;
 }
 
 const PRIORITIES: Array<{ id: TaskPriority | 'all'; label: string; activeClass: string }> = [
@@ -30,12 +34,29 @@ export const BoardFilterBar: React.FC<BoardFilterBarProps> = ({
   onPriorityChange,
   selectedTag,
   onTagChange,
+  onlyBlocked = false,
+  onToggleOnlyBlocked,
+  blockedCount = 0,
   availableTags,
   totalCount,
   filteredCount,
-  onResetFilters
+  onResetFilters,
+  onCopyMarkdown
 }) => {
-  const hasActiveFilters = searchQuery.trim() !== '' || selectedPriority !== 'all' || selectedTag !== 'all';
+  const [copied, setCopied] = useState(false);
+  const hasActiveFilters =
+    searchQuery.trim() !== '' ||
+    selectedPriority !== 'all' ||
+    selectedTag !== 'all' ||
+    onlyBlocked;
+
+  const handleCopy = () => {
+    if (onCopyMarkdown) {
+      onCopyMarkdown();
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
 
   return (
     <div className="mx-4 mt-3 mb-1 px-3.5 py-2 rounded-xl bg-slate-900/60 border border-slate-800/80 flex flex-wrap items-center justify-between gap-3 text-xs select-none">
@@ -85,6 +106,23 @@ export const BoardFilterBar: React.FC<BoardFilterBarProps> = ({
           })}
         </div>
 
+        {/* Blocked quick filter */}
+        {blockedCount > 0 && onToggleOnlyBlocked && (
+          <button
+            type="button"
+            onClick={onToggleOnlyBlocked}
+            className={`flex items-center gap-1 px-2.5 py-1 rounded-lg font-medium text-[11px] border transition-colors cursor-pointer ${
+              onlyBlocked
+                ? 'bg-amber-950/80 text-amber-300 border-amber-600/80'
+                : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-amber-300 hover:border-amber-700/50'
+            }`}
+            title="Filter to only blocked tasks"
+          >
+            <AlertOctagon className="w-3 h-3 text-amber-400 shrink-0" />
+            <span>{`Blocked (${blockedCount})`}</span>
+          </button>
+        )}
+
         {/* Tag filter selector */}
         {availableTags.length > 0 && (
           <div className="flex items-center gap-1.5 bg-slate-950 px-2 py-1 rounded-lg border border-slate-800">
@@ -107,7 +145,7 @@ export const BoardFilterBar: React.FC<BoardFilterBarProps> = ({
         )}
       </div>
 
-      {/* Right: Matches counter & clear action */}
+      {/* Right: Matches counter & actions */}
       <div className="flex items-center gap-2 text-slate-400">
         <span className="font-mono text-[11px]">
           {hasActiveFilters ? (
@@ -121,11 +159,32 @@ export const BoardFilterBar: React.FC<BoardFilterBarProps> = ({
           )}
         </span>
 
+        {onCopyMarkdown && (
+          <button
+            type="button"
+            onClick={handleCopy}
+            title="Copy visible board tasks as Markdown summary"
+            className="flex items-center gap-1.5 text-[11px] font-mono text-slate-300 hover:text-white bg-slate-800/80 hover:bg-slate-700/80 px-2.5 py-1 rounded-md border border-slate-700 transition-colors cursor-pointer"
+          >
+            {copied ? (
+              <>
+                <Check className="w-3 h-3 text-emerald-400 shrink-0" />
+                <span className="text-emerald-400 font-semibold">Copied!</span>
+              </>
+            ) : (
+              <>
+                <Copy className="w-3 h-3 text-slate-400 shrink-0" />
+                <span>Copy Markdown</span>
+              </>
+            )}
+          </button>
+        )}
+
         {hasActiveFilters && (
           <button
             type="button"
             onClick={onResetFilters}
-            className="flex items-center gap-1 text-[11px] text-indigo-400 hover:text-indigo-300 bg-indigo-950/60 px-2 py-1 rounded-md border border-indigo-800/60 transition-colors"
+            className="flex items-center gap-1 text-[11px] text-indigo-400 hover:text-indigo-300 bg-indigo-950/60 px-2 py-1 rounded-md border border-indigo-800/60 transition-colors cursor-pointer"
           >
             <RotateCcw className="w-3 h-3" />
             <span>Reset</span>

@@ -40,6 +40,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedPriority, setSelectedPriority] = useState<TaskPriority | 'all'>('all');
   const [selectedTag, setSelectedTag] = useState<string | 'all'>('all');
+  const [onlyBlocked, setOnlyBlocked] = useState(false);
 
   // Filter out archived tasks on the board
   const activeTasks = useMemo(() => tasks.filter((t) => !t.archived), [tasks]);
@@ -55,10 +56,19 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
     return Array.from(tags).sort();
   }, [activeTasks]);
 
+  // Count blocked active tasks
+  const blockedCount = useMemo(
+    () => activeTasks.filter((t) => t.isBlocked).length,
+    [activeTasks]
+  );
+
   // Apply filters to active tasks
   const filteredTasks = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
     return activeTasks.filter((t) => {
+      if (onlyBlocked && !t.isBlocked) {
+        return false;
+      }
       if (selectedPriority !== 'all' && t.priority !== selectedPriority) {
         return false;
       }
@@ -75,7 +85,27 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
       }
       return true;
     });
-  }, [activeTasks, searchQuery, selectedPriority, selectedTag]);
+  }, [activeTasks, searchQuery, selectedPriority, selectedTag, onlyBlocked]);
+
+  const handleCopyMarkdown = () => {
+    let md = `# Board Tasks Summary\n\n`;
+    for (const lane of lanes) {
+      const laneTasks = sortTasksByRank(filteredTasks.filter((t) => t.laneId === lane.id));
+      if (laneTasks.length === 0) continue;
+      md += `### ${lane.name} (${laneTasks.length})\n`;
+      for (const t of laneTasks) {
+        const typeStr = t.kind && t.kind !== 'task' ? ` [${t.kind.toUpperCase()}]` : '';
+        const priorityStr = t.priority !== 'none' ? ` [${t.priority.toUpperCase()}]` : '';
+        const blockedStr = t.isBlocked ? ` (BLOCKED: ${t.blockedReason || 'yes'})` : '';
+        const tagsStr = t.tags.length > 0 ? ` ${t.tags.map((tag) => `#${tag}`).join(' ')}` : '';
+        md += `- **${t.key}**: ${t.title}${typeStr}${priorityStr}${blockedStr}${tagsStr}\n`;
+      }
+      md += `\n`;
+    }
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(md.trim());
+    }
+  };
 
   // Configure sensors for smooth desktop & touch mobile interaction
   const pointerSensor = useSensor(PointerSensor, {
@@ -181,13 +211,18 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
           onPriorityChange={setSelectedPriority}
           selectedTag={selectedTag}
           onTagChange={setSelectedTag}
+          onlyBlocked={onlyBlocked}
+          onToggleOnlyBlocked={() => setOnlyBlocked((b) => !b)}
+          blockedCount={blockedCount}
           availableTags={availableTags}
           totalCount={activeTasks.length}
           filteredCount={filteredTasks.length}
+          onCopyMarkdown={handleCopyMarkdown}
           onResetFilters={() => {
             setSearchQuery('');
             setSelectedPriority('all');
             setSelectedTag('all');
+            setOnlyBlocked(false);
           }}
         />
 

@@ -8,9 +8,14 @@ import {
   Check,
   ArrowRight,
   LayoutGrid,
-  KeyRound
+  KeyRound,
+  Inbox,
+  CircleDot,
+  Clock,
+  CheckCircle2,
+  Ban
 } from 'lucide-react';
-import { SwimlaneIcon, TrafficLight } from '../icons/LaneIcons.js';
+import { SwimlaneIcon } from '../icons/LaneIcons.js';
 import { LaneMarker } from '../icons/LaneMarker.js';
 import { LaneMarkerPickerModal } from './LaneMarkerPickerModal.js';
 import type { ProjectMetadata, Lane, LaneType } from '../../types/index.js';
@@ -36,6 +41,44 @@ interface ProjectSettingsModalProps {
   onSeedSampleTasks?: () => void;
   initialTab?: 'general' | 'lanes' | 'projects';
 }
+
+const WorkflowStageIcon: React.FC<{ type: LaneType; className?: string }> = ({
+  type,
+  className = 'w-4 h-4'
+}) => {
+  switch (type) {
+    case 'backlog':
+      return (
+        <span title="Backlog Stage" className="flex items-center">
+          <Inbox className={`${className} text-slate-400 shrink-0`} />
+        </span>
+      );
+    case 'unstarted':
+      return (
+        <span title="Unstarted Stage" className="flex items-center">
+          <CircleDot className={`${className} text-blue-400 shrink-0`} />
+        </span>
+      );
+    case 'started':
+      return (
+        <span title="Started / In-Progress Stage" className="flex items-center">
+          <Clock className={`${className} text-amber-400 shrink-0`} />
+        </span>
+      );
+    case 'completed':
+      return (
+        <span title="Completed Stage" className="flex items-center">
+          <CheckCircle2 className={`${className} text-emerald-400 shrink-0`} />
+        </span>
+      );
+    case 'cancelled':
+      return (
+        <span title="Cancelled Stage" className="flex items-center">
+          <Ban className={`${className} text-slate-500 shrink-0`} />
+        </span>
+      );
+  }
+};
 
 export const ProjectSettingsModal: React.FC<ProjectSettingsModalProps> = ({
   isOpen,
@@ -488,17 +531,7 @@ export const ProjectSettingsModal: React.FC<ProjectSettingsModalProps> = ({
                     <div className="flex items-center gap-2.5">
                       {/* Flow Signal & Category Select */}
                       <div className="flex items-center gap-1.5">
-                        <TrafficLight
-                          state={
-                            lane.type === 'completed'
-                              ? 'green'
-                              : lane.type === 'started'
-                              ? 'amber'
-                              : 'red'
-                          }
-                          size={16}
-                          title={`Flow Signal: ${lane.type}`}
-                        />
+                        <WorkflowStageIcon type={lane.type} />
                         <select
                           value={lane.type}
                           onChange={(e) =>
@@ -595,17 +628,7 @@ export const ProjectSettingsModal: React.FC<ProjectSettingsModalProps> = ({
                   </div>
 
                   <div className="flex items-center gap-1.5 sm:col-span-2">
-                    <TrafficLight
-                      state={
-                        newLaneType === 'completed'
-                          ? 'green'
-                          : newLaneType === 'started'
-                          ? 'amber'
-                          : 'red'
-                      }
-                      size={16}
-                      title={`Flow Signal: ${newLaneType}`}
-                    />
+                    <WorkflowStageIcon type={newLaneType} />
                     <select
                       value={newLaneType}
                       onChange={(e) => setNewLaneType(e.target.value as LaneType)}

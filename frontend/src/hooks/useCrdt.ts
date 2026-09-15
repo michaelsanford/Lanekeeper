@@ -27,6 +27,7 @@ export function useCrdt() {
     metadata,
     isSynced,
     addTask: crdtStore.addTask.bind(crdtStore),
+    duplicateTask: crdtStore.duplicateTask.bind(crdtStore),
     updateTask: crdtStore.updateTask.bind(crdtStore),
     deleteTask: crdtStore.deleteTask.bind(crdtStore),
     moveTask: crdtStore.moveTask.bind(crdtStore),

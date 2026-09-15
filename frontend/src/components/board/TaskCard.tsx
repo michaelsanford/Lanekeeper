@@ -7,7 +7,11 @@ import {
   Play,
   Square,
   Tag,
-  AlertCircle
+  AlertCircle,
+  Bug,
+  Sparkles,
+  Wrench,
+  AlertOctagon
 } from 'lucide-react';
 import type { Task, TaskPriority } from '../../types/index.js';
 import { useFeatureGate } from '../../features/index.js';
@@ -83,6 +87,10 @@ export const TaskCard: React.FC<TaskCardProps> = ({
   const completedSubtasks = task.subtasks.filter((st) => st.completed).length;
   const totalSubtasks = task.subtasks.length;
 
+  const isBug = task.kind === 'bug' || task.tags.some((t) => t.toLowerCase() === 'bug');
+  const isFeature = task.kind === 'feature' || task.tags.some((t) => t.toLowerCase() === 'feature');
+  const isChore = task.kind === 'chore' || task.tags.some((t) => t.toLowerCase() === 'chore');
+
   return (
     <div
       ref={setNodeRef}
@@ -90,15 +98,61 @@ export const TaskCard: React.FC<TaskCardProps> = ({
       {...attributes}
       {...listeners}
       onClick={() => onSelect(task)}
-      className={`group relative bg-slate-900/90 hover:bg-slate-800/90 rounded-xl p-3 border border-slate-800 hover:border-indigo-500/40 shadow-sm transition-all cursor-grab active:cursor-grabbing select-none ${
+      className={`group relative bg-slate-900/90 hover:bg-slate-800/90 rounded-xl p-3 border shadow-sm transition-all cursor-grab active:cursor-grabbing select-none ${
+        task.isBlocked
+          ? 'border-amber-600/70 border-l-4 border-l-amber-500 bg-amber-950/10'
+          : 'border-slate-800 hover:border-indigo-500/40'
+      } ${
         isDragging ? 'opacity-40 shadow-2xl ring-2 ring-indigo-500' : ''
       }`}
     >
-      {/* Top Bar: Key & Priority */}
+      {/* Top Bar: Key, Kind, Blocked & Priority */}
       <div className="flex items-center justify-between gap-2 mb-2">
-        <span className="font-mono text-xs font-bold text-indigo-400 bg-indigo-950/60 px-2 py-0.5 rounded border border-indigo-800/50">
-          {task.key}
-        </span>
+        <div className="flex items-center gap-1.5 flex-wrap">
+          <span className="font-mono text-xs font-bold text-indigo-400 bg-indigo-950/60 px-2 py-0.5 rounded border border-indigo-800/50">
+            {task.key}
+          </span>
+
+          {task.isBlocked && (
+            <span
+              className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-300 bg-amber-950/80 px-1.5 py-0.5 rounded border border-amber-600/80 font-mono uppercase tracking-wider animate-pulse"
+              title={task.blockedReason ? `Blocked: ${task.blockedReason}` : 'Task is blocked'}
+            >
+              <AlertOctagon className="w-3 h-3 text-amber-400 shrink-0" />
+              Blocked
+            </span>
+          )}
+
+          {isBug && (
+            <span
+              className="inline-flex items-center gap-1 text-[11px] font-semibold text-rose-300 bg-rose-950/60 px-1.5 py-0.5 rounded border border-rose-800/50 font-mono uppercase tracking-wider"
+              title="Bug"
+            >
+              <Bug className="w-3 h-3 text-rose-400 shrink-0" />
+              Bug
+            </span>
+          )}
+
+          {isFeature && (
+            <span
+              className="inline-flex items-center gap-1 text-[11px] font-semibold text-purple-300 bg-purple-950/60 px-1.5 py-0.5 rounded border border-purple-800/50 font-mono uppercase tracking-wider"
+              title="Feature"
+            >
+              <Sparkles className="w-3 h-3 text-purple-400 shrink-0" />
+              Feat
+            </span>
+          )}
+
+          {isChore && (
+            <span
+              className="inline-flex items-center gap-1 text-[11px] font-semibold text-slate-300 bg-slate-800/60 px-1.5 py-0.5 rounded border border-slate-700/50 font-mono uppercase tracking-wider"
+              title="Chore"
+            >
+              <Wrench className="w-3 h-3 text-slate-400 shrink-0" />
+              Chore
+            </span>
+          )}
+        </div>
 
         <div className="flex items-center gap-1.5">
           {task.priority !== 'none' && (
@@ -141,6 +195,16 @@ export const TaskCard: React.FC<TaskCardProps> = ({
       <h3 className="text-base font-semibold text-slate-100 line-clamp-2 mb-2 leading-snug group-hover:text-indigo-200 transition-colors">
         {task.title}
       </h3>
+
+      {/* Blocker Reason Alert Banner */}
+      {task.isBlocked && task.blockedReason && (
+        <div className="text-xs font-mono text-amber-300 bg-amber-950/40 px-2 py-1 rounded border border-amber-800/50 mb-2 flex items-start gap-1.5">
+          <AlertOctagon className="w-3.5 h-3.5 text-amber-400 shrink-0 mt-0.5" />
+          <span className="line-clamp-2">
+            <span className="font-semibold text-amber-400">Blocker:</span> {task.blockedReason}
+          </span>
+        </div>
+      )}
 
       {/* Tags */}
       {task.tags.length > 0 && (

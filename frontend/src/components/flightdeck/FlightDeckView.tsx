@@ -8,7 +8,7 @@ import {
   FileText,
   Plus
 } from 'lucide-react';
-import { LaneKeepIcon, TrafficLight } from '../icons/LaneIcons.js';
+import { LaneKeepIcon } from '../icons/LaneIcons.js';
 import type { Task } from '../../types/index.js';
 import { sortTasksByRank } from '../../utils/rank.js';
 import { useFeatureGate } from '../../features/index.js';
@@ -36,11 +36,13 @@ export const FlightDeckView: React.FC<FlightDeckViewProps> = ({
   const isTimeTrackingEnabled = isEnabled('timeTracking');
 
   const [scratchpadText, setScratchpadText] = useState(() => {
-    return localStorage.getItem(SCRATCHPAD_KEY) || '';
+    return typeof localStorage !== 'undefined' ? localStorage.getItem(SCRATCHPAD_KEY) || '' : '';
   });
 
   useEffect(() => {
-    localStorage.setItem(SCRATCHPAD_KEY, scratchpadText);
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem(SCRATCHPAD_KEY, scratchpadText);
+    }
   }, [scratchpadText]);
 
   // Tasks in progress (Flight deck strict limit: 1-3)
@@ -95,29 +97,40 @@ export const FlightDeckView: React.FC<FlightDeckViewProps> = ({
             <div className="flex items-center justify-between">
               <h2 className="text-sm font-bold uppercase tracking-wider text-slate-300 flex items-center gap-2.5">
                 <LaneKeepIcon size={16} className="text-indigo-400" />
-                <span>In Lane ({inFlightTasks.length}/3 WIP)</span>
-                <TrafficLight
-                  state={
+                <span>In Lane</span>
+                <span
+                  title={`Focus Lane Capacity: ${inFlightTasks.length} of 3 tasks in-flight (${
                     inFlightTasks.length > 3
-                      ? 'red'
+                      ? 'Exceeding recommended WIP'
                       : inFlightTasks.length === 3
-                      ? 'amber'
+                      ? 'At recommended WIP capacity'
                       : inFlightTasks.length > 0
-                      ? 'green'
-                      : 'off'
-                  }
-                  size={16}
-                  horizontal
-                  title={`Traffic Flow: ${
+                      ? 'Flow open'
+                      : 'Idle'
+                  })`}
+                  className={`flex items-center gap-1.5 text-xs font-mono font-medium px-2 py-0.5 rounded-full border transition-all ${
                     inFlightTasks.length > 3
-                      ? 'Red - Exceeding Recommended WIP'
+                      ? 'bg-rose-950/60 text-rose-300 border-rose-700 animate-pulse'
                       : inFlightTasks.length === 3
-                      ? 'Amber - At WIP Capacity'
+                      ? 'bg-amber-950/50 text-amber-300 border-amber-700/60'
                       : inFlightTasks.length > 0
-                      ? 'Green - Flow Open'
-                      : 'Off - Idle'
+                      ? 'bg-emerald-950/40 text-emerald-300 border-emerald-800/50'
+                      : 'bg-slate-900 text-slate-400 border-slate-800'
                   }`}
-                />
+                >
+                  <span
+                    className={`w-1.5 h-1.5 rounded-full shrink-0 ${
+                      inFlightTasks.length > 3
+                        ? 'bg-rose-400'
+                        : inFlightTasks.length === 3
+                        ? 'bg-amber-400'
+                        : inFlightTasks.length > 0
+                        ? 'bg-emerald-400'
+                        : 'bg-slate-600'
+                    }`}
+                  />
+                  <span>{`${inFlightTasks.length}/3 WIP`}</span>
+                </span>
               </h2>
               {inFlightTasks.length > 3 && (
                 <span className="text-xs text-rose-400 bg-rose-950/50 px-2.5 py-0.5 rounded border border-rose-800/60 font-mono font-medium">

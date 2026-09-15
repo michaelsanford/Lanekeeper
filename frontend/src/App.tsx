@@ -27,6 +27,7 @@ export function App() {
     lanes,
     metadata,
     addTask,
+    duplicateTask,
     updateTask,
     deleteTask,
     moveTask,
@@ -279,6 +280,10 @@ export function App() {
         onClose={() => setSelectedTask(null)}
         onUpdateTask={updateTask}
         onDeleteTask={deleteTask}
+        onDuplicateTask={(taskId) => {
+          const dup = duplicateTask(taskId);
+          if (dup) setSelectedTask(dup);
+        }}
         onToggleTimer={toggleTimer}
         onToggleSubtask={toggleSubtask}
         onAddSubtask={addSubtask}

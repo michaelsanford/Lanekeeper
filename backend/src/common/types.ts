@@ -1,5 +1,7 @@
 export type TaskPriority = 'urgent' | 'high' | 'medium' | 'low' | 'none';
 
+export type TaskKind = 'task' | 'bug' | 'feature' | 'chore';
+
 export type LaneType = 'backlog' | 'unstarted' | 'started' | 'completed' | 'cancelled';
 
 export interface Subtask {
@@ -14,6 +16,9 @@ export interface Task {
   title: string;
   description: string;
   priority: TaskPriority;
+  kind?: TaskKind;
+  isBlocked?: boolean;
+  blockedReason?: string;
   estimateMinutes?: number;
   dueDate?: string; // ISO 8601 string
   assigneeId?: string;

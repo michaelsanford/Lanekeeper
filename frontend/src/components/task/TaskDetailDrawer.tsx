@@ -8,9 +8,11 @@ import {
   CheckSquare,
   ArrowUpRight,
   Archive,
-  RotateCcw
+  RotateCcw,
+  Copy,
+  AlertOctagon
 } from 'lucide-react';
-import type { Task, Lane, TaskPriority } from '../../types/index.js';
+import type { Task, Lane, TaskPriority, TaskKind } from '../../types/index.js';
 import { useFeatureGate } from '../../features/index.js';
 
 interface TaskDetailDrawerProps {
@@ -23,6 +25,7 @@ interface TaskDetailDrawerProps {
   onToggleSubtask: (taskId: string, subtaskId: string) => void;
   onAddSubtask: (taskId: string, title: string) => void;
   onPromoteSubtask: (parentTaskId: string, subtaskId: string) => void;
+  onDuplicateTask?: (taskId: string) => void;
   onArchiveTask?: (taskId: string) => void;
   onUnarchiveTask?: (taskId: string) => void;
 }
@@ -33,6 +36,7 @@ export const TaskDetailDrawer: React.FC<TaskDetailDrawerProps> = ({
   onClose,
   onUpdateTask,
   onDeleteTask,
+  onDuplicateTask,
   onToggleTimer,
   onToggleSubtask,
   onAddSubtask,
@@ -143,6 +147,19 @@ export const TaskDetailDrawer: React.FC<TaskDetailDrawerProps> = ({
               )
             )}
 
+            {onDuplicateTask && (
+              <button
+                onClick={() => {
+                  onDuplicateTask(task.id);
+                  onClose();
+                }}
+                title="Duplicate task"
+                className="p-2 rounded-lg text-slate-400 hover:text-indigo-400 hover:bg-indigo-950/40 transition-colors cursor-pointer"
+              >
+                <Copy className="w-4 h-4" />
+              </button>
+            )}
+
             <button
               onClick={() => {
                 if (confirm(`Delete task ${task.key}?`)) {
@@ -177,7 +194,24 @@ export const TaskDetailDrawer: React.FC<TaskDetailDrawerProps> = ({
           />
 
           {/* Properties Grid */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 p-3.5 bg-slate-950/60 rounded-xl border border-slate-800/80 text-sm">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-3.5 bg-slate-950/60 rounded-xl border border-slate-800/80 text-sm">
+            {/* Kind / Type */}
+            <div className="space-y-1.5">
+              <span className="text-slate-400 font-mono text-xs uppercase font-medium">Type</span>
+              <select
+                value={task.kind || 'task'}
+                onChange={(e) =>
+                  onUpdateTask(task.id, { kind: e.target.value as TaskKind })
+                }
+                className="w-full bg-slate-900 text-slate-200 p-2 rounded-md border border-slate-800 outline-none text-sm cursor-pointer"
+              >
+                <option value="task">Task</option>
+                <option value="bug">Bug</option>
+                <option value="feature">Feature</option>
+                <option value="chore">Chore</option>
+              </select>
+            </div>
+
             {/* Priority */}
             <div className="space-y-1.5">
               <span className="text-slate-400 font-mono text-xs uppercase font-medium">Priority</span>
@@ -226,6 +260,56 @@ export const TaskDetailDrawer: React.FC<TaskDetailDrawerProps> = ({
                 className="w-full bg-slate-900 text-slate-200 p-2 rounded-md border border-slate-800 outline-none text-sm"
               />
             </div>
+          </div>
+
+          {/* Blocked Status Banner & Controls */}
+          <div
+            className={`p-3 rounded-xl border transition-all ${
+              task.isBlocked
+                ? 'bg-amber-950/40 border-amber-600/70 text-amber-200'
+                : 'bg-slate-950/40 border-slate-800/80 text-slate-400'
+            }`}
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <AlertOctagon
+                  className={`w-4 h-4 ${
+                    task.isBlocked ? 'text-amber-400 animate-pulse' : 'text-slate-500'
+                  }`}
+                />
+                <span className="text-xs font-mono font-bold uppercase tracking-wider">
+                  {task.isBlocked ? 'Task is Blocked' : 'Task Flow is Open'}
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() =>
+                  onUpdateTask(task.id, {
+                    isBlocked: !task.isBlocked,
+                    blockedReason: !task.isBlocked ? (task.blockedReason || '') : undefined
+                  })
+                }
+                className={`text-xs font-mono font-semibold px-2.5 py-1 rounded-lg border transition-colors cursor-pointer ${
+                  task.isBlocked
+                    ? 'bg-amber-600/20 text-amber-300 border-amber-500 hover:bg-amber-600/30'
+                    : 'bg-slate-900 text-slate-400 border-slate-700 hover:text-slate-200 hover:bg-slate-800'
+                }`}
+              >
+                {task.isBlocked ? 'Clear Blocker' : 'Mark as Blocked'}
+              </button>
+            </div>
+
+            {task.isBlocked && (
+              <div className="mt-2.5 pt-2.5 border-t border-amber-800/50">
+                <input
+                  type="text"
+                  placeholder="Explain blocker (e.g. waiting on API credentials, upstream dependency)..."
+                  value={task.blockedReason || ''}
+                  onChange={(e) => onUpdateTask(task.id, { blockedReason: e.target.value })}
+                  className="w-full bg-slate-950 text-xs font-mono text-amber-200 placeholder-amber-500/50 px-2.5 py-1.5 rounded border border-amber-700/60 outline-none focus:border-amber-400"
+                />
+              </div>
+            )}
           </div>
 
           {/* Time Tracking Widget */}

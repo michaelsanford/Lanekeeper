@@ -438,6 +438,9 @@ class CrdtStore {
       title: taskData.title,
       description: taskData.description || '',
       priority: taskData.priority || 'none',
+      kind: taskData.kind || 'task',
+      isBlocked: taskData.isBlocked ?? false,
+      blockedReason: taskData.blockedReason,
       estimateMinutes: taskData.estimateMinutes,
       dueDate: taskData.dueDate,
       assigneeId: taskData.assigneeId,
@@ -453,6 +456,43 @@ class CrdtStore {
     const tasksMap = this.doc.getMap<Task>('tasks');
     tasksMap.set(taskId, task);
     return task;
+  }
+
+  public duplicateTask(taskId: string): Task | null {
+    const tasksMap = this.doc.getMap<Task>('tasks');
+    const existing = tasksMap.get(taskId);
+    if (!existing) return null;
+
+    const meta = this.getMetadata();
+    const newId = crypto.randomUUID();
+    const newKey = getNextTaskKey(meta.prefix);
+    const now = new Date().toISOString();
+
+    const laneTasks = sortTasksByRank(this.getTasks().filter((t) => t.laneId === existing.laneId));
+    const lastTask = laneTasks[laneTasks.length - 1];
+    const rank = getRankBetween(lastTask?.rank, undefined);
+
+    const duplicated: Task = {
+      ...existing,
+      id: newId,
+      key: newKey,
+      title: `${existing.title} (Copy)`,
+      timeSpentSeconds: 0,
+      isTimerRunning: false,
+      timerStartedAt: undefined,
+      rank,
+      subtasks: existing.subtasks.map((st) => ({
+        id: crypto.randomUUID(),
+        title: st.title,
+        completed: false
+      })),
+      createdAt: now,
+      updatedAt: now
+    };
+
+    tasksMap.set(newId, duplicated);
+    this.notifyListeners();
+    return duplicated;
   }
 
   public seedSampleTasks(): Task[] {
