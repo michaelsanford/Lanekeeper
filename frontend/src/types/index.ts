@@ -69,3 +69,18 @@ export interface MfaChallengeData {
   username: string;
   secretCode?: string; // For MFA_SETUP
 }
+
+export interface UserProfile {
+  id: string;
+  email: string;
+  displayName: string;
+  avatarUrl?: string;
+  gitAuthorName?: string;
+  gitAuthorEmail?: string;
+  defaultAssigneeHandle?: string;
+  dailyFocusTargetMinutes?: number;
+  mfaEnabled: boolean;
+  provider: 'local' | 'cognito';
+  tokenScopes?: string[];
+  cliToken?: string;
+}

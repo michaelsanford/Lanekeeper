@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Settings,
   X,
@@ -8,7 +8,16 @@ import {
   Sliders,
   Check,
   RotateCcw,
-  Clock
+  Clock,
+  User,
+  Copy,
+  RotateCw,
+  Terminal,
+  ShieldCheck,
+  ShieldAlert,
+  GitCommit,
+  AtSign,
+  Key
 } from 'lucide-react';
 import { type ThemeId, type ThemeMode, THEMES, getThemePreview } from '../../utils/themes.js';
 import {
@@ -16,6 +25,11 @@ import {
   getArchiveThresholdDays,
   setArchiveThresholdDays
 } from '../../features/index.js';
+import type { UserProfile } from '../../types/index.js';
+import { UserAvatar } from '../layout/UserAvatar.js';
+import { getInitials, DEFAULT_SCOPES } from '../../hooks/useUserProfile.js';
+
+export type AppSettingsTab = 'profile' | 'themes' | 'features';
 
 interface AppSettingsModalProps {
   isOpen: boolean;
@@ -24,8 +38,26 @@ interface AppSettingsModalProps {
   currentMode: ThemeMode;
   onSelectTheme: (themeId: ThemeId) => void;
   onSelectMode: (mode: ThemeMode) => void;
-  initialTab?: 'themes' | 'features';
+  initialTab?: AppSettingsTab;
+  profile?: UserProfile;
+  onUpdateProfile?: (updates: Partial<UserProfile>) => void;
+  onGenerateCliToken?: () => string;
+  onOpenAuth?: () => void;
 }
+
+const FALLBACK_PROFILE: UserProfile = {
+  id: 'dev-user-01',
+  email: 'michaelsanford@users.noreply.github.com',
+  displayName: 'Michael Sanford',
+  gitAuthorName: 'Michael Sanford',
+  gitAuthorEmail: 'michaelsanford@users.noreply.github.com',
+  defaultAssigneeHandle: 'michaelsanford',
+  dailyFocusTargetMinutes: 240,
+  mfaEnabled: false,
+  provider: 'local',
+  tokenScopes: DEFAULT_SCOPES,
+  cliToken: 'lk_dev_seed_token'
+};
 
 export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
   isOpen,
@@ -34,13 +66,30 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
   currentMode,
   onSelectTheme,
   onSelectMode,
-  initialTab = 'themes'
+  initialTab = 'profile',
+  profile = FALLBACK_PROFILE,
+  onUpdateProfile,
+  onGenerateCliToken,
+  onOpenAuth
 }) => {
-  const [activeTab, setActiveTab] = useState<'themes' | 'features'>(initialTab);
+  const [activeTab, setActiveTab] = useState<AppSettingsTab>(initialTab);
   const { definitions, isEnabled, toggleFlag, resetFlags } = useFeatureGate();
   const [archiveDays, setArchiveDays] = useState<number>(() => getArchiveThresholdDays());
+  const [copiedToken, setCopiedToken] = useState(false);
+  const [copiedSnippet, setCopiedSnippet] = useState<'pwsh' | 'bash' | null>(null);
+
+  useEffect(() => {
+    if (initialTab) {
+      setActiveTab(initialTab);
+    }
+  }, [initialTab, isOpen]);
 
   if (!isOpen) return null;
+
+  const currentProfile = profile || FALLBACK_PROFILE;
+  const initials = getInitials(currentProfile.displayName, currentProfile.email);
+  const cliToken = currentProfile.cliToken || 'lk_dev_seed_token';
+  const isCognito = currentProfile.provider === 'cognito';
 
   const handleSetArchiveDays = (days: number) => {
     setArchiveDays(days);
@@ -53,6 +102,36 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
     setArchiveThresholdDays(7);
   };
 
+  const handleCopyToken = async () => {
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(cliToken);
+      }
+      setCopiedToken(true);
+      setTimeout(() => setCopiedToken(false), 2000);
+    } catch {
+      setCopiedToken(true);
+      setTimeout(() => setCopiedToken(false), 2000);
+    }
+  };
+
+  const handleCopySnippet = async (type: 'pwsh' | 'bash') => {
+    const text =
+      type === 'pwsh'
+        ? `$env:LANEKEEPER_API_TOKEN = "${cliToken}"`
+        : `export LANEKEEPER_API_TOKEN="${cliToken}"`;
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(text);
+      }
+      setCopiedSnippet(type);
+      setTimeout(() => setCopiedSnippet(null), 2000);
+    } catch {
+      setCopiedSnippet(type);
+      setTimeout(() => setCopiedSnippet(null), 2000);
+    }
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 animate-fade-in">
       <div className="w-full max-w-2xl bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
@@ -63,8 +142,8 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
               <Settings className="w-4 h-4" />
             </div>
             <div>
-              <h2 className="font-bold text-base text-slate-100">Preferences & System Settings</h2>
-              <p className="text-xs text-slate-400">Manage appearance, colour schemes, and experimental feature flags.</p>
+              <h2 className="font-bold text-base text-slate-100">Preferences &amp; System Settings</h2>
+              <p className="text-xs text-slate-400">Manage profile identity, appearance, and system feature gates.</p>
             </div>
           </div>
           <button
@@ -78,6 +157,19 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
         {/* Tab Navigation */}
         <div className="flex border-b border-slate-800 bg-slate-950/50 px-6">
           <button
+            type="button"
+            onClick={() => setActiveTab('profile')}
+            className={`py-3.5 px-4 text-sm font-semibold border-b-2 transition-colors flex items-center gap-1.5 cursor-pointer ${
+              activeTab === 'profile'
+                ? 'border-indigo-500 text-indigo-400'
+                : 'border-transparent text-slate-400 hover:text-slate-200'
+            }`}
+          >
+            <User className="w-4 h-4" />
+            <span>Profile &amp; Account</span>
+          </button>
+          <button
+            type="button"
             onClick={() => setActiveTab('themes')}
             className={`py-3.5 px-4 text-sm font-semibold border-b-2 transition-colors flex items-center gap-1.5 cursor-pointer ${
               activeTab === 'themes'
@@ -86,9 +178,10 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
             }`}
           >
             <Palette className="w-4 h-4" />
-            <span>Theme & Appearance</span>
+            <span>Theme &amp; Appearance</span>
           </button>
           <button
+            type="button"
             onClick={() => setActiveTab('features')}
             className={`py-3.5 px-4 text-sm font-semibold border-b-2 transition-colors flex items-center gap-1.5 cursor-pointer ${
               activeTab === 'features'
@@ -103,6 +196,345 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
 
         {/* Tab Contents */}
         <div className="p-6 overflow-y-auto flex-1 space-y-6">
+          {/* Tab 0: Profile & Account */}
+          {activeTab === 'profile' && (
+            <div className="space-y-6 text-sm">
+              {/* Identity & Avatar Overview */}
+              <div className="p-4 bg-slate-950/80 rounded-xl border border-slate-800 flex items-center gap-4">
+                <UserAvatar
+                  initials={initials}
+                  displayName={currentProfile.displayName}
+                  avatarUrl={currentProfile.avatarUrl}
+                  isOnline={true}
+                  mfaEnabled={currentProfile.mfaEnabled}
+                  size="lg"
+                />
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-bold text-slate-100 text-base truncate">
+                      {currentProfile.displayName || 'Michael Sanford'}
+                    </h3>
+                    <span
+                      className={`text-[10px] font-mono px-2 py-0.5 rounded-full border ${
+                        isCognito
+                          ? 'bg-emerald-950/70 text-emerald-400 border-emerald-800/60'
+                          : 'bg-indigo-950/70 text-indigo-400 border-indigo-800/60'
+                      }`}
+                    >
+                      {isCognito ? 'AWS Cognito' : 'Local Dev Profile'}
+                    </span>
+                  </div>
+                  <div className="text-xs text-slate-400 font-mono truncate mt-0.5">
+                    {currentProfile.email}
+                  </div>
+                </div>
+              </div>
+
+              {/* Developer Profile Details Form */}
+              <div className="space-y-4">
+                <div className="pb-1 border-b border-slate-800/80">
+                  <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider">
+                    Personal Identity
+                  </h4>
+                  <p className="text-xs text-slate-400 mt-0.5">
+                    Display credentials used across the board and flight deck views.
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-300 mb-1">
+                      Display Name
+                    </label>
+                    <input
+                      type="text"
+                      value={currentProfile.displayName}
+                      onChange={(e) => onUpdateProfile?.({ displayName: e.target.value })}
+                      placeholder="Michael Sanford"
+                      className="w-full bg-slate-950 border border-slate-800 focus:border-indigo-500 rounded-lg px-3 py-2 text-sm text-slate-100 outline-none transition-colors"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-300 mb-1">
+                      Email Address
+                    </label>
+                    <input
+                      type="email"
+                      value={currentProfile.email}
+                      onChange={(e) => onUpdateProfile?.({ email: e.target.value })}
+                      placeholder="michaelsanford@users.noreply.github.com"
+                      className="w-full bg-slate-950 border border-slate-800 focus:border-indigo-500 rounded-lg px-3 py-2 text-sm text-slate-100 outline-none transition-colors font-mono text-xs"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Git & Assignment Metadata */}
+              <div className="space-y-4">
+                <div className="pb-1 border-b border-slate-800/80">
+                  <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+                    <GitCommit className="w-3.5 h-3.5 text-indigo-400" />
+                    <span>Git Author &amp; Assignment Configuration</span>
+                  </h4>
+                  <p className="text-xs text-slate-400 mt-0.5">
+                    Controls Git commit signatures and mentions for ticket assignments.
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-300 mb-1">
+                      Git Author Name
+                    </label>
+                    <input
+                      type="text"
+                      value={currentProfile.gitAuthorName || currentProfile.displayName}
+                      onChange={(e) => onUpdateProfile?.({ gitAuthorName: e.target.value })}
+                      placeholder="Michael Sanford"
+                      className="w-full bg-slate-950 border border-slate-800 focus:border-indigo-500 rounded-lg px-3 py-2 text-xs text-slate-100 outline-none transition-colors"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-300 mb-1">
+                      Git Author Email
+                    </label>
+                    <input
+                      type="email"
+                      value={currentProfile.gitAuthorEmail || currentProfile.email}
+                      onChange={(e) => onUpdateProfile?.({ gitAuthorEmail: e.target.value })}
+                      placeholder="michaelsanford@users.noreply.github.com"
+                      className="w-full bg-slate-950 border border-slate-800 focus:border-indigo-500 rounded-lg px-3 py-2 text-xs text-slate-100 outline-none transition-colors font-mono"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-300 mb-1 flex items-center gap-1">
+                      <AtSign className="w-3 h-3 text-indigo-400" />
+                      <span>Assignee Handle</span>
+                    </label>
+                    <div className="relative">
+                      <span className="absolute left-3 top-2 text-xs font-mono text-slate-500">@</span>
+                      <input
+                        type="text"
+                        value={currentProfile.defaultAssigneeHandle || 'michaelsanford'}
+                        onChange={(e) =>
+                          onUpdateProfile?.({
+                            defaultAssigneeHandle: e.target.value.replace(/^@/, '')
+                          })
+                        }
+                        placeholder="michaelsanford"
+                        className="w-full bg-slate-950 border border-slate-800 focus:border-indigo-500 rounded-lg pl-7 pr-3 py-2 text-xs text-slate-100 outline-none transition-colors font-mono"
+                      />
+                    </div>
+                  </div>
+                </div>
+                <p className="text-[11px] text-slate-500 italic">
+                  Handle defaults to your email username prefix, but may be customized to match your GitHub or Slack handle.
+                </p>
+              </div>
+
+              {/* Personal Access Token (lk CLI) & Scopes */}
+              <div className="space-y-4">
+                <div className="pb-1 border-b border-slate-800/80">
+                  <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+                    <Terminal className="w-3.5 h-3.5 text-indigo-400" />
+                    <span>Personal Access Token (lk CLI Companion)</span>
+                  </h4>
+                  <p className="text-xs text-slate-400 mt-0.5">
+                    Authenticate the local terminal companion tool to capture tasks and sync with the board.
+                  </p>
+                </div>
+
+                {/* Token string & Actions */}
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <div className="flex-1 bg-slate-950 px-3 py-2 rounded-lg border border-slate-800 font-mono text-xs text-indigo-300 flex items-center justify-between overflow-hidden">
+                      <span className="truncate select-all">{cliToken}</span>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={handleCopyToken}
+                      className="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer shrink-0"
+                    >
+                      {copiedToken ? (
+                        <>
+                          <Check className="w-3.5 h-3.5 text-emerald-400" />
+                          <span className="text-emerald-400">Copied</span>
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="w-3.5 h-3.5 text-slate-400" />
+                          <span>Copy Token</span>
+                        </>
+                      )}
+                    </button>
+
+                    {onGenerateCliToken && (
+                      <button
+                        type="button"
+                        onClick={onGenerateCliToken}
+                        title="Generate a fresh Personal Access Token"
+                        className="p-2 bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-slate-200 border border-slate-700 rounded-lg transition-colors cursor-pointer shrink-0"
+                      >
+                        <RotateCw className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Shell Export Helpers */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                    <button
+                      type="button"
+                      onClick={() => handleCopySnippet('pwsh')}
+                      className="text-left p-2.5 bg-slate-950/60 rounded-lg border border-slate-800/80 hover:border-slate-700 transition-colors flex items-center justify-between group cursor-pointer"
+                    >
+                      <div>
+                        <div className="text-[10px] text-slate-400 font-mono uppercase">PowerShell</div>
+                        <code className="text-[11px] text-slate-300 font-mono truncate block max-w-[200px]">
+                          $env:LANEKEEPER_API_TOKEN = "{cliToken.slice(0, 10)}..."
+                        </code>
+                      </div>
+                      <span className="text-[10px] text-indigo-400 font-medium group-hover:underline">
+                        {copiedSnippet === 'pwsh' ? 'Copied!' : 'Copy'}
+                      </span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => handleCopySnippet('bash')}
+                      className="text-left p-2.5 bg-slate-950/60 rounded-lg border border-slate-800/80 hover:border-slate-700 transition-colors flex items-center justify-between group cursor-pointer"
+                    >
+                      <div>
+                        <div className="text-[10px] text-slate-400 font-mono uppercase">Bash / Zsh</div>
+                        <code className="text-[11px] text-slate-300 font-mono truncate block max-w-[200px]">
+                          export LANEKEEPER_API_TOKEN="{cliToken.slice(0, 10)}..."
+                        </code>
+                      </div>
+                      <span className="text-[10px] text-indigo-400 font-medium group-hover:underline">
+                        {copiedSnippet === 'bash' ? 'Copied!' : 'Copy'}
+                      </span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Token Scopes Checklist */}
+                <div className="p-3.5 bg-slate-950/90 rounded-xl border border-slate-800 space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-slate-200">Token Scopes</span>
+                    <span className="text-[10px] font-mono text-indigo-400 bg-indigo-950/80 px-2 py-0.5 rounded border border-indigo-800/60">
+                      All Scopes Active (Locked)
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                    <label className="flex items-center gap-2 p-2 rounded-lg bg-slate-900/60 border border-slate-800/60 opacity-80 cursor-not-allowed">
+                      <input
+                        type="checkbox"
+                        checked={true}
+                        disabled={true}
+                        className="rounded border-slate-700 text-indigo-600 focus:ring-indigo-500"
+                      />
+                      <div>
+                        <span className="font-mono text-indigo-300 font-semibold">tasks:read</span>
+                        <p className="text-[11px] text-slate-400">Read boards, lanes, and cards</p>
+                      </div>
+                    </label>
+
+                    <label className="flex items-center gap-2 p-2 rounded-lg bg-slate-900/60 border border-slate-800/60 opacity-80 cursor-not-allowed">
+                      <input
+                        type="checkbox"
+                        checked={true}
+                        disabled={true}
+                        className="rounded border-slate-700 text-indigo-600 focus:ring-indigo-500"
+                      />
+                      <div>
+                        <span className="font-mono text-indigo-300 font-semibold">tasks:write</span>
+                        <p className="text-[11px] text-slate-400">Create, transition, and close tasks</p>
+                      </div>
+                    </label>
+
+                    <label className="flex items-center gap-2 p-2 rounded-lg bg-slate-900/60 border border-slate-800/60 opacity-80 cursor-not-allowed">
+                      <input
+                        type="checkbox"
+                        checked={true}
+                        disabled={true}
+                        className="rounded border-slate-700 text-indigo-600 focus:ring-indigo-500"
+                      />
+                      <div>
+                        <span className="font-mono text-indigo-300 font-semibold">sync:rw</span>
+                        <p className="text-[11px] text-slate-400">CRDT delta synchronization</p>
+                      </div>
+                    </label>
+
+                    <label className="flex items-center gap-2 p-2 rounded-lg bg-slate-900/60 border border-slate-800/60 opacity-80 cursor-not-allowed">
+                      <input
+                        type="checkbox"
+                        checked={true}
+                        disabled={true}
+                        className="rounded border-slate-700 text-indigo-600 focus:ring-indigo-500"
+                      />
+                      <div>
+                        <span className="font-mono text-indigo-300 font-semibold">leases:issue</span>
+                        <p className="text-[11px] text-slate-400">Focus lease reservations</p>
+                      </div>
+                    </label>
+                  </div>
+                  <p className="text-[11px] text-slate-500 italic pt-1">
+                    Select All is permanently enabled to remind you to configure granular scope restrictions in an upcoming update.
+                  </p>
+                </div>
+              </div>
+
+              {/* AWS Cognito Reconciliation & Security Section */}
+              <div className="p-4 bg-slate-950/80 rounded-xl border border-slate-800 space-y-3">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <Key className="w-4 h-4 text-indigo-400" />
+                      <h4 className="text-xs font-bold text-slate-200 uppercase tracking-wider">
+                        AWS Cognito Authentication &amp; Multi-Factor Auth
+                      </h4>
+                    </div>
+                    <p className="text-xs text-slate-400 leading-relaxed">
+                      {isCognito
+                        ? 'Your session is authenticated through AWS Cognito with time-based one-time password (TOTP) MFA enabled.'
+                        : 'Currently operating in offline local developer mode. Connect AWS Cognito to enable encrypted cloud synchronization and MFA security.'}
+                    </p>
+                  </div>
+
+                  {isCognito ? (
+                    <span className="flex items-center gap-1 text-[11px] font-semibold text-emerald-400 bg-emerald-950 px-2 py-0.5 rounded border border-emerald-800/60 shrink-0">
+                      <ShieldCheck className="w-3.5 h-3.5" />
+                      MFA Active
+                    </span>
+                  ) : (
+                    <span className="flex items-center gap-1 text-[11px] font-semibold text-amber-400 bg-amber-950 px-2 py-0.5 rounded border border-amber-800/60 shrink-0">
+                      <ShieldAlert className="w-3.5 h-3.5" />
+                      Local Dev
+                    </span>
+                  )}
+                </div>
+
+                {!isCognito && onOpenAuth && (
+                  <div className="pt-2 border-t border-slate-800 flex justify-end">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onClose();
+                        onOpenAuth();
+                      }}
+                      className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-semibold transition-colors cursor-pointer"
+                    >
+                      Authenticate with Cognito...
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
           {/* Tab 1: Theme & Appearance */}
           {activeTab === 'themes' && (
             <div className="space-y-5 text-sm">
@@ -206,7 +638,7 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
             <div className="space-y-6 text-sm">
               <div className="flex items-center justify-between pb-2 border-b border-slate-800/80">
                 <div>
-                  <h3 className="text-sm font-bold text-slate-100">Experimental & System Feature Gates</h3>
+                  <h3 className="text-sm font-bold text-slate-100">Experimental &amp; System Feature Gates</h3>
                   <p className="text-xs text-slate-400 mt-0.5">
                     Control modular capabilities, workflow automation, and feature rollouts.
                   </p>

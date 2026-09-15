@@ -7,6 +7,9 @@
     "frontend",
     "backend"
   ],
+  "bin": {
+    "lk": "./cli/lk.mjs"
+  },
   "scripts": {
     "dev": "concurrently -n \"backend,frontend\" -c \"cyan,magenta\" \"npm run dev:backend\" \"npm run dev:frontend\"",
     "dev:backend": "npm --workspace=backend run dev",

@@ -6,7 +6,6 @@ import {
   Wifi,
   WifiOff,
   HelpCircle,
-  Settings,
   Check,
   Table as TableIcon,
   Calendar as CalendarIcon,
@@ -20,8 +19,11 @@ import {
   SwimlaneIcon,
   LaneKeepIcon
 } from '../icons/LaneIcons.js';
-import type { ProjectMetadata } from '../../types/index.js';
+import type { ProjectMetadata, UserProfile } from '../../types/index.js';
 import { getWorkflowTemplate } from '../../utils/templates.js';
+import { UserAvatar } from './UserAvatar.js';
+import { ProfileMenu } from './ProfileMenu.js';
+import { getInitials } from '../../hooks/useUserProfile.js';
 
 export type ActiveView = 'board' | 'table' | 'calendar' | 'flightdeck';
 
@@ -32,12 +34,15 @@ interface HeaderProps {
   onOpenQuickCapture: () => void;
   onOpenHelp: () => void;
   onOpenProjectSettings: (tab?: 'general' | 'lanes' | 'projects') => void;
-  onOpenAppSettings: () => void;
+  onOpenAppSettings: (tab?: 'profile' | 'themes' | 'features') => void;
   isOnline: boolean;
   pushSubscribed: boolean;
   onTogglePush: () => void;
   projectsList?: ProjectMetadata[];
   onSwitchProject?: (projectId: string, name?: string, prefix?: string) => void;
+  profile?: UserProfile;
+  onOpenAuth?: () => void;
+  onSignOut?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -52,10 +57,28 @@ export const Header: React.FC<HeaderProps> = ({
   pushSubscribed,
   onTogglePush,
   projectsList,
-  onSwitchProject
+  onSwitchProject,
+  profile,
+  onOpenAuth,
+  onSignOut
 }) => {
   const [isProjectMenuOpen, setIsProjectMenuOpen] = useState(false);
+  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const projectMenuRef = useRef<HTMLDivElement>(null);
+
+  const currentProfile: UserProfile = profile || {
+    id: 'dev-user-01',
+    email: 'michaelsanford@users.noreply.github.com',
+    displayName: 'Michael Sanford',
+    gitAuthorName: 'Michael Sanford',
+    gitAuthorEmail: 'michaelsanford@users.noreply.github.com',
+    defaultAssigneeHandle: 'michaelsanford',
+    dailyFocusTargetMinutes: 240,
+    mfaEnabled: false,
+    provider: 'local',
+    cliToken: 'lk_dev_seed_token'
+  };
+  const initials = getInitials(currentProfile.displayName, currentProfile.email);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -287,14 +310,29 @@ export const Header: React.FC<HeaderProps> = ({
           <span className="hidden sm:inline">{isOnline ? 'Online' : 'Offline'}</span>
         </div>
 
-        {/* Preferences & System Settings */}
-        <button
-          onClick={onOpenAppSettings}
-          title="Preferences & System Settings"
-          className="p-2 rounded-lg border border-slate-800 text-indigo-400 hover:text-indigo-300 hover:bg-slate-800/60 hover:border-indigo-800/60 transition-colors cursor-pointer"
-        >
-          <Settings className="w-4 h-4" />
-        </button>
+        {/* User Profile Avatar & Dropdown Menu */}
+        <div className="relative">
+          <UserAvatar
+            initials={initials}
+            displayName={currentProfile.displayName}
+            avatarUrl={currentProfile.avatarUrl}
+            isOnline={isOnline}
+            mfaEnabled={currentProfile.mfaEnabled}
+            size="md"
+            onClick={() => setIsProfileMenuOpen((o) => !o)}
+            title="Preferences & System Settings"
+          />
+
+          <ProfileMenu
+            isOpen={isProfileMenuOpen}
+            onClose={() => setIsProfileMenuOpen(false)}
+            profile={currentProfile}
+            onOpenAppSettings={onOpenAppSettings}
+            onOpenHelp={onOpenHelp}
+            onOpenAuth={onOpenAuth}
+            onSignOut={onSignOut}
+          />
+        </div>
 
         {/* Shortcuts Help */}
         <button

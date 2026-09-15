@@ -17,7 +17,8 @@ import { TaskDetailDrawer } from './components/task/TaskDetailDrawer.js';
 import { HelpModal } from './components/layout/HelpModal.js';
 import { AuthModal } from './components/auth/AuthModal.js';
 import { ProjectSettingsModal } from './components/project/ProjectSettingsModal.js';
-import { AppSettingsModal } from './components/settings/AppSettingsModal.js';
+import { AppSettingsModal, type AppSettingsTab } from './components/settings/AppSettingsModal.js';
+import { useUserProfile } from './hooks/useUserProfile.js';
 import type { Task, AuthSession } from './types/index.js';
 
 export function App() {
@@ -55,8 +56,11 @@ export function App() {
   const [isProjectSettingsOpen, setIsProjectSettingsOpen] = useState(false);
   const [projectSettingsTab, setProjectSettingsTab] = useState<'general' | 'lanes' | 'projects'>('lanes');
   const [isAppSettingsOpen, setIsAppSettingsOpen] = useState(false);
+  const [appSettingsTab, setAppSettingsTab] = useState<AppSettingsTab>('profile');
   const [authSession, setAuthSession] = useState<AuthSession | null>(getStoredAuthSession);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
+
+  const { profile, updateProfile, generateCliToken } = useUserProfile(authSession);
 
   const { theme, mode, setTheme, setMode } = useTheme();
 
@@ -198,12 +202,21 @@ export function App() {
           setProjectSettingsTab(tab || 'lanes');
           setIsProjectSettingsOpen(true);
         }}
-        onOpenAppSettings={() => setIsAppSettingsOpen(true)}
+        onOpenAppSettings={(tab) => {
+          setAppSettingsTab(tab || 'profile');
+          setIsAppSettingsOpen(true);
+        }}
         isOnline={isOnline}
         pushSubscribed={isSubscribed}
         onTogglePush={requestAndSubscribe}
         projectsList={getProjectsList()}
         onSwitchProject={(id, name, pfx) => switchProject(id, name, pfx)}
+        profile={profile}
+        onOpenAuth={() => setIsAuthOpen(true)}
+        onSignOut={() => {
+          setAuthSession(null);
+          saveAuthSession(null);
+        }}
       />
 
       {/* Main View Area */}
@@ -320,6 +333,11 @@ export function App() {
         currentMode={mode}
         onSelectTheme={setTheme}
         onSelectMode={setMode}
+        initialTab={appSettingsTab}
+        profile={profile}
+        onUpdateProfile={updateProfile}
+        onGenerateCliToken={generateCliToken}
+        onOpenAuth={() => setIsAuthOpen(true)}
       />
     </div>
     </FeatureGateProvider>
