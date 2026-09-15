@@ -24,6 +24,7 @@ import {
   setArchiveThresholdDays
 } from '../../features/index.js';
 import type { UserProfile } from '../../types/index.js';
+import type { NetworkStatus } from '../../hooks/useNetworkStatus.js';
 import { UserAvatar } from '../layout/UserAvatar.js';
 import { getInitials, DEFAULT_SCOPES } from '../../hooks/useUserProfile.js';
 
@@ -38,6 +39,8 @@ interface AppSettingsModalProps {
   onSelectMode: (mode: ThemeMode) => void;
   initialTab?: AppSettingsTab;
   profile?: UserProfile;
+  networkStatus?: NetworkStatus;
+  isOnline?: boolean;
   onUpdateProfile?: (updates: Partial<UserProfile>) => void;
   onGenerateCliToken?: () => string;
   onOpenAuth?: () => void;
@@ -67,6 +70,8 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
   onSelectMode,
   initialTab = 'profile',
   profile = FALLBACK_PROFILE,
+  networkStatus,
+  isOnline,
   onUpdateProfile,
   onGenerateCliToken: _onGenerateCliToken,
   onOpenAuth,
@@ -172,7 +177,8 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
                   initials={initials}
                   displayName={currentProfile.displayName}
                   avatarUrl={currentProfile.avatarUrl}
-                  isOnline={true}
+                  isOnline={isOnline ?? (networkStatus === 'online')}
+                  networkStatus={networkStatus}
                   mfaEnabled={currentProfile.mfaEnabled}
                   size="lg"
                 />

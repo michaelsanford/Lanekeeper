@@ -376,6 +376,8 @@ export const Header: React.FC<HeaderProps> = ({
             isOpen={isProfileMenuOpen}
             onClose={() => setIsProfileMenuOpen(false)}
             profile={currentProfile}
+            networkStatus={effectiveStatus}
+            isOnline={effectiveStatus === 'online'}
             onOpenAppSettings={onOpenAppSettings}
             onOpenHelp={onOpenHelp}
             onOpenAuth={onOpenAuth}

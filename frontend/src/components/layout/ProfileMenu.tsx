@@ -10,6 +10,7 @@ import {
   ExternalLink
 } from 'lucide-react';
 import type { UserProfile } from '../../types/index.js';
+import type { NetworkStatus } from '../../hooks/useNetworkStatus.js';
 import { UserAvatar } from './UserAvatar.js';
 import { getInitials } from '../../hooks/useUserProfile.js';
 
@@ -17,6 +18,8 @@ interface ProfileMenuProps {
   isOpen: boolean;
   onClose: () => void;
   profile: UserProfile;
+  networkStatus?: NetworkStatus;
+  isOnline?: boolean;
   onOpenAppSettings: (tab?: 'profile' | 'themes' | 'features') => void;
   onOpenHelp?: () => void;
   onOpenAuth?: () => void;
@@ -27,6 +30,8 @@ export const ProfileMenu: React.FC<ProfileMenuProps> = ({
   isOpen,
   onClose,
   profile,
+  networkStatus,
+  isOnline,
   onOpenAppSettings,
   onOpenHelp,
   onOpenAuth,
@@ -75,7 +80,8 @@ export const ProfileMenu: React.FC<ProfileMenuProps> = ({
             initials={initials}
             displayName={profile.displayName}
             avatarUrl={profile.avatarUrl}
-            isOnline={true}
+            isOnline={isOnline ?? (networkStatus === 'online')}
+            networkStatus={networkStatus}
             mfaEnabled={profile.mfaEnabled}
             size="lg"
           />

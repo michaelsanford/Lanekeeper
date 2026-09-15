@@ -323,6 +323,8 @@ export function App() {
         onSelectMode={setMode}
         initialTab={appSettingsTab}
         profile={profile}
+        networkStatus={networkStatus}
+        isOnline={isOnline}
         onUpdateProfile={updateProfile}
         onGenerateCliToken={generateCliToken}
         onOpenAuth={() => setIsAuthOpen(true)}

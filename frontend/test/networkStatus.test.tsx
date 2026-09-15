@@ -10,6 +10,9 @@ import {
 } from '../src/crdt/sync.js';
 import { Header } from '../src/components/layout/Header.js';
 import { UserAvatar } from '../src/components/layout/UserAvatar.js';
+import { ProfileMenu } from '../src/components/layout/ProfileMenu.js';
+import { AppSettingsModal } from '../src/components/settings/AppSettingsModal.js';
+import { FeatureGateProvider } from '../src/features/index.js';
 import type { ProjectMetadata, UserProfile } from '../src/types/index.js';
 
 const mockProfile: UserProfile = {
@@ -226,6 +229,43 @@ describe('Tri-State Network Reachability & Indicators', () => {
 
       expect(html).toContain('bg-amber-400');
       expect(html).toContain('title="Status: Offline"');
+    });
+
+    it('matches jewel status in ProfileMenu when server is offline', () => {
+      const html = renderToString(
+        <ProfileMenu
+          isOpen={true}
+          onClose={vi.fn()}
+          profile={mockProfile}
+          networkStatus="server_offline"
+          isOnline={false}
+          onOpenAppSettings={vi.fn()}
+        />
+      );
+
+      expect(html).toContain('bg-amber-400');
+      expect(html).toContain('title="Status: Server Offline"');
+    });
+
+    it('matches jewel status in AppSettingsModal when server is offline', () => {
+      const html = renderToString(
+        <FeatureGateProvider>
+          <AppSettingsModal
+            isOpen={true}
+            onClose={vi.fn()}
+            currentTheme="lanekeeper"
+            currentMode="dark"
+            onSelectTheme={vi.fn()}
+            onSelectMode={vi.fn()}
+            profile={mockProfile}
+            networkStatus="server_offline"
+            isOnline={false}
+          />
+        </FeatureGateProvider>
+      );
+
+      expect(html).toContain('bg-amber-400');
+      expect(html).toContain('title="Status: Server Offline"');
     });
   });
 });
