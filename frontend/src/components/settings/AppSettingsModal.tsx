@@ -18,6 +18,7 @@ import {
   Key
 } from 'lucide-react';
 import { type ThemeId, type ThemeMode, THEMES, getThemePreview } from '../../utils/themes.js';
+import { ModalShell } from '../common/ModalShell.js';
 import {
   useFeatureGate,
   getArchiveThresholdDays,
@@ -110,8 +111,11 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 animate-fade-in">
-      <div className="w-full max-w-2xl bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+    <ModalShell
+      onClose={onClose}
+      labelledBy="app-settings-title"
+      panelClassName="w-full max-w-2xl bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
+    >
         {/* Modal Header */}
         <div className="px-6 py-4 border-b border-slate-800 flex items-center justify-between bg-slate-900/50">
           <div className="flex items-center gap-2.5">
@@ -119,7 +123,7 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
               <Settings className="w-4 h-4" />
             </div>
             <div>
-              <h2 className="font-bold text-base text-slate-100">Preferences &amp; System Settings</h2>
+              <h2 id="app-settings-title" className="font-bold text-base text-slate-100">Preferences &amp; System Settings</h2>
               <p className="text-xs text-slate-400">Manage profile identity, appearance, and system feature gates.</p>
             </div>
           </div>
@@ -221,10 +225,11 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-semibold text-slate-300 mb-1">
+                    <label htmlFor="profile-display-name" className="block text-xs font-semibold text-slate-300 mb-1">
                       Display Name
                     </label>
                     <input
+                      id="profile-display-name"
                       type="text"
                       value={currentProfile.displayName}
                       onChange={(e) => onUpdateProfile?.({ displayName: e.target.value })}
@@ -234,10 +239,11 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold text-slate-300 mb-1">
+                    <label htmlFor="profile-email" className="block text-xs font-semibold text-slate-300 mb-1">
                       Email Address
                     </label>
                     <input
+                      id="profile-email"
                       type="email"
                       value={currentProfile.email}
                       onChange={(e) => onUpdateProfile?.({ email: e.target.value })}
@@ -262,10 +268,11 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div>
-                    <label className="block text-xs font-semibold text-slate-300 mb-1">
+                    <label htmlFor="profile-git-author-name" className="block text-xs font-semibold text-slate-300 mb-1">
                       Git Author Name
                     </label>
                     <input
+                      id="profile-git-author-name"
                       type="text"
                       value={currentProfile.gitAuthorName || currentProfile.displayName}
                       onChange={(e) => onUpdateProfile?.({ gitAuthorName: e.target.value })}
@@ -275,10 +282,11 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold text-slate-300 mb-1">
+                    <label htmlFor="profile-git-author-email" className="block text-xs font-semibold text-slate-300 mb-1">
                       Git Author Email
                     </label>
                     <input
+                      id="profile-git-author-email"
                       type="email"
                       value={currentProfile.gitAuthorEmail || currentProfile.email}
                       onChange={(e) => onUpdateProfile?.({ gitAuthorEmail: e.target.value })}
@@ -288,13 +296,17 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold text-slate-300 mb-1 flex items-center gap-1">
+                    <label
+                      htmlFor="profile-assignee-handle"
+                      className="block text-xs font-semibold text-slate-300 mb-1 flex items-center gap-1"
+                    >
                       <AtSign className="w-3 h-3 text-indigo-400" />
                       <span>Assignee Handle</span>
                     </label>
                     <div className="relative">
                       <span className="absolute left-3 top-2 text-xs font-mono text-slate-500">@</span>
                       <input
+                        id="profile-assignee-handle"
                         type="text"
                         value={currentProfile.defaultAssigneeHandle || 'michaelsanford'}
                         onChange={(e) =>
@@ -666,7 +678,6 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
             </div>
           )}
         </div>
-      </div>
-    </div>
+    </ModalShell>
   );
 };

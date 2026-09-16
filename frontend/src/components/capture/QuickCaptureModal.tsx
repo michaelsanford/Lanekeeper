@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef } from 'react';
-import confetti from 'canvas-confetti';
 import {
   Zap,
   Mic,
@@ -14,7 +13,18 @@ import {
 } from 'lucide-react';
 import { parseQuickTask } from '../../utils/parser.js';
 import { useSpeechRecognition } from '../../hooks/useSpeechRecognition.js';
+import { ModalShell } from '../common/ModalShell.js';
 import type { TaskPriority } from '../../types/index.js';
+
+async function celebrate(): Promise<void> {
+  if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return;
+  try {
+    // Loaded on demand — a full task is created far less often than this
+    // modal is opened, and canvas-confetti has no business in the main bundle.
+    const { default: confetti } = await import('canvas-confetti');
+    confetti({ particleCount: 40, spread: 60, origin: { y: 0.7 } });
+  } catch {}
+}
 
 interface QuickCaptureModalProps {
   isOpen: boolean;
@@ -41,9 +51,7 @@ export const QuickCaptureModal: React.FC<QuickCaptureModalProps> = ({
     useSpeechRecognition();
 
   useEffect(() => {
-    if (isOpen) {
-      setTimeout(() => inputRef.current?.focus(), 50);
-    } else {
+    if (!isOpen) {
       setInput('');
       if (isListening) stopListening();
     }
@@ -66,13 +74,7 @@ export const QuickCaptureModal: React.FC<QuickCaptureModalProps> = ({
       estimateMinutes: parsed.estimateMinutes
     });
 
-    try {
-      confetti({
-        particleCount: 40,
-        spread: 60,
-        origin: { y: 0.7 }
-      });
-    } catch {}
+    void celebrate();
 
     setInput('');
     onClose();
@@ -94,11 +96,16 @@ export const QuickCaptureModal: React.FC<QuickCaptureModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center pt-24 bg-black/70 backdrop-blur-sm p-4 animate-fade-in">
-      <div className="w-full max-w-xl bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden flex flex-col">
+    <ModalShell
+      onClose={onClose}
+      labelledBy="quick-capture-title"
+      initialFocusRef={inputRef}
+      backdropClassName="fixed inset-0 z-50 flex items-start justify-center pt-24 bg-black/70 backdrop-blur-sm p-4 animate-fade-in"
+      panelClassName="w-full max-w-xl bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden flex flex-col"
+    >
         {/* Modal Header */}
         <div className="px-5 py-3.5 border-b border-slate-800 flex items-center justify-between text-sm text-slate-300">
-          <div className="flex items-center gap-2.5 font-semibold text-slate-100">
+          <div className="flex items-center gap-2.5 font-semibold text-slate-100" id="quick-capture-title">
             <Zap className="w-5 h-5 text-indigo-400 fill-current" />
             <span>Quick Task Ingestion</span>
           </div>
@@ -250,7 +257,6 @@ export const QuickCaptureModal: React.FC<QuickCaptureModalProps> = ({
             </div>
           </div>
         </form>
-      </div>
-    </div>
+    </ModalShell>
   );
 };

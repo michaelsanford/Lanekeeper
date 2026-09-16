@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import QRCode from 'qrcode';
 import { ShieldCheck, Mail, X } from 'lucide-react';
 import type { AuthSession, MfaChallengeData } from '../../types/index.js';
 import { authenticateUser } from '../../auth/cognito.js';
+import { ModalShell } from '../common/ModalShell.js';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -23,14 +23,23 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (mfaChallenge?.secretCode) {
-      const otpUri = `otpauth://totp/Lanekeeper:${email}?secret=${mfaChallenge.secretCode}&issuer=Lanekeeper`;
+    if (!mfaChallenge?.secretCode) return;
+    let cancelled = false;
+    const otpUri = `otpauth://totp/Lanekeeper:${email}?secret=${mfaChallenge.secretCode}&issuer=Lanekeeper`;
+
+    // Loaded on demand — MFA enrollment is a rare, one-time flow, not
+    // something every session needs the QR-generation library for.
+    import('qrcode').then(({ default: QRCode }) => {
       QRCode.toDataURL(otpUri, { margin: 1, width: 200 }, (err, url) => {
-        if (!err && url) {
+        if (!cancelled && !err && url) {
           setQrDataUrl(url);
         }
       });
-    }
+    });
+
+    return () => {
+      cancelled = true;
+    };
   }, [mfaChallenge, email]);
 
   if (!isOpen) return null;
@@ -77,11 +86,14 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 animate-fade-in">
-      <div className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden flex flex-col">
+    <ModalShell
+      onClose={onClose}
+      labelledBy="auth-modal-title"
+      panelClassName="w-full max-w-md bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden flex flex-col"
+    >
         {/* Header */}
         <div className="px-5 py-4 border-b border-slate-800 flex items-center justify-between">
-          <div className="flex items-center gap-2 font-bold text-sm text-slate-100">
+          <div className="flex items-center gap-2 font-bold text-sm text-slate-100" id="auth-modal-title">
             <ShieldCheck className="w-4 h-4 text-indigo-400" />
             <span>
               {step === 'login'
@@ -114,10 +126,13 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               </p>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-mono text-slate-400 uppercase">Email Address</label>
+                <label htmlFor="auth-email" className="text-xs font-mono text-slate-400 uppercase">
+                  Email Address
+                </label>
                 <div className="relative flex items-center">
                   <Mail className="w-4 h-4 text-slate-500 absolute left-3" />
                   <input
+                    id="auth-email"
                     type="email"
                     required
                     placeholder="developer@team.com"
@@ -156,10 +171,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               )}
 
               <div className="space-y-1.5 text-left">
-                <label className="text-xs font-mono text-slate-400 uppercase">
+                <label htmlFor="auth-mfa-setup-code" className="text-xs font-mono text-slate-400 uppercase">
                   6-Digit Authenticator Code
                 </label>
                 <input
+                  id="auth-mfa-setup-code"
                   type="text"
                   maxLength={6}
                   required
@@ -187,10 +203,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               </p>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-mono text-slate-400 uppercase">
+                <label htmlFor="auth-mfa-verify-code" className="text-xs font-mono text-slate-400 uppercase">
                   6-Digit Security Code
                 </label>
                 <input
+                  id="auth-mfa-verify-code"
                   type="text"
                   maxLength={6}
                   required
@@ -211,7 +228,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             </form>
           )}
         </div>
-      </div>
-    </div>
+    </ModalShell>
   );
 };

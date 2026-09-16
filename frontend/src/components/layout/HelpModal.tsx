@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { X, Zap, Terminal, Code, Copy, Check, RotateCw, Key } from 'lucide-react';
 import { LanekeeperLogo } from '../icons/LaneIcons.js';
+import { ModalShell } from '../common/ModalShell.js';
 import type { UserProfile } from '../../types/index.js';
 
 interface HelpModalProps {
@@ -54,11 +55,14 @@ export const HelpModal: React.FC<HelpModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 animate-fade-in">
-      <div className="w-full max-w-xl bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+    <ModalShell
+      onClose={onClose}
+      labelledBy="help-modal-title"
+      panelClassName="w-full max-w-xl bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
+    >
         {/* Modal Header */}
         <div className="px-5 py-3.5 border-b border-slate-800 flex items-center justify-between bg-slate-900/50">
-          <div className="flex items-center gap-2 font-bold text-sm text-slate-100">
+          <div className="flex items-center gap-2 font-bold text-sm text-slate-100" id="help-modal-title">
             <LanekeeperLogo size={18} className="text-indigo-400" />
             <span>Lanekeeper Quick Reference</span>
           </div>
@@ -331,7 +335,6 @@ export const HelpModal: React.FC<HelpModalProps> = ({
             </div>
           </div>
         </div>
-      </div>
-    </div>
+    </ModalShell>
   );
 };

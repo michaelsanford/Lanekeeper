@@ -6,6 +6,7 @@ import {
   LANE_MARKER_CATEGORIES,
   type MarkerDefinition
 } from '../icons/LaneMarker.js';
+import { ModalShell } from '../common/ModalShell.js';
 
 interface LaneMarkerPickerModalProps {
   isOpen: boolean;
@@ -58,8 +59,12 @@ export const LaneMarkerPickerModal: React.FC<LaneMarkerPickerModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4 animate-fade-in select-none">
-      <div className="w-full max-w-xl bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[85vh]">
+    <ModalShell
+      onClose={onClose}
+      labelledBy="lane-marker-picker-title"
+      backdropClassName="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4 animate-fade-in select-none"
+      panelClassName="w-full max-w-xl bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[85vh]"
+    >
         {/* Modal Header */}
         <div className="px-5 py-4 border-b border-slate-800 flex items-center justify-between bg-slate-950/60">
           <div className="flex items-center gap-2.5">
@@ -70,7 +75,7 @@ export const LaneMarkerPickerModal: React.FC<LaneMarkerPickerModalProps> = ({
               <LaneMarker icon={currentIcon} color={laneColor} size={18} />
             </div>
             <div>
-              <h3 className="font-bold text-sm text-slate-100">Choose Swimlane Marker</h3>
+              <h3 id="lane-marker-picker-title" className="font-bold text-sm text-slate-100">Choose Swimlane Marker</h3>
               <p className="text-xs text-slate-400">
                 Marker glyph for <strong className="text-slate-200">{laneName || 'Lane'}</strong>
               </p>
@@ -185,7 +190,6 @@ export const LaneMarkerPickerModal: React.FC<LaneMarkerPickerModalProps> = ({
             <span>Default Buoy</span>
           </button>
         </div>
-      </div>
-    </div>
+    </ModalShell>
   );
 };

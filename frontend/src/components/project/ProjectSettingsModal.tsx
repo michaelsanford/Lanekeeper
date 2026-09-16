@@ -18,6 +18,7 @@ import {
 import { SwimlaneIcon } from '../icons/LaneIcons.js';
 import { LaneMarker } from '../icons/LaneMarker.js';
 import { LaneMarkerPickerModal } from './LaneMarkerPickerModal.js';
+import { ModalShell } from '../common/ModalShell.js';
 import type { ProjectMetadata, Lane, LaneType } from '../../types/index.js';
 import {
   WORKFLOW_TEMPLATES,
@@ -183,13 +184,17 @@ export const ProjectSettingsModal: React.FC<ProjectSettingsModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4 animate-fade-in select-none">
-      <div className="w-full max-w-2xl bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+    <ModalShell
+      onClose={onClose}
+      labelledBy="project-settings-title"
+      backdropClassName="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4 animate-fade-in select-none"
+      panelClassName="w-full max-w-2xl bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
+    >
         {/* Header */}
         <div className="px-6 py-4 border-b border-slate-800 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             <Settings className="w-4 h-4 text-indigo-400" />
-            <h2 className="font-bold text-sm text-slate-100">Project & Workflow Settings</h2>
+            <h2 id="project-settings-title" className="font-bold text-sm text-slate-100">Project & Workflow Settings</h2>
             <span className="text-xs font-mono text-indigo-400 bg-indigo-950/80 px-2 py-0.5 rounded border border-indigo-800/60">
               {metadata.prefix}
             </span>
@@ -258,10 +263,11 @@ export const ProjectSettingsModal: React.FC<ProjectSettingsModalProps> = ({
 
               <form onSubmit={handleGeneralSubmit} className="space-y-4 text-sm">
               <div className="space-y-1.5">
-                <label className="text-slate-400 uppercase font-mono text-xs">
+                <label htmlFor="project-settings-name" className="text-slate-400 uppercase font-mono text-xs">
                   Project Name
                 </label>
                 <input
+                  id="project-settings-name"
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
@@ -270,10 +276,11 @@ export const ProjectSettingsModal: React.FC<ProjectSettingsModalProps> = ({
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-slate-400 uppercase font-mono text-xs">
+                <label htmlFor="project-settings-prefix" className="text-slate-400 uppercase font-mono text-xs">
                   Issue Key Prefix (e.g. LK, API, OPS)
                 </label>
                 <input
+                  id="project-settings-prefix"
                   type="text"
                   maxLength={6}
                   value={prefix}
@@ -286,7 +293,7 @@ export const ProjectSettingsModal: React.FC<ProjectSettingsModalProps> = ({
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-slate-400 uppercase font-mono text-xs">Project ID</label>
+                <span className="block text-slate-400 uppercase font-mono text-xs">Project ID</span>
                 <div className="p-2.5 bg-slate-950/60 rounded-xl border border-slate-800/80 font-mono text-xs text-slate-400">
                   {metadata.id}
                 </div>
@@ -729,6 +736,7 @@ export const ProjectSettingsModal: React.FC<ProjectSettingsModalProps> = ({
                   <input
                     type="text"
                     required
+                    aria-label="New project name"
                     placeholder="Project Name (e.g. Mobile App)"
                     value={newProjectName}
                     onChange={(e) => setNewProjectName(e.target.value)}
@@ -739,6 +747,7 @@ export const ProjectSettingsModal: React.FC<ProjectSettingsModalProps> = ({
                     type="text"
                     required
                     maxLength={6}
+                    aria-label="New project key prefix"
                     placeholder="Key Prefix (e.g. MOB)"
                     value={newProjectPrefix}
                     onChange={(e) => setNewProjectPrefix(e.target.value.toUpperCase())}
@@ -747,10 +756,11 @@ export const ProjectSettingsModal: React.FC<ProjectSettingsModalProps> = ({
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-slate-400 uppercase font-mono text-[11px]">
+                  <label htmlFor="new-project-template" className="text-slate-400 uppercase font-mono text-[11px]">
                     Workflow Template
                   </label>
                   <select
+                    id="new-project-template"
                     value={selectedNewProjectTemplate}
                     onChange={(e) => setSelectedNewProjectTemplate(e.target.value)}
                     className="w-full bg-slate-900 text-slate-200 px-3 py-2 rounded-lg border border-slate-800 outline-none focus:border-indigo-500 text-xs cursor-pointer"
@@ -790,7 +800,6 @@ export const ProjectSettingsModal: React.FC<ProjectSettingsModalProps> = ({
             </div>
           )}
         </div>
-      </div>
 
       {/* Swimlane Marker Palette Modal */}
       {markerPickerTarget && (
@@ -803,6 +812,6 @@ export const ProjectSettingsModal: React.FC<ProjectSettingsModalProps> = ({
           onSelectIcon={handleSelectMarker}
         />
       )}
-    </div>
+    </ModalShell>
   );
 };

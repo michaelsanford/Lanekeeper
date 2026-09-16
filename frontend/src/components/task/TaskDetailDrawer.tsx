@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import type { Task, Lane, TaskPriority, TaskKind } from '../../types/index.js';
 import { useFeatureGate } from '../../features/index.js';
+import { ModalShell } from '../common/ModalShell.js';
 
 interface TaskDetailDrawerProps {
   task: Task | null;
@@ -95,8 +96,12 @@ export const TaskDetailDrawer: React.FC<TaskDetailDrawerProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-40 flex justify-end bg-black/60 backdrop-blur-xs animate-fade-in">
-      <div className="w-full max-w-xl bg-slate-900 border-l border-slate-800 h-full flex flex-col shadow-2xl overflow-y-auto">
+    <ModalShell
+      onClose={onClose}
+      ariaLabel={`Task details: ${task.key} ${task.title}`}
+      backdropClassName="fixed inset-0 z-40 flex justify-end bg-black/60 backdrop-blur-xs animate-fade-in"
+      panelClassName="w-full max-w-xl bg-slate-900 border-l border-slate-800 h-full flex flex-col shadow-2xl overflow-y-auto"
+    >
         {/* Drawer Header */}
         <div className="px-6 py-4 border-b border-slate-800 flex items-center justify-between sticky top-0 bg-slate-900/95 backdrop-blur-md z-10">
           <div className="flex items-center gap-3">
@@ -358,10 +363,11 @@ export const TaskDetailDrawer: React.FC<TaskDetailDrawerProps> = ({
 
           {/* Markdown Description */}
           <div className="space-y-2">
-            <label className="text-sm font-bold uppercase tracking-wider text-slate-400">
+            <label htmlFor="task-description" className="text-sm font-bold uppercase tracking-wider text-slate-400">
               Description & Specifications (Markdown)
             </label>
             <textarea
+              id="task-description"
               rows={6}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
@@ -374,10 +380,10 @@ export const TaskDetailDrawer: React.FC<TaskDetailDrawerProps> = ({
           {/* Subtask / Checklist with "Promote to Task" */}
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <label className="text-sm font-bold uppercase tracking-wider text-slate-400 flex items-center gap-2">
-                <CheckSquare className="w-4 h-4 text-indigo-400" />
+              <span className="text-sm font-bold uppercase tracking-wider text-slate-400 flex items-center gap-2">
+                <CheckSquare className="w-4 h-4 text-indigo-400" aria-hidden="true" />
                 <span>Checklist & Subtasks ({task.subtasks.length})</span>
-              </label>
+              </span>
             </div>
 
             <div className="space-y-2">
@@ -434,7 +440,6 @@ export const TaskDetailDrawer: React.FC<TaskDetailDrawerProps> = ({
             </form>
           </div>
         </div>
-      </div>
-    </div>
+    </ModalShell>
   );
 };
