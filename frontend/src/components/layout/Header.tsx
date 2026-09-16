@@ -23,7 +23,7 @@ import {
 } from '../icons/LaneIcons.js';
 import type { ProjectMetadata, UserProfile } from '../../types/index.js';
 import type { NetworkStatus } from '../../hooks/useNetworkStatus.js';
-import type { ToolbarRevealMode } from '../../hooks/useToolbarPreferences.js';
+import { type ToolbarRevealMode, useHoverReveal } from '../../hooks/useToolbarPreferences.js';
 import { getWorkflowTemplate } from '../../utils/templates.js';
 import { UserAvatar } from './UserAvatar.js';
 import { ProfileMenu } from './ProfileMenu.js';
@@ -76,6 +76,17 @@ export const Header: React.FC<HeaderProps> = ({
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const projectMenuRef = useRef<HTMLDivElement>(null);
 
+  // Uninterruptible 1-second hold reveals for toolbar controls
+  const brandReveal = useHoverReveal({ holdDelayMs: 1000 });
+  const projectReveal = useHoverReveal({ holdDelayMs: 1000 });
+  const boardReveal = useHoverReveal({ holdDelayMs: 1000 });
+  const tableReveal = useHoverReveal({ holdDelayMs: 1000 });
+  const calendarReveal = useHoverReveal({ holdDelayMs: 1000 });
+  const flightDeckReveal = useHoverReveal({ holdDelayMs: 1000 });
+  const captureReveal = useHoverReveal({ holdDelayMs: 1000 });
+  const notifyReveal = useHoverReveal({ holdDelayMs: 1000 });
+  const statusReveal = useHoverReveal({ holdDelayMs: 1000 });
+
   const effectiveStatus: NetworkStatus = networkStatus || (isOnline === false ? 'offline' : 'online');
 
   const currentProfile: UserProfile = profile || {
@@ -113,15 +124,16 @@ export const Header: React.FC<HeaderProps> = ({
         <div
           className="group flex items-center cursor-pointer select-none"
           title="Lanekeeper"
+          {...brandReveal.bind}
         >
           <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-cyan-500 flex items-center justify-center shadow-md shadow-indigo-500/20 flex-shrink-0 transition-transform duration-200 group-hover:scale-105">
             <LanekeeperLogo size={18} className="text-white" />
           </div>
           <div
             className={
-              revealMode === 'expanded'
-                ? 'max-w-[120px] opacity-100 ml-2.5 transition-all duration-300 ease-out whitespace-nowrap'
-                : 'max-w-0 overflow-hidden opacity-0 group-hover:max-w-[120px] group-hover:opacity-100 group-hover:ml-2.5 transition-all duration-300 ease-out whitespace-nowrap'
+              revealMode === 'expanded' || brandReveal.isRevealed
+                ? 'max-w-[120px] opacity-100 ml-2.5 transition-all duration-500 ease-in-out whitespace-nowrap'
+                : 'max-w-0 overflow-hidden opacity-0 group-hover:max-w-[120px] group-hover:opacity-100 group-hover:ml-2.5 transition-all duration-500 ease-in-out whitespace-nowrap'
             }
           >
             <span className="font-semibold text-sm text-slate-300 tracking-tight">Lanekeeper</span>
@@ -136,6 +148,7 @@ export const Header: React.FC<HeaderProps> = ({
             onClick={() => setIsProjectMenuOpen((o) => !o)}
             title={`Project: ${metadata.name} (${metadata.prefix}) - Click to switch`}
             className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg hover:bg-slate-800/70 border border-transparent hover:border-slate-800 transition-all text-left group/proj cursor-pointer select-none"
+            {...projectReveal.bind}
           >
             <span className="text-xs font-mono font-bold text-indigo-300 bg-indigo-950/90 px-2 py-0.5 rounded border border-indigo-800/70 shadow-sm group-hover/proj:border-indigo-600 transition-colors shrink-0">
               {metadata.prefix}
@@ -143,7 +156,9 @@ export const Header: React.FC<HeaderProps> = ({
             <div
               className={
                 revealMode === 'zen'
-                  ? 'max-w-0 overflow-hidden opacity-0 group-hover/proj:max-w-[320px] group-hover/proj:opacity-100 group-hover/proj:ml-1 transition-all duration-300 ease-out whitespace-nowrap flex items-center gap-1.5'
+                  ? projectReveal.isRevealed || isProjectMenuOpen
+                    ? 'max-w-[320px] opacity-100 ml-1 transition-all duration-500 ease-in-out whitespace-nowrap flex items-center gap-1.5'
+                    : 'max-w-0 overflow-hidden opacity-0 group-hover/proj:max-w-[320px] group-hover/proj:opacity-100 group-hover/proj:ml-1 transition-all duration-500 ease-in-out whitespace-nowrap flex items-center gap-1.5'
                   : 'flex items-center gap-1.5 ml-1'
               }
             >
@@ -156,7 +171,7 @@ export const Header: React.FC<HeaderProps> = ({
                 }`}
               />
             </div>
-            {revealMode === 'zen' && (
+            {revealMode === 'zen' && !projectReveal.isRevealed && !isProjectMenuOpen && (
               <ChevronDown
                 className={`w-3.5 h-3.5 text-slate-400 group-hover/proj:text-slate-200 transition-transform shrink-0 group-hover/proj:hidden ${
                   isProjectMenuOpen ? 'rotate-180' : ''
@@ -257,6 +272,7 @@ export const Header: React.FC<HeaderProps> = ({
                 : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/60'
             }`}
             title="Swimlane Board View"
+            {...boardReveal.bind}
           >
             <SwimlaneIcon size={16} className="shrink-0" />
             <span
@@ -265,7 +281,9 @@ export const Header: React.FC<HeaderProps> = ({
                   ? 'ml-1.5 hidden md:inline font-medium'
                   : revealMode === 'balanced' && activeView === 'board'
                   ? 'ml-1.5 inline font-medium'
-                  : 'max-w-0 overflow-hidden opacity-0 group-hover/view-btn:max-w-[100px] group-hover/view-btn:opacity-100 group-hover/view-btn:ml-1.5 transition-all duration-300 ease-out whitespace-nowrap font-medium'
+                  : boardReveal.isRevealed
+                  ? 'max-w-[100px] opacity-100 ml-1.5 transition-all duration-500 ease-in-out whitespace-nowrap font-medium'
+                  : 'max-w-0 overflow-hidden opacity-0 group-hover/view-btn:max-w-[100px] group-hover/view-btn:opacity-100 group-hover/view-btn:ml-1.5 transition-all duration-500 ease-in-out whitespace-nowrap font-medium'
               }
             >
               Board
@@ -281,6 +299,7 @@ export const Header: React.FC<HeaderProps> = ({
                 : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/60'
             }`}
             title="Data Table View"
+            {...tableReveal.bind}
           >
             <TableIcon className="w-4 h-4 shrink-0" />
             <span
@@ -289,7 +308,9 @@ export const Header: React.FC<HeaderProps> = ({
                   ? 'ml-1.5 hidden md:inline font-medium'
                   : revealMode === 'balanced' && activeView === 'table'
                   ? 'ml-1.5 inline font-medium'
-                  : 'max-w-0 overflow-hidden opacity-0 group-hover/view-btn:max-w-[100px] group-hover/view-btn:opacity-100 group-hover/view-btn:ml-1.5 transition-all duration-300 ease-out whitespace-nowrap font-medium'
+                  : tableReveal.isRevealed
+                  ? 'max-w-[100px] opacity-100 ml-1.5 transition-all duration-500 ease-in-out whitespace-nowrap font-medium'
+                  : 'max-w-0 overflow-hidden opacity-0 group-hover/view-btn:max-w-[100px] group-hover/view-btn:opacity-100 group-hover/view-btn:ml-1.5 transition-all duration-500 ease-in-out whitespace-nowrap font-medium'
               }
             >
               Table
@@ -305,6 +326,7 @@ export const Header: React.FC<HeaderProps> = ({
                 : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/60'
             }`}
             title="Calendar Schedule View"
+            {...calendarReveal.bind}
           >
             <CalendarIcon className="w-4 h-4 shrink-0" />
             <span
@@ -313,7 +335,9 @@ export const Header: React.FC<HeaderProps> = ({
                   ? 'ml-1.5 hidden md:inline font-medium'
                   : revealMode === 'balanced' && activeView === 'calendar'
                   ? 'ml-1.5 inline font-medium'
-                  : 'max-w-0 overflow-hidden opacity-0 group-hover/view-btn:max-w-[100px] group-hover/view-btn:opacity-100 group-hover/view-btn:ml-1.5 transition-all duration-300 ease-out whitespace-nowrap font-medium'
+                  : calendarReveal.isRevealed
+                  ? 'max-w-[100px] opacity-100 ml-1.5 transition-all duration-500 ease-in-out whitespace-nowrap font-medium'
+                  : 'max-w-0 overflow-hidden opacity-0 group-hover/view-btn:max-w-[100px] group-hover/view-btn:opacity-100 group-hover/view-btn:ml-1.5 transition-all duration-500 ease-in-out whitespace-nowrap font-medium'
               }
             >
               Calendar
@@ -329,6 +353,7 @@ export const Header: React.FC<HeaderProps> = ({
                 : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/60'
             }`}
             title="Keep to your lane focus mode (Press F)"
+            {...flightDeckReveal.bind}
           >
             <LaneKeepIcon size={16} className="shrink-0" />
             <span
@@ -337,7 +362,9 @@ export const Header: React.FC<HeaderProps> = ({
                   ? 'ml-1.5 hidden md:inline font-medium'
                   : revealMode === 'balanced' && activeView === 'flightdeck'
                   ? 'ml-1.5 inline font-medium'
-                  : 'max-w-0 overflow-hidden opacity-0 group-hover/view-btn:max-w-[100px] group-hover/view-btn:opacity-100 group-hover/view-btn:ml-1.5 transition-all duration-300 ease-out whitespace-nowrap font-medium'
+                  : flightDeckReveal.isRevealed
+                  ? 'max-w-[100px] opacity-100 ml-1.5 transition-all duration-500 ease-in-out whitespace-nowrap font-medium'
+                  : 'max-w-0 overflow-hidden opacity-0 group-hover/view-btn:max-w-[100px] group-hover/view-btn:opacity-100 group-hover/view-btn:ml-1.5 transition-all duration-500 ease-in-out whitespace-nowrap font-medium'
               }
             >
               Flight Deck
@@ -360,13 +387,16 @@ export const Header: React.FC<HeaderProps> = ({
             revealMode === 'expanded' ? 'px-3.5' : 'px-2.5'
           }`}
           title="Quick Capture Task (C)"
+          {...captureReveal.bind}
         >
           <Zap className="w-4 h-4 fill-current shrink-0" />
           <div
             className={
               revealMode === 'expanded'
                 ? 'flex items-center gap-1.5 ml-1.5 whitespace-nowrap'
-                : 'max-w-0 overflow-hidden opacity-0 group-hover/capture:max-w-[110px] group-hover/capture:opacity-100 group-hover/capture:ml-1.5 transition-all duration-300 ease-out whitespace-nowrap flex items-center gap-1.5'
+                : captureReveal.isRevealed
+                ? 'max-w-[110px] opacity-100 ml-1.5 transition-all duration-500 ease-in-out whitespace-nowrap flex items-center gap-1.5'
+                : 'max-w-0 overflow-hidden opacity-0 group-hover/capture:max-w-[110px] group-hover/capture:opacity-100 group-hover/capture:ml-1.5 transition-all duration-500 ease-in-out whitespace-nowrap flex items-center gap-1.5'
             }
           >
             <span>Capture</span>
@@ -388,13 +418,14 @@ export const Header: React.FC<HeaderProps> = ({
               ? 'Push Notifications: Blocked / Denied by browser'
               : 'Enable Web Push Notifications'
           }
-          className={`group/notify h-9 px-2.5 flex items-center rounded-lg border transition-all duration-300 ease-out cursor-pointer select-none ${
+          className={`group/notify h-9 px-2.5 flex items-center rounded-lg border transition-all duration-500 ease-in-out cursor-pointer select-none ${
             pushSubscribed
               ? 'bg-emerald-950/50 border-emerald-800/60 text-emerald-400 hover:bg-emerald-900/50'
               : pushPermission === 'denied'
               ? 'bg-rose-950/50 border-rose-800/60 text-rose-400 hover:bg-rose-900/50'
               : 'bg-slate-800/50 border-slate-700/60 text-slate-400 hover:text-slate-200 hover:bg-slate-800/80'
           }`}
+          {...notifyReveal.bind}
         >
           {pushSubscribed ? (
             <BellRing className="w-4 h-4 shrink-0" />
@@ -407,7 +438,9 @@ export const Header: React.FC<HeaderProps> = ({
             className={
               revealMode === 'expanded'
                 ? 'ml-1.5 whitespace-nowrap text-xs font-mono font-medium'
-                : 'max-w-0 overflow-hidden opacity-0 group-hover/notify:max-w-[140px] group-hover/notify:opacity-100 group-hover/notify:ml-1.5 transition-all duration-300 ease-out whitespace-nowrap text-xs font-mono font-medium'
+                : notifyReveal.isRevealed
+                ? 'max-w-[140px] opacity-100 ml-1.5 transition-all duration-500 ease-in-out whitespace-nowrap text-xs font-mono font-medium'
+                : 'max-w-0 overflow-hidden opacity-0 group-hover/notify:max-w-[140px] group-hover/notify:opacity-100 group-hover/notify:ml-1.5 transition-all duration-500 ease-in-out whitespace-nowrap text-xs font-mono font-medium'
             }
           >
             {pushSubscribed
@@ -427,11 +460,12 @@ export const Header: React.FC<HeaderProps> = ({
               ? 'Server unreachable - changes saved locally and will sync when server reconnects'
               : 'Offline mode - changes saved locally'
           }
-          className={`group/badge h-9 px-2.5 flex items-center rounded-lg border transition-all duration-300 ease-out cursor-default select-none ${
+          className={`group/badge h-9 px-2.5 flex items-center rounded-lg border transition-all duration-500 ease-in-out cursor-default select-none ${
             effectiveStatus === 'online'
               ? 'bg-emerald-950/40 text-emerald-400 border-emerald-800/50 hover:bg-emerald-950/60'
               : 'bg-amber-950/40 text-amber-400 border-amber-800/50 hover:bg-amber-950/60'
           }`}
+          {...statusReveal.bind}
         >
           {effectiveStatus === 'online' ? (
             <Wifi className="w-4 h-4 shrink-0 text-emerald-400" />
@@ -444,7 +478,9 @@ export const Header: React.FC<HeaderProps> = ({
             className={
               revealMode === 'expanded'
                 ? 'ml-1.5 whitespace-nowrap text-xs font-mono font-medium'
-                : 'max-w-0 overflow-hidden opacity-0 group-hover/badge:max-w-[140px] group-hover/badge:opacity-100 group-hover/badge:ml-1.5 transition-all duration-300 ease-out whitespace-nowrap text-xs font-mono font-medium'
+                : statusReveal.isRevealed
+                ? 'max-w-[140px] opacity-100 ml-1.5 transition-all duration-500 ease-in-out whitespace-nowrap text-xs font-mono font-medium'
+                : 'max-w-0 overflow-hidden opacity-0 group-hover/badge:max-w-[140px] group-hover/badge:opacity-100 group-hover/badge:ml-1.5 transition-all duration-500 ease-in-out whitespace-nowrap text-xs font-mono font-medium'
             }
           >
             {effectiveStatus === 'online'

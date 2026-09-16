@@ -390,107 +390,14 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
 
           {/* Tab 1: Theme & Appearance */}
           {activeTab === 'themes' && (
-            <div className="space-y-5 text-sm">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-slate-800/80">
-                <div>
-                  <h3 className="text-sm font-bold text-slate-100">Coding Colour Schemes</h3>
-                  <p className="text-xs text-slate-400 mt-0.5">
-                    Select display mode and an iconic palette to customize Lanekeeper.
-                  </p>
-                </div>
-
-                {/* Mode Switcher: Light vs Dark */}
-                <div className="flex items-center bg-slate-950/80 p-1 rounded-xl border border-slate-800 self-start sm:self-auto">
-                  <button
-                    type="button"
-                    onClick={() => onSelectMode('light')}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-                      currentMode === 'light'
-                        ? 'bg-indigo-600 text-white shadow-sm'
-                        : 'text-slate-400 hover:text-slate-200'
-                    }`}
-                  >
-                    <Sun className="w-3.5 h-3.5" />
-                    <span>Light Mode</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => onSelectMode('dark')}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-                      currentMode === 'dark'
-                        ? 'bg-indigo-600 text-white shadow-sm'
-                        : 'text-slate-400 hover:text-slate-200'
-                    }`}
-                  >
-                    <Moon className="w-3.5 h-3.5" />
-                    <span>Dark Mode</span>
-                  </button>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                {THEMES.map((th) => {
-                  const isActive = th.id === currentTheme;
-                  const preview = getThemePreview(th, currentMode);
-                  return (
-                    <div
-                      key={th.id}
-                      onClick={() => onSelectTheme(th.id)}
-                      className={`p-4 rounded-xl border transition-all cursor-pointer flex flex-col justify-between space-y-3 ${
-                        isActive
-                          ? 'bg-indigo-950/40 border-indigo-500/70 shadow-lg ring-1 ring-indigo-500/50'
-                          : 'bg-slate-950/80 border-slate-800 hover:border-slate-700 hover:bg-slate-900/60'
-                      }`}
-                    >
-                      <div className="space-y-2">
-                        <div className="flex items-start justify-between gap-2">
-                          <div>
-                            <div className="font-semibold text-slate-100 text-sm">{th.name}</div>
-                            <div className="text-[11px] text-slate-400 font-mono mt-0.5">{th.authorOrOrigin}</div>
-                          </div>
-                          {isActive && (
-                            <span className="flex items-center gap-1 text-[11px] font-semibold text-indigo-400 bg-indigo-950 px-2 py-0.5 rounded border border-indigo-800/70">
-                              <Check className="w-3 h-3" />
-                              Active
-                            </span>
-                          )}
-                        </div>
-                        <p className="text-xs text-slate-400 line-clamp-2 leading-relaxed">{th.description}</p>
-                      </div>
-
-                      {/* 3-Color Swatch Strip */}
-                      <div className="flex items-center gap-2 pt-2 border-t border-slate-800/70">
-                        <span className="text-[10px] uppercase font-mono text-slate-500">Palette:</span>
-                        <div className="flex items-center -space-x-1.5">
-                          <span
-                            className="w-4 h-4 rounded-full border border-slate-700 shadow-sm"
-                            style={{ backgroundColor: preview.bg }}
-                            title={`Background: ${preview.bg}`}
-                          />
-                          <span
-                            className="w-4 h-4 rounded-full border border-slate-700 shadow-sm"
-                            style={{ backgroundColor: preview.surface }}
-                            title={`Surface: ${preview.surface}`}
-                          />
-                          <span
-                            className="w-4 h-4 rounded-full border border-slate-700 shadow-sm"
-                            style={{ backgroundColor: preview.accent }}
-                            title={`Accent: ${preview.accent}`}
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-
-              {/* Section: Toolbar Density & Slide Reveal */}
-              <div className="pt-4 border-t border-slate-800/80 space-y-3">
-                <div>
-                  <h4 className="text-sm font-bold text-slate-100 flex items-center gap-1.5">
+            <div className="space-y-6 text-sm">
+              {/* Section: Toolbar Density & Slide Reveal (Above colour themes) */}
+              <div className="space-y-3">
+                <div className="pb-2 border-b border-slate-800/80">
+                  <h3 className="text-sm font-bold text-slate-100 flex items-center gap-1.5">
                     <Sliders className="w-4 h-4 text-indigo-400" />
                     <span>Toolbar Density &amp; Slide Reveal</span>
-                  </h4>
+                  </h3>
                   <p className="text-xs text-slate-400 mt-0.5">
                     Choose how toolbar labels and peripheral controls expand on hover.
                   </p>
@@ -562,6 +469,102 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
                       Static layout. All labels remain visible where viewport allows, with hover expansion animations disabled.
                     </p>
                   </div>
+                </div>
+              </div>
+
+              {/* Section: Coding Colour Schemes */}
+              <div className="pt-2 border-t border-slate-800/80 space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-slate-800/80">
+                  <div>
+                    <h3 className="text-sm font-bold text-slate-100">Coding Colour Schemes</h3>
+                    <p className="text-xs text-slate-400 mt-0.5">
+                      Select display mode and an iconic palette to customize Lanekeeper.
+                    </p>
+                  </div>
+
+                  {/* Mode Switcher: Light vs Dark */}
+                  <div className="flex items-center bg-slate-950/80 p-1 rounded-xl border border-slate-800 self-start sm:self-auto">
+                    <button
+                      type="button"
+                      onClick={() => onSelectMode('light')}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                        currentMode === 'light'
+                          ? 'bg-indigo-600 text-white shadow-sm'
+                          : 'text-slate-400 hover:text-slate-200'
+                      }`}
+                    >
+                      <Sun className="w-3.5 h-3.5" />
+                      <span>Light Mode</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => onSelectMode('dark')}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                        currentMode === 'dark'
+                          ? 'bg-indigo-600 text-white shadow-sm'
+                          : 'text-slate-400 hover:text-slate-200'
+                      }`}
+                    >
+                      <Moon className="w-3.5 h-3.5" />
+                      <span>Dark Mode</span>
+                    </button>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                  {THEMES.map((th) => {
+                    const isActive = th.id === currentTheme;
+                    const preview = getThemePreview(th, currentMode);
+                    return (
+                      <div
+                        key={th.id}
+                        onClick={() => onSelectTheme(th.id)}
+                        className={`p-4 rounded-xl border transition-all cursor-pointer flex flex-col justify-between space-y-3 ${
+                          isActive
+                            ? 'bg-indigo-950/40 border-indigo-500/70 shadow-lg ring-1 ring-indigo-500/50'
+                            : 'bg-slate-950/80 border-slate-800 hover:border-slate-700 hover:bg-slate-900/60'
+                        }`}
+                      >
+                        <div className="space-y-2">
+                          <div className="flex items-start justify-between gap-2">
+                            <div>
+                              <div className="font-semibold text-slate-100 text-sm">{th.name}</div>
+                              <div className="text-[11px] text-slate-400 font-mono mt-0.5">{th.authorOrOrigin}</div>
+                            </div>
+                            {isActive && (
+                              <span className="flex items-center gap-1 text-[11px] font-semibold text-indigo-400 bg-indigo-950 px-2 py-0.5 rounded border border-indigo-800/70">
+                                <Check className="w-3 h-3" />
+                                Active
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-xs text-slate-400 line-clamp-2 leading-relaxed">{th.description}</p>
+                        </div>
+
+                        {/* 3-Color Swatch Strip */}
+                        <div className="flex items-center gap-2 pt-2 border-t border-slate-800/70">
+                          <span className="text-[10px] uppercase font-mono text-slate-500">Palette:</span>
+                          <div className="flex items-center -space-x-1.5">
+                            <span
+                              className="w-4 h-4 rounded-full border border-slate-700 shadow-sm"
+                              style={{ backgroundColor: preview.bg }}
+                              title={`Background: ${preview.bg}`}
+                            />
+                            <span
+                              className="w-4 h-4 rounded-full border border-slate-700 shadow-sm"
+                              style={{ backgroundColor: preview.surface }}
+                              title={`Surface: ${preview.surface}`}
+                            />
+                            <span
+                              className="w-4 h-4 rounded-full border border-slate-700 shadow-sm"
+                              style={{ backgroundColor: preview.accent }}
+                              title={`Accent: ${preview.accent}`}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             </div>

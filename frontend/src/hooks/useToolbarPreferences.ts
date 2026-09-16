@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 
 export type ToolbarRevealMode = 'balanced' | 'zen' | 'expanded';
 
@@ -35,6 +35,94 @@ export function saveToolbarRevealMode(mode: ToolbarRevealMode): void {
       new CustomEvent(TOOLBAR_REVEAL_CHANGE_EVENT, { detail: mode })
     );
   }
+}
+
+export interface UseHoverRevealOptions {
+  holdDelayMs?: number;
+}
+
+export class HoverRevealController {
+  public holdDelayMs: number;
+  private timeoutId: ReturnType<typeof setTimeout> | null = null;
+  private onChange?: (isRevealed: boolean) => void;
+  public isRevealed: boolean = false;
+
+  constructor(options: { holdDelayMs?: number; onChange?: (isRevealed: boolean) => void } = {}) {
+    this.holdDelayMs = options.holdDelayMs ?? 1000;
+    this.onChange = options.onChange;
+  }
+
+  public handleMouseEnter = () => {
+    if (this.timeoutId) {
+      clearTimeout(this.timeoutId);
+      this.timeoutId = null;
+    }
+    this.isRevealed = true;
+    this.onChange?.(true);
+  };
+
+  public handleMouseLeave = () => {
+    if (this.timeoutId) {
+      clearTimeout(this.timeoutId);
+    }
+    this.timeoutId = setTimeout(() => {
+      this.isRevealed = false;
+      this.timeoutId = null;
+      this.onChange?.(false);
+    }, this.holdDelayMs);
+  };
+
+  public closeImmediate = () => {
+    if (this.timeoutId) {
+      clearTimeout(this.timeoutId);
+      this.timeoutId = null;
+    }
+    this.isRevealed = false;
+    this.onChange?.(false);
+  };
+
+  public dispose = () => {
+    if (this.timeoutId) {
+      clearTimeout(this.timeoutId);
+      this.timeoutId = null;
+    }
+  };
+}
+
+export function useHoverReveal(options: UseHoverRevealOptions = {}) {
+  const { holdDelayMs = 1000 } = options;
+  const [isRevealed, setIsRevealed] = useState(false);
+  const controllerRef = useRef<HoverRevealController | null>(null);
+
+  if (!controllerRef.current) {
+    controllerRef.current = new HoverRevealController({
+      holdDelayMs,
+      onChange: setIsRevealed
+    });
+  } else {
+    controllerRef.current.holdDelayMs = holdDelayMs;
+  }
+
+  useEffect(() => {
+    const controller = controllerRef.current;
+    return () => {
+      controller?.dispose();
+    };
+  }, []);
+
+  const controller = controllerRef.current;
+
+  return {
+    isRevealed,
+    setIsRevealed,
+    closeImmediate: controller.closeImmediate,
+    bind: {
+      onMouseEnter: controller.handleMouseEnter,
+      onMouseLeave: controller.handleMouseLeave,
+      onFocus: controller.handleMouseEnter,
+      onBlur: controller.handleMouseLeave
+    }
+  };
 }
 
 export function useToolbarPreferences() {

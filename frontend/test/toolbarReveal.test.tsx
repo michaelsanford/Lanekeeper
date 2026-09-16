@@ -5,7 +5,9 @@ import {
   getStoredToolbarRevealMode,
   saveToolbarRevealMode,
   TOOLBAR_REVEAL_STORAGE_KEY,
-  TOOLBAR_REVEAL_CHANGE_EVENT
+  TOOLBAR_REVEAL_CHANGE_EVENT,
+  useHoverReveal,
+  HoverRevealController
 } from '../src/hooks/useToolbarPreferences.js';
 import { Header } from '../src/components/layout/Header.js';
 import { AppSettingsModal } from '../src/components/settings/AppSettingsModal.js';
@@ -92,6 +94,75 @@ describe('Toolbar Slide Reveal Architecture & Preferences', () => {
 
       window.removeEventListener(TOOLBAR_REVEAL_CHANGE_EVENT, listener);
     });
+
+    it('initializes useHoverReveal with isRevealed false and provides event binders', () => {
+      let captured: any;
+      const HookTester = () => {
+        captured = useHoverReveal({ holdDelayMs: 1000 });
+        return <div>{captured.isRevealed ? 'REVEALED' : 'COLLAPSED'}</div>;
+      };
+
+      const html = renderToString(<HookTester />);
+      expect(html).toContain('COLLAPSED');
+      expect(captured).toBeDefined();
+      expect(captured.isRevealed).toBe(false);
+      expect(typeof captured.bind.onMouseEnter).toBe('function');
+      expect(typeof captured.bind.onMouseLeave).toBe('function');
+      expect(typeof captured.bind.onFocus).toBe('function');
+      expect(typeof captured.bind.onBlur).toBe('function');
+      expect(typeof captured.closeImmediate).toBe('function');
+    });
+
+    it('holds items open for at least 1 second after cursor exit without interruption', () => {
+      vi.useFakeTimers();
+
+      const onChange = vi.fn();
+      const controller = new HoverRevealController({ holdDelayMs: 1000, onChange });
+      expect(controller.isRevealed).toBe(false);
+
+      // Simulate mouse enter
+      controller.handleMouseEnter();
+      expect(controller.isRevealed).toBe(true);
+      expect(onChange).toHaveBeenLastCalledWith(true);
+
+      // Simulate mouse exit after short duration
+      controller.handleMouseLeave();
+
+      // Immediately after cursor leaves, item remains open (uninterruptible)
+      expect(controller.isRevealed).toBe(true);
+
+      // Remains open after 500ms
+      vi.advanceTimersByTime(500);
+      expect(controller.isRevealed).toBe(true);
+
+      // Remains open after 999ms
+      vi.advanceTimersByTime(499);
+      expect(controller.isRevealed).toBe(true);
+
+      // After 1000ms from exit, closes
+      vi.advanceTimersByTime(1);
+      expect(controller.isRevealed).toBe(false);
+      expect(onChange).toHaveBeenLastCalledWith(false);
+
+      // Test re-entering before 1000ms cancels closing
+      controller.handleMouseEnter();
+      expect(controller.isRevealed).toBe(true);
+      controller.handleMouseLeave();
+      vi.advanceTimersByTime(600);
+      expect(controller.isRevealed).toBe(true);
+      // Re-enter cursor
+      controller.handleMouseEnter();
+      // Even if another 600ms passes, it remains open because re-entering cancelled timer
+      vi.advanceTimersByTime(600);
+      expect(controller.isRevealed).toBe(true);
+
+      // Test closeImmediate
+      controller.closeImmediate();
+      expect(controller.isRevealed).toBe(false);
+
+      controller.dispose();
+      vi.useRealTimers();
+    });
   });
 
   describe('Header Rendering by Reveal Mode', () => {
@@ -120,6 +191,7 @@ describe('Toolbar Slide Reveal Architecture & Preferences', () => {
 
       // Inactive views (Table, Calendar, Flight Deck) have slide-reveal classes
       expect(html).toContain('group-hover/view-btn:max-w-[100px]');
+      expect(html).toContain('duration-500 ease-in-out');
 
       // Quick capture is compact and slides out on hover
       expect(html).toContain('group-hover/capture:max-w-[110px]');
@@ -150,6 +222,7 @@ describe('Toolbar Slide Reveal Architecture & Preferences', () => {
 
       // Project name collapses at rest and slides out on hover
       expect(html).toContain('group-hover/proj:max-w-[320px]');
+      expect(html).toContain('duration-500 ease-in-out');
 
       // Quick capture is compact and slides out on hover
       expect(html).toContain('group-hover/capture:max-w-[110px]');
@@ -191,7 +264,7 @@ describe('Toolbar Slide Reveal Architecture & Preferences', () => {
   });
 
   describe('Settings Modal Toolbar Density Controls', () => {
-    it('renders Toolbar Density & Slide Reveal controls in themes tab', () => {
+    it('renders Toolbar Density & Slide Reveal controls above colour schemes in themes tab', () => {
       const onSelectRevealMode = vi.fn();
 
       const html = renderToString(
@@ -216,6 +289,13 @@ describe('Toolbar Slide Reveal Architecture & Preferences', () => {
       expect(html).toContain('Zen / Minimalist');
       expect(html).toContain('Always Expanded');
       expect(html).toContain('Active');
+
+      // Verify Toolbar Density is positioned before Coding Colour Schemes
+      const densityIndex = html.indexOf('Toolbar Density &amp; Slide Reveal');
+      const colourSchemesIndex = html.indexOf('Coding Colour Schemes');
+      expect(densityIndex).toBeGreaterThan(-1);
+      expect(colourSchemesIndex).toBeGreaterThan(-1);
+      expect(densityIndex).toBeLessThan(colourSchemesIndex);
     });
   });
 });
