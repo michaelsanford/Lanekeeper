@@ -16,14 +16,14 @@ interface LaneColumnProps {
   onArchiveCompletedTasks?: (olderThanDays: number) => number;
 }
 
-export const LaneColumn: React.FC<LaneColumnProps> = ({
+export const LaneColumn: React.FC<LaneColumnProps> = React.memo(function LaneColumn({
   lane,
   tasks,
   onSelectTask,
   onToggleTimer,
   onAddTask,
   onArchiveCompletedTasks
-}) => {
+}) {
   const { isEnabled } = useFeatureGate();
   const isArchivingEnabled = isEnabled('doneLaneArchiving');
   const isCompletedLane = lane.type === 'completed';
@@ -207,4 +207,4 @@ export const LaneColumn: React.FC<LaneColumnProps> = ({
       </div>
     </div>
   );
-};
+});

@@ -23,12 +23,12 @@ interface TaskCardProps {
   enableTimeTracking?: boolean;
 }
 
-export const TaskCard: React.FC<TaskCardProps> = ({
+export const TaskCard: React.FC<TaskCardProps> = React.memo(function TaskCard({
   task,
   onSelect,
   onToggleTimer,
   enableTimeTracking
-}) => {
+}) {
   const { isEnabled } = useFeatureGate();
   const isTimeTrackingEnabled = enableTimeTracking ?? isEnabled('timeTracking');
 
@@ -278,4 +278,4 @@ export const TaskCard: React.FC<TaskCardProps> = ({
       </div>
     </div>
   );
-};
+});
