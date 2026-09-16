@@ -3,6 +3,8 @@
 > **A fast, local-first task and project management PWA designed for solo developers and small engineering teams.**  
 > *The sweet spot between Todoist (instant, frictionless capture, low latency) and Jira (project keys, kanban workflow lanes, structured metadata, estimation, git automation).*
 
+**Live marketing site:** [www.michaelsanford.com/Lanekeeper](https://www.michaelsanford.com/Lanekeeper/) — runs the real board, quick-capture parser, and `lk` CLI in the browser.
+
 ---
 
 ## Key Capabilities
@@ -90,14 +92,14 @@ Type naturally into the Quick Capture modal (`C` or `Cmd+K`) or via the `lk` CLI
 Upgrade Cognito auth pool #backend #infra !urgent ^tomorrow ~2h @michael
 ```
 
-| Token | Meaning | Examples |
-| :--- | :--- | :--- |
-| `text` | Task Title | Leading or trailing description |
-| `#tag` | Category / Tag | `#backend`, `#frontend`, `#infra` |
-| `!priority` | Task Priority | `!urgent`, `!high`, `!med`, `!low` |
-| `^due` | Due Date | `^today`, `^tomorrow`, `^friday`, `^2026-10-31` |
-| `~estimate` | Time Sizing | `~30m`, `~1h`, `~2.5h`, `~3pt` |
-| `@assignee` | Team Member | `@michael`, `@alex` |
+| Token       | Meaning        | Examples                                        |
+|:------------|:---------------|:------------------------------------------------|
+| `text`      | Task Title     | Leading or trailing description                 |
+| `#tag`      | Category / Tag | `#backend`, `#frontend`, `#infra`               |
+| `!priority` | Task Priority  | `!urgent`, `!high`, `!med`, `!low`              |
+| `^due`      | Due Date       | `^today`, `^tomorrow`, `^friday`, `^2026-10-31` |
+| `~estimate` | Time Sizing    | `~30m`, `~1h`, `~2.5h`, `~3pt`                  |
+| `@assignee` | Team Member    | `@michael`, `@alex`                             |
 
 ---
 
@@ -120,12 +122,25 @@ npm run seed
 ```bash
 npm test
 ```
-Runs all 44 Vitest unit tests across backend and frontend in parallel.
+Runs the Vitest suites across backend, frontend, and the marketing site.
 
 ### 4. Build Fullstack Distribution
 ```bash
 npm run build
 ```
+
+---
+
+## Marketing Site
+
+`site/` is a separate Vite workspace that publishes the public marketing page at [www.michaelsanford.com/Lanekeeper](https://www.michaelsanford.com/Lanekeeper/). It mounts the actual `KanbanBoard`, `TaskDetailDrawer`, and quick-capture parser from `frontend/src`, driven by local state instead of the CRDT store, plus a terminal running the real `lk` command output.
+
+```bash
+npm run dev:site      # http://localhost:5173/Lanekeeper/
+npm run build:site    # -> site/dist, for local inspection only
+```
+
+Deployment is automatic: `.github/workflows/pages.yml` builds and deploys `site/` to GitHub Pages on every push to `main` that touches `site/**` or `frontend/src/**`. Nothing built is ever committed.
 
 ---
 

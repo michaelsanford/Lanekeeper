@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="%BASE_URL%favicon.svg" />
+    <link rel="apple-touch-icon" href="%BASE_URL%icons/icon-192.svg" />
+    <meta name="theme-color" content="#4f46e5" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Lanekeeper</title>
+    <meta
+      name="description"
+      content="A fast, local-first task and project management PWA for solo developers and small engineering teams. The sweet spot between Todoist and Jira."
+    />
+    <link rel="canonical" href="https://www.michaelsanford.com/Lanekeeper/" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Lanekeeper" />
+    <meta
+      property="og:description"
+      content="A fast, local-first task and project management PWA for solo developers and small engineering teams. The sweet spot between Todoist and Jira."
+    />
+    <meta property="og:url" content="https://www.michaelsanford.com/Lanekeeper/" />
+    <meta property="og:image" content="https://www.michaelsanford.com/Lanekeeper/icons/icon-512.svg" />
+
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="Lanekeeper" />
+    <meta
+      name="twitter:description"
+      content="A fast, local-first task and project management PWA for solo developers and small engineering teams."
+    />
+    <meta name="twitter:image" content="https://www.michaelsanford.com/Lanekeeper/icons/icon-512.svg" />
+
+    <script>
+      // Applies the visitor's stored (or system-preferred) theme before first paint,
+      // matching the product's own lanekeeper_theme / lanekeeper_theme_mode keys so
+      // there is no flash of the wrong palette.
+      (function () {
+        try {
+          var theme = localStorage.getItem('lanekeeper_theme') || 'lanekeeper';
+          var mode = localStorage.getItem('lanekeeper_theme_mode');
+          if (mode !== 'light' && mode !== 'dark') {
+            mode = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+          }
+          var root = document.documentElement;
+          root.setAttribute('data-theme', theme);
+          root.setAttribute('data-mode', mode);
+          root.classList.add(mode);
+        } catch (e) {}
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <defs>
+    <linearGradient id="lk-bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0f172a"/>
+      <stop offset="100%" stop-color="#020617"/>
+    </linearGradient>
+    <linearGradient id="lk-left-buoy" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#38bdf8"/>
+      <stop offset="100%" stop-color="#0284c7"/>
+    </linearGradient>
+    <linearGradient id="lk-right-buoy" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#818cf8"/>
+      <stop offset="100%" stop-color="#4f46e5"/>
+    </linearGradient>
+    <linearGradient id="lk-arrow" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#38bdf8"/>
+      <stop offset="100%" stop-color="#6366f1"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background tile -->
+  <rect width="32" height="32" rx="7" fill="url(#lk-bg)"/>
+  <rect width="32" height="32" rx="7" fill="none" stroke="#334155" stroke-width="1"/>
+
+  <!-- Left swimlane rope -->
+  <line x1="7.5" y1="3" x2="7.5" y2="29" stroke="#38bdf8" stroke-width="1.2" opacity="0.6"/>
+  <rect x="5.5" y="5" width="4" height="3.5" rx="1.5" fill="url(#lk-left-buoy)"/>
+  <rect x="5.5" y="12" width="4" height="3.5" rx="1.5" fill="url(#lk-left-buoy)"/>
+  <rect x="5.5" y="19" width="4" height="3.5" rx="1.5" fill="url(#lk-left-buoy)"/>
+  <rect x="5.5" y="25" width="4" height="3.5" rx="1.5" fill="url(#lk-left-buoy)"/>
+
+  <!-- Right swimlane rope -->
+  <line x1="24.5" y1="3" x2="24.5" y2="29" stroke="#818cf8" stroke-width="1.2" opacity="0.6"/>
+  <rect x="22.5" y="5" width="4" height="3.5" rx="1.5" fill="url(#lk-right-buoy)"/>
+  <rect x="22.5" y="12" width="4" height="3.5" rx="1.5" fill="url(#lk-right-buoy)"/>
+  <rect x="22.5" y="19" width="4" height="3.5" rx="1.5" fill="url(#lk-right-buoy)"/>
+  <rect x="22.5" y="25" width="4" height="3.5" rx="1.5" fill="url(#lk-right-buoy)"/>
+
+  <!-- Center Lane: Swimmer / Lane-keeping forward beacon -->
+  <path d="M16 6 L21 14.5 L16 12.8 L11 14.5 Z" fill="url(#lk-arrow)"/>
+  <path d="M16 8 L19 13.2 L16 12.2 L13 13.2 Z" fill="#ffffff" opacity="0.9"/>
+
+  <!-- Center Lane: Guide line on pool floor -->
+  <line x1="16" y1="17" x2="16" y2="20.5" stroke="#38bdf8" stroke-width="2" stroke-linecap="round" opacity="0.8"/>
+  <line x1="16" y1="24" x2="16" y2="27.5" stroke="#38bdf8" stroke-width="2" stroke-linecap="round" opacity="0.8"/>
+</svg>

@@ -5,7 +5,8 @@
   "type": "module",
   "workspaces": [
     "frontend",
-    "backend"
+    "backend",
+    "site"
   ],
   "bin": {
     "lk": "./cli/lk.mjs"
@@ -14,8 +15,11 @@
     "dev": "concurrently -n \"backend,frontend\" -c \"cyan,magenta\" \"npm run dev:backend\" \"npm run dev:frontend\"",
     "dev:backend": "npm --workspace=backend run dev",
     "dev:frontend": "npm --workspace=frontend run dev",
+    "dev:site": "npm --workspace=site run dev",
     "build": "npm --workspace=backend run build && npm --workspace=frontend run build",
-    "test": "npm --workspace=backend run test && npm --workspace=frontend run test",
+    "build:site": "npm --workspace=site run build",
+    "test": "npm --workspace=backend run test && npm --workspace=frontend run test && npm --workspace=site run test",
+    "test:site": "npm --workspace=site run test",
     "seed": "node cli/seed.mjs",
     "validate": "npm run test && cd backend && sam validate --lint"
   },

@@ -27,6 +27,8 @@ interface KanbanBoardProps {
   onMoveTask: (taskId: string, targetLaneId: string, newRank: string) => void;
   onAddTask: (laneId: string, title: string) => void;
   onArchiveCompletedTasks?: (olderThanDays: number) => number;
+  /** Overrides the default full-viewport board height (e.g. for embedding the board elsewhere). */
+  heightClassName?: string;
 }
 
 export const KanbanBoard: React.FC<KanbanBoardProps> = ({
@@ -36,7 +38,8 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
   onToggleTimer,
   onMoveTask,
   onAddTask,
-  onArchiveCompletedTasks
+  onArchiveCompletedTasks,
+  heightClassName
 }) => {
   const [activeTask, setActiveTask] = useState<Task | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -264,7 +267,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
       onDragEnd={handleDragEnd}
       accessibility={{ announcements }}
     >
-      <div className="flex-1 flex flex-col h-[calc(100vh-3.5rem)] overflow-hidden">
+      <div className={`flex-1 flex flex-col ${heightClassName ?? 'h-[calc(100vh-3.5rem)]'} overflow-hidden`}>
         {/* Board Search & Filter Bar (Feature 1 - Always On) */}
         <BoardFilterBar
           searchQuery={searchQuery}

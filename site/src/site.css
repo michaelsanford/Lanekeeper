@@ -1,0 +1,38 @@
+/* Pulls in the product's own design system verbatim: the `tailwindcss` import,
+   the --lk-* token layer, the 13 themes, the focus ring, the scrollbar, the
+   light-mode badge patch, and the reduced-motion block. Picking a theme in
+   the gallery re-themes this whole page, board included, because the site's
+   own chrome below is written in plain `bg-slate-*` / `text-indigo-*` classes
+   that resolve through the same remapped tokens. */
+@import "../../frontend/src/index.css";
+
+/* Tailwind v4 has no config file to point at content -- register both trees. */
+@source "../../frontend/src";
+@source "./";
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+/* Decorative lane-rope background used behind the hero. Purely ambient motion,
+   suppressed by the product's own global reduced-motion block (index.css). */
+@keyframes lk-drift {
+  from {
+    transform: translateY(-6%);
+  }
+  to {
+    transform: translateY(6%);
+  }
+}
+
+.lk-rope-buoy {
+  animation: lk-drift 6s ease-in-out infinite alternate;
+}
