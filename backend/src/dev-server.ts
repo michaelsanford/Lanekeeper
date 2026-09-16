@@ -5,6 +5,7 @@ import { handler as ingestHandler } from './handlers/ingest.js';
 import { handler as githubHandler } from './handlers/github.js';
 import { handler as leasesHandler } from './handlers/leases.js';
 import { handler as pushHandler } from './handlers/push.js';
+import { handler as tasksHandler } from './handlers/tasks.js';
 
 const PORT = parseInt(process.env.PORT || '3001', 10);
 
@@ -89,6 +90,12 @@ const server = http.createServer(async (req, res) => {
       result = await leasesHandler(event);
     } else if (path === '/api/v1/notifications/subscribe' && method === 'POST') {
       result = await pushHandler(event);
+    } else if (path === '/api/v1/tasks' && method === 'GET') {
+      result = await tasksHandler(event);
+    } else if (path.startsWith('/api/v1/tasks/') && method === 'PATCH') {
+      const parts = path.split('/');
+      event.pathParameters = { key: parts[4] };
+      result = await tasksHandler(event);
     } else if (path === '/health') {
       result = { statusCode: 200, body: JSON.stringify({ status: 'healthy', node: process.version }) };
     } else {
@@ -120,5 +127,7 @@ server.listen(PORT, () => {
   console.log(`   - POST /api/v1/integrations/github (GitHub Webhooks)`);
   console.log(`   - POST /api/v1/projects/:id/leases(Offline ID Leases)`);
   console.log(`   - POST /api/v1/notifications/subscribe (Push Subs)`);
+  console.log(`   - GET  /api/v1/tasks               (List Tasks)`);
+  console.log(`   - PATCH /api/v1/tasks/:key         (Transition Task Lane)`);
   console.log(`   - GET  /health                    (Health Check)\n`);
 });

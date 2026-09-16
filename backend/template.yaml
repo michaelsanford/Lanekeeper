@@ -313,6 +313,36 @@ Resources:
         EntryPoints:
           - src/handlers/push.ts
 
+  TasksFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: .
+      Handler: src/handlers/tasks.handler
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref LanekeeperTable
+      Events:
+        ListTasks:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref HttpApi
+            Path: /api/v1/tasks
+            Method: GET
+        TransitionTask:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref HttpApi
+            Path: /api/v1/tasks/{key}
+            Method: PATCH
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: "node22"
+        Sourcemap: true
+        EntryPoints:
+          - src/handlers/tasks.ts
+
   SchedulerFunction:
     Type: AWS::Serverless::Function
     Properties:
