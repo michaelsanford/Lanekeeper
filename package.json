@@ -20,6 +20,6 @@
     "validate": "npm run test && cd backend && sam validate --lint"
   },
   "devDependencies": {
-    "concurrently": "^9.2.4"
+    "concurrently": "^10.0.5"
   }
 }

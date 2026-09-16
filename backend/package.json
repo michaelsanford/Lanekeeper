@@ -4,12 +4,13 @@
   "private": true,
   "type": "module",
   "engines": {
-    "node": ">=24.0.0"
+    "node": ">=22.0.0"
   },
   "scripts": {
     "dev": "tsx watch src/dev-server.ts",
     "build": "tsc",
-    "test": "vitest run",
+    "typecheck:test": "tsc --noEmit -p tsconfig.test.json",
+    "test": "npm run typecheck:test && vitest run",
     "test:watch": "vitest"
   },
   "dependencies": {
@@ -21,11 +22,11 @@
   },
   "devDependencies": {
     "@types/aws-lambda": "^8.10.147",
-    "@types/node": "^24.13.3",
+    "@types/node": "^22.20.3",
     "@types/web-push": "^3.6.4",
-    "esbuild": "^0.25.0",
+    "esbuild": "^0.28.2",
     "tsx": "^4.23.13",
-    "typescript": "^5.8.2",
-    "vitest": "^5.0.0"
+    "typescript": "~6.0.2",
+    "vitest": "^5.0.1"
   }
 }
