@@ -58,11 +58,25 @@ describe("Backend Local Development Mode", () => {
     const existing = await getProjectCrdtDoc("ws-1", "proj-1");
     expect(existing).toBeNull();
 
-    await saveProjectCrdtDoc("ws-1", "proj-1", "base64statexyz", 1);
+    const newVersion = await saveProjectCrdtDoc("ws-1", "proj-1", "base64statexyz", undefined);
+    expect(newVersion).toBe(1);
+
     const retrieved = await getProjectCrdtDoc("ws-1", "proj-1");
     expect(retrieved).not.toBeNull();
     expect(retrieved?.yDocState).toBe("base64statexyz");
     expect(retrieved?.version).toBe(1);
+  });
+
+  it("rejects a save whose expected version is stale", async () => {
+    await saveProjectCrdtDoc("ws-2", "proj-2", "v1-state", undefined);
+
+    await expect(saveProjectCrdtDoc("ws-2", "proj-2", "v2-state", undefined)).rejects.toThrow(
+      "CRDT document was updated by another writer"
+    );
+
+    // A save against the correct expected version still succeeds.
+    const newVersion = await saveProjectCrdtDoc("ws-2", "proj-2", "v2-state", 1);
+    expect(newVersion).toBe(2);
   });
 
   it("ingests quick task and persists to in-memory CRDT store", async () => {

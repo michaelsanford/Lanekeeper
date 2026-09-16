@@ -16,9 +16,13 @@ import {
   getProjectCrdtDoc,
   saveProjectCrdtDoc,
   isLocalDev,
-  setLocalMemoryItem
+  setLocalMemoryItem,
+  retryOnVersionConflict,
+  CrdtVersionConflictError
 } from '../common/ddb.js';
 import type { Task } from '../common/types.js';
+
+type IngestOutcome = { kind: 'duplicate'; task: Task } | { kind: 'created'; task: Task };
 
 export async function handler(event: APIGatewayProxyEventV2): Promise<APIGatewayProxyResultV2> {
   const authHeader = event.headers.authorization || event.headers.Authorization || '';
@@ -62,36 +66,10 @@ export async function handler(event: APIGatewayProxyEventV2): Promise<APIGateway
     // 1. Parse quick task syntax (#tag, !prio, ^date, ~est, @user)
     const parsed = parseQuickTask(raw);
 
-    // 2. Load or initialize project Y.Doc
-    const existing = await getProjectCrdtDoc(workspaceId, projectId);
-    const doc = loadDocFromBase64(existing?.yDocState);
-
-    if (!existing) {
-      initializeProjectDoc(doc, prefix, (payload as any).projectName || 'Lanekeeper Core');
-    }
-
-    // 3. Check if task with identical title already exists to prevent duplicate seeding
-    const tasksMap = doc.getMap<Task>('tasks');
-    const existingTask = Array.from(tasksMap.values()).find(
-      (t) => t.title.trim().toLowerCase() === parsed.title.trim().toLowerCase()
-    );
-    if (existingTask) {
-      return {
-        statusCode: 200,
-        headers: {
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*'
-        },
-        body: JSON.stringify({
-          message: 'Task already exists',
-          task: existingTask
-        })
-      };
-    }
-
-    // 4. Allocate sequential key (e.g. LK-42)
+    // Allocated/generated once, outside the retry loop below, so a retry
+    // caused by a concurrent writer reapplies the identical task rather than
+    // burning another key or minting a new id.
     const taskKey = await getNextTaskKey(workspaceId, projectId, prefix);
-
     const taskId = randomUUID();
     const now = new Date().toISOString();
 
@@ -112,10 +90,48 @@ export async function handler(event: APIGatewayProxyEventV2): Promise<APIGateway
       updatedAt: now
     };
 
-    // 4. Inject into CRDT document
-    addTaskToDoc(doc, task);
+    const outcome = await retryOnVersionConflict<IngestOutcome>(async () => {
+      // Re-read on every attempt so a retry reapplies against the latest
+      // saved state instead of clobbering a concurrent writer's change.
+      const existing = await getProjectCrdtDoc(workspaceId, projectId);
+      const doc = loadDocFromBase64(existing?.yDocState);
 
-    // 5. If task has a due date, schedule a reminder in DynamoDB GSI2
+      if (!existing) {
+        initializeProjectDoc(doc, prefix, (payload as any).projectName || 'Lanekeeper Core');
+      }
+
+      // Check if a task with identical title already exists to prevent duplicate seeding
+      const tasksMap = doc.getMap<Task>('tasks');
+      const existingTask = Array.from(tasksMap.values()).find(
+        (t) => t.title.trim().toLowerCase() === parsed.title.trim().toLowerCase()
+      );
+      if (existingTask) {
+        return { kind: 'duplicate', task: existingTask };
+      }
+
+      addTaskToDoc(doc, task);
+
+      const newBase64 = encodeDocToBase64(doc);
+      await saveProjectCrdtDoc(workspaceId, projectId, newBase64, existing?.version);
+
+      return { kind: 'created', task };
+    });
+
+    if (outcome.kind === 'duplicate') {
+      return {
+        statusCode: 200,
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*'
+        },
+        body: JSON.stringify({
+          message: 'Task already exists',
+          task: outcome.task
+        })
+      };
+    }
+
+    // Schedule a due-date reminder now that the task is durably persisted.
     if (parsed.dueDate) {
       if (isLocalDev()) {
         setLocalMemoryItem(`WORKSPACE#${workspaceId}:REMINDER#${taskId}`, {
@@ -152,10 +168,6 @@ export async function handler(event: APIGatewayProxyEventV2): Promise<APIGateway
       }
     }
 
-    // 6. Persist updated CRDT doc
-    const newBase64 = encodeDocToBase64(doc);
-    await saveProjectCrdtDoc(workspaceId, projectId, newBase64, (existing?.version ?? 0) + 1);
-
     return {
       statusCode: 201,
       headers: {
@@ -164,10 +176,17 @@ export async function handler(event: APIGatewayProxyEventV2): Promise<APIGateway
       },
       body: JSON.stringify({
         success: true,
-        task
+        task: outcome.task
       })
     };
   } catch (err: any) {
+    if (err instanceof CrdtVersionConflictError) {
+      return {
+        statusCode: 409,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ error: 'Sync conflict after retrying, please try again' })
+      };
+    }
     console.error('Error ingesting task:', err);
     return {
       statusCode: 500,

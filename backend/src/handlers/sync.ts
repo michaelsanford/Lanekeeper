@@ -10,8 +10,10 @@ import {
   sanitizeLaneOrder,
   deduplicateTasks
 } from '../common/crdt.js';
-import { getProjectCrdtDoc, saveProjectCrdtDoc } from '../common/ddb.js';
+import { getProjectCrdtDoc, saveProjectCrdtDoc, CrdtVersionConflictError, retryOnVersionConflict } from '../common/ddb.js';
 import type { SyncRequest, SyncResponse } from '../common/types.js';
+
+const MAX_SYNC_ATTEMPTS = 3;
 
 export async function handler(event: APIGatewayProxyEventV2): Promise<APIGatewayProxyResultV2> {
   const auth = getCognitoAuthContext(event);
@@ -36,42 +38,46 @@ export async function handler(event: APIGatewayProxyEventV2): Promise<APIGateway
     const workspaceId = payload.workspaceId || auth.workspaceId;
     const projectId = payload.projectId || 'default';
 
-    // 1. Fetch current CRDT document from DynamoDB / local memory
-    const existing = await getProjectCrdtDoc(workspaceId, projectId);
-    const doc = loadDocFromBase64(existing?.yDocState);
+    let serverDiff: string | undefined;
+    let serverStateVector = '';
 
-    let docModified = false;
+    await retryOnVersionConflict(async () => {
+      // Re-read on every attempt: if a concurrent writer saved between our
+      // last attempt and now, we must reapply this update on top of their
+      // change, not clobber it.
+      const existing = await getProjectCrdtDoc(workspaceId, projectId);
+      const doc = loadDocFromBase64(existing?.yDocState);
+      let docModified = false;
 
-    // 2. Initialize project defaults if document is newly created
-    if (!existing) {
-      initializeProjectDoc(doc, 'LK', 'Lanekeeper Core');
-      docModified = true;
-    }
+      if (!existing) {
+        initializeProjectDoc(doc, 'LK', 'Lanekeeper Core');
+        // Only worth scanning for accidental seed duplicates when the doc is
+        // being created; on every subsequent sync this is dead weight and,
+        // worse, would silently delete any two tasks a user later gives the
+        // same title.
+        deduplicateTasks(doc);
+        docModified = true;
+      }
 
-    // 3. Apply any incoming updates from client
-    if (payload.updates) {
-      applyClientUpdate(doc, payload.updates);
-      docModified = true;
-    }
+      if (payload.updates) {
+        applyClientUpdate(doc, payload.updates);
+        docModified = true;
+      }
 
-    // Always sanitize lane order and deduplicate redundant seed tasks
-    const initialLaneCount = doc.getArray('laneOrder').length;
-    sanitizeLaneOrder(doc);
-    const finalLaneCount = doc.getArray('laneOrder').length;
-    const removedTasks = deduplicateTasks(doc);
-    if (initialLaneCount !== finalLaneCount || removedTasks > 0) {
-      docModified = true;
-    }
+      const initialLaneCount = doc.getArray('laneOrder').length;
+      sanitizeLaneOrder(doc);
+      if (doc.getArray('laneOrder').length !== initialLaneCount) {
+        docModified = true;
+      }
 
-    // 4. Compute server diff relative to client state vector
-    const serverDiff = computeDiffUpdate(doc, payload.stateVector);
-    const serverStateVector = encodeStateVectorBase64(doc);
+      serverDiff = computeDiffUpdate(doc, payload.stateVector);
+      serverStateVector = encodeStateVectorBase64(doc);
 
-    // 5. Persist to DynamoDB if changes occurred
-    if (docModified) {
-      const newBase64 = encodeDocToBase64(doc);
-      await saveProjectCrdtDoc(workspaceId, projectId, newBase64, (existing?.version ?? 0) + 1);
-    }
+      if (docModified) {
+        const newBase64 = encodeDocToBase64(doc);
+        await saveProjectCrdtDoc(workspaceId, projectId, newBase64, existing?.version);
+      }
+    }, MAX_SYNC_ATTEMPTS);
 
     const responseBody: SyncResponse = {
       serverDiff,
@@ -87,6 +93,13 @@ export async function handler(event: APIGatewayProxyEventV2): Promise<APIGateway
       body: JSON.stringify(responseBody)
     };
   } catch (err: any) {
+    if (err instanceof CrdtVersionConflictError) {
+      return {
+        statusCode: 409,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ error: 'Sync conflict after retrying, please sync again' })
+      };
+    }
     console.error('Error during CRDT sync:', err);
     return {
       statusCode: 500,

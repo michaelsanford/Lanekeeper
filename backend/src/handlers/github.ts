@@ -1,7 +1,9 @@
 import type { APIGatewayProxyEventV2, APIGatewayProxyResultV2 } from 'aws-lambda';
 import { loadDocFromBase64, encodeDocToBase64 } from '../common/crdt.js';
-import { getProjectCrdtDoc, saveProjectCrdtDoc } from '../common/ddb.js';
+import { getProjectCrdtDoc, saveProjectCrdtDoc, retryOnVersionConflict, CrdtVersionConflictError } from '../common/ddb.js';
 import type { Task } from '../common/types.js';
+
+class ProjectNotFoundError extends Error {}
 
 interface CommitItem {
   id: string;
@@ -58,55 +60,56 @@ export async function handler(event: APIGatewayProxyEventV2): Promise<APIGateway
       };
     }
 
-    // Load project CRDT document
-    const existing = await getProjectCrdtDoc(workspaceId, projectId);
-    if (!existing) {
-      return {
-        statusCode: 404,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ error: 'Project not found' })
-      };
-    }
+    const updatedKeys = await retryOnVersionConflict(async () => {
+      // Re-read on every attempt so a retry reapplies against the latest
+      // saved state instead of clobbering a concurrent writer's change.
+      const existing = await getProjectCrdtDoc(workspaceId, projectId);
+      if (!existing) {
+        throw new ProjectNotFoundError();
+      }
 
-    const doc = loadDocFromBase64(existing.yDocState);
-    const tasksMap = doc.getMap<Task>('tasks');
-    const updatedKeys: string[] = [];
+      const doc = loadDocFromBase64(existing.yDocState);
+      const tasksMap = doc.getMap<Task>('tasks');
+      const updated: string[] = [];
 
-    // Check all commits for issue keys
-    for (const commit of commits) {
-      const matches = parseIssueKeysFromCommit(commit.message);
-      for (const match of matches) {
-        // Find matching task by key
-        for (const [taskId, task] of tasksMap.entries()) {
-          if (task.key === match.key) {
-            const updatedTask = { ...task };
+      // Check all commits for issue keys
+      for (const commit of commits) {
+        const matches = parseIssueKeysFromCommit(commit.message);
+        for (const match of matches) {
+          // Find matching task by key
+          for (const [taskId, task] of tasksMap.entries()) {
+            if (task.key === match.key) {
+              const updatedTask = { ...task };
 
-            if (match.action === 'close') {
-              updatedTask.laneId = 'done';
-            } else if (match.action === 'review') {
-              updatedTask.laneId = 'review';
-            } else if (updatedTask.laneId === 'triage' || updatedTask.laneId === 'todo') {
-              updatedTask.laneId = 'inprogress';
+              if (match.action === 'close') {
+                updatedTask.laneId = 'done';
+              } else if (match.action === 'review') {
+                updatedTask.laneId = 'review';
+              } else if (updatedTask.laneId === 'triage' || updatedTask.laneId === 'todo') {
+                updatedTask.laneId = 'inprogress';
+              }
+
+              // Append commit link to description notes
+              const commitNote = `\n\n> 🔗 **Commit:** [\`${commit.id.slice(0, 7)}\`](${commit.url}) by @${commit.author.username || commit.author.name}: *${commit.message.split('\n')[0]}*`;
+              if (!updatedTask.description.includes(commit.id.slice(0, 7))) {
+                updatedTask.description = (updatedTask.description || '') + commitNote;
+              }
+              updatedTask.updatedAt = new Date().toISOString();
+
+              tasksMap.set(taskId, updatedTask);
+              updated.push(task.key);
             }
-
-            // Append commit link to description notes
-            const commitNote = `\n\n> 🔗 **Commit:** [\`${commit.id.slice(0, 7)}\`](${commit.url}) by @${commit.author.username || commit.author.name}: *${commit.message.split('\n')[0]}*`;
-            if (!updatedTask.description.includes(commit.id.slice(0, 7))) {
-              updatedTask.description = (updatedTask.description || '') + commitNote;
-            }
-            updatedTask.updatedAt = new Date().toISOString();
-
-            tasksMap.set(taskId, updatedTask);
-            updatedKeys.push(task.key);
           }
         }
       }
-    }
 
-    if (updatedKeys.length > 0) {
-      const newBase64 = encodeDocToBase64(doc);
-      await saveProjectCrdtDoc(workspaceId, projectId, newBase64, existing.version + 1);
-    }
+      if (updated.length > 0) {
+        const newBase64 = encodeDocToBase64(doc);
+        await saveProjectCrdtDoc(workspaceId, projectId, newBase64, existing.version);
+      }
+
+      return updated;
+    });
 
     return {
       statusCode: 200,
@@ -117,6 +120,20 @@ export async function handler(event: APIGatewayProxyEventV2): Promise<APIGateway
       })
     };
   } catch (err: any) {
+    if (err instanceof ProjectNotFoundError) {
+      return {
+        statusCode: 404,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ error: 'Project not found' })
+      };
+    }
+    if (err instanceof CrdtVersionConflictError) {
+      return {
+        statusCode: 409,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ error: 'Sync conflict after retrying, please try again' })
+      };
+    }
     console.error('Error processing GitHub webhook:', err);
     return {
       statusCode: 500,
