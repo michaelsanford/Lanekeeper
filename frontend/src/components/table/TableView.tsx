@@ -14,6 +14,7 @@ import {
 import type { Task, Lane, TaskPriority } from '../../types/index.js';
 import { LaneMarker } from '../icons/LaneMarker.js';
 import { useFeatureGate } from '../../features/index.js';
+import { isTaskInLaneType } from '../../utils/laneTypes.js';
 
 interface TableViewProps {
   tasks: Task[];
@@ -583,7 +584,7 @@ export const TableView: React.FC<TableViewProps> = ({
           {isTimeTrackingEnabled && (
             <span>{tasks.filter((t) => t.isTimerRunning).length} active timer</span>
           )}
-          <span>{tasks.filter((t) => t.dueDate && new Date(t.dueDate) < now && t.laneId !== 'done' && !t.archived).length} overdue</span>
+          <span>{tasks.filter((t) => t.dueDate && new Date(t.dueDate) < now && !isTaskInLaneType(t, lanes, 'completed') && !t.archived).length} overdue</span>
         </div>
       </div>
     </div>

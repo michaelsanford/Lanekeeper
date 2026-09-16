@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import type { Task, Lane, TaskPriority } from '../../types/index.js';
 import { LaneMarker } from '../icons/LaneMarker.js';
+import { isTaskInLaneType } from '../../utils/laneTypes.js';
 
 interface CalendarViewProps {
   tasks: Task[];
@@ -169,16 +170,16 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
   const todayKey = formatDateKey(now);
 
   const unscheduledTasks = useMemo(() => {
-    return activeTasks.filter((t) => !t.dueDate && t.laneId !== 'done');
-  }, [activeTasks]);
+    return activeTasks.filter((t) => !t.dueDate && !isTaskInLaneType(t, lanes, 'completed'));
+  }, [activeTasks, lanes]);
 
   const overdueTasks = useMemo(() => {
     return activeTasks.filter((t) => {
-      if (!t.dueDate || t.laneId === 'done') return false;
+      if (!t.dueDate || isTaskInLaneType(t, lanes, 'completed')) return false;
       const d = new Date(t.dueDate);
       return formatDateKey(d) < todayKey;
     });
-  }, [activeTasks, todayKey]);
+  }, [activeTasks, lanes, todayKey]);
 
   const handleQuickAddSubmit = (dateStr: string) => {
     if (quickAddTitle.trim()) {

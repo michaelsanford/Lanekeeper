@@ -94,6 +94,7 @@ describe('Simple PM Features and Flow State Redesign', () => {
       const html = renderToString(
         <FlightDeckView
           tasks={[{ ...baseTask, laneId: 'inprogress' }]}
+          lanes={[{ id: 'inprogress', name: 'In Progress', color: '#3b82f6', type: 'started' }]}
           onSelectTask={vi.fn()}
           onToggleTimer={vi.fn()}
           onCompleteTask={vi.fn()}

@@ -5,12 +5,14 @@ import {
   closestCorners,
   PointerSensor,
   TouchSensor,
+  KeyboardSensor,
   useSensor,
   useSensors,
   type DragEndEvent,
-  type DragStartEvent
+  type DragStartEvent,
+  type Announcements
 } from '@dnd-kit/core';
-import { arrayMove } from '@dnd-kit/sortable';
+import { arrayMove, sortableKeyboardCoordinates } from '@dnd-kit/sortable';
 import type { Lane, Task, TaskPriority } from '../../types/index.js';
 import { LaneColumn } from './LaneColumn.js';
 import { TaskCard } from './TaskCard.js';
@@ -121,7 +123,66 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
     }
   });
 
-  const sensors = useSensors(pointerSensor, touchSensor);
+  // Enables moving a task between/within lanes from the keyboard: Tab to a
+  // card, Space to pick it up, Arrow keys to move, Space again to drop,
+  // Escape to cancel. Without this, drag-and-drop reordering was reachable
+  // only with a pointer.
+  const keyboardSensor = useSensor(KeyboardSensor, {
+    coordinateGetter: sortableKeyboardCoordinates
+  });
+
+  const sensors = useSensors(pointerSensor, touchSensor, keyboardSensor);
+
+  const laneNameById = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const lane of lanes) map.set(lane.id, lane.name);
+    return map;
+  }, [lanes]);
+
+  // Custom screen-reader announcements naming the actual task and lane,
+  // instead of dnd-kit's generic id-only defaults.
+  const announcements: Announcements = useMemo(() => {
+    const laneNameForDropTarget = (overId: string): string | undefined => {
+      if (laneNameById.has(overId)) return laneNameById.get(overId);
+      const overTask = tasks.find((t) => t.id === overId);
+      return overTask ? laneNameById.get(overTask.laneId) : undefined;
+    };
+
+    return {
+      onDragStart({ active }) {
+        const task = tasks.find((t) => t.id === active.id);
+        return task ? `Picked up task ${task.key}: ${task.title}.` : undefined;
+      },
+      onDragOver({ active, over }) {
+        if (!over) return undefined;
+        const task = tasks.find((t) => t.id === active.id);
+        if (!task) return undefined;
+        const laneName = laneNameForDropTarget(String(over.id));
+        return laneName
+          ? `Task ${task.key} is over the ${laneName} lane.`
+          : `Task ${task.key} is over a new position.`;
+      },
+      onDragEnd({ active, over }) {
+        const task = tasks.find((t) => t.id === active.id);
+        if (!task) return undefined;
+        if (!over) return `Movement of task ${task.key} was cancelled.`;
+        const laneName = laneNameForDropTarget(String(over.id));
+        return laneName ? `Task ${task.key} was moved to the ${laneName} lane.` : `Task ${task.key} was moved.`;
+      },
+      onDragCancel({ active }) {
+        const task = tasks.find((t) => t.id === active.id);
+        return task ? `Movement of task ${task.key} was cancelled.` : undefined;
+      }
+    };
+  }, [tasks, laneNameById]);
+
+  const tasksByLaneId = useMemo(() => {
+    const map = new Map<string, Task[]>();
+    for (const lane of lanes) {
+      map.set(lane.id, sortTasksByRank(filteredTasks.filter((t) => t.laneId === lane.id)));
+    }
+    return map;
+  }, [lanes, filteredTasks]);
 
   const handleDragStart = (event: DragStartEvent) => {
     const taskId = event.active.id as string;
@@ -201,6 +262,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
       collisionDetection={closestCorners}
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
+      accessibility={{ announcements }}
     >
       <div className="flex-1 flex flex-col h-[calc(100vh-3.5rem)] overflow-hidden">
         {/* Board Search & Filter Bar (Feature 1 - Always On) */}
@@ -229,7 +291,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
         {/* Swimlanes container */}
         <div className="flex-1 flex gap-4 p-4 pt-2 overflow-x-auto items-start">
           {lanes.map((lane) => {
-            const laneTasks = sortTasksByRank(filteredTasks.filter((t) => t.laneId === lane.id));
+            const laneTasks = tasksByLaneId.get(lane.id) ?? [];
             return (
               <LaneColumn
                 key={lane.id}

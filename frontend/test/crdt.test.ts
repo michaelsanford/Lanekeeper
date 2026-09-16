@@ -167,4 +167,64 @@ describe("Frontend Local-First CRDT & Store", () => {
     expect(meta.name).toBe("Lanekeeper Core");
     expect(metaMap.get("name")).toBe("Lanekeeper Core");
   });
+
+  it("getMetadata is a pure read and never mutates the doc", () => {
+    crdtStore.updateMetadata({ name: "Stable Custom Name" });
+
+    let updateCount = 0;
+    const onUpdate = () => {
+      updateCount++;
+    };
+    crdtStore.doc.on("update", onUpdate);
+    crdtStore.getMetadata();
+    crdtStore.getMetadata();
+    crdtStore.getMetadata();
+    crdtStore.doc.off("update", onUpdate);
+
+    expect(updateCount).toBe(0);
+  });
+
+  it("caches read snapshots until the store actually changes, and invalidates them on mutation", () => {
+    const tasksBefore = crdtStore.getTasks();
+    expect(crdtStore.getTasks()).toBe(tasksBefore);
+
+    const snapshotBefore = crdtStore.getStoreSnapshot();
+    expect(crdtStore.getStoreSnapshot()).toBe(snapshotBefore);
+    expect(snapshotBefore.tasks).toBe(tasksBefore);
+
+    crdtStore.addTask({ title: "Cache invalidation probe", laneId: "triage" });
+
+    const tasksAfter = crdtStore.getTasks();
+    expect(tasksAfter).not.toBe(tasksBefore);
+    expect(tasksAfter.some((t) => t.title === "Cache invalidation probe")).toBe(true);
+
+    const snapshotAfter = crdtStore.getStoreSnapshot();
+    expect(snapshotAfter).not.toBe(snapshotBefore);
+  });
+
+  it("fires exactly one change notification per mutation even after switching projects back and forth", () => {
+    // Regression test: switchProject used to re-attach the doc 'update'
+    // listener on every call, and the in-memory (no-IndexedDB) doc store
+    // this test suite runs under reuses the same Y.Doc when switching back
+    // to a project already visited, so repeated switching used to stack
+    // duplicate listeners and fire notifications multiple times per change.
+    const project = crdtStore.createProject("Listener Accumulation Test", "LSNR");
+    crdtStore.switchProject("default");
+    crdtStore.switchProject(project.id);
+    crdtStore.switchProject("default");
+    crdtStore.switchProject(project.id);
+    crdtStore.switchProject("default");
+    crdtStore.switchProject(project.id);
+
+    let notifyCount = 0;
+    const unsubscribe = crdtStore.subscribe(() => {
+      notifyCount++;
+    });
+    crdtStore.addTask({ title: "Single mutation probe", laneId: "triage" });
+    unsubscribe();
+
+    expect(notifyCount).toBe(1);
+
+    crdtStore.switchProject("default");
+  });
 });

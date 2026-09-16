@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { showToast } from '../utils/toast.js';
 
 export function useWebPush(apiUrl?: string, authToken?: string) {
   const [permission, setPermission] = useState<NotificationPermission>('default');
@@ -20,7 +21,7 @@ export function useWebPush(apiUrl?: string, authToken?: string) {
 
   async function requestAndSubscribe(): Promise<boolean> {
     if (!('Notification' in window) || !('serviceWorker' in navigator)) {
-      alert('Web Push is not supported in this browser environment.');
+      showToast('Web Push is not supported in this browser environment.', 'warning');
       return false;
     }
 
@@ -69,6 +70,7 @@ export function useWebPush(apiUrl?: string, authToken?: string) {
       return true;
     } catch (err) {
       console.warn('Web push subscription failed:', err);
+      showToast('Could not enable push notifications. Please try again.', 'error');
       setIsLoading(false);
       return false;
     }

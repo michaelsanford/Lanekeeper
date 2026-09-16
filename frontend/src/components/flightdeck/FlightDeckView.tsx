@@ -9,12 +9,14 @@ import {
   Plus
 } from 'lucide-react';
 import { LaneKeepIcon } from '../icons/LaneIcons.js';
-import type { Task } from '../../types/index.js';
+import type { Lane, Task } from '../../types/index.js';
 import { sortTasksByRank } from '../../utils/rank.js';
+import { isTaskInLaneType } from '../../utils/laneTypes.js';
 import { useFeatureGate } from '../../features/index.js';
 
 interface FlightDeckViewProps {
   tasks: Task[];
+  lanes: Lane[];
   onSelectTask: (task: Task) => void;
   onToggleTimer: (taskId: string) => void;
   onCompleteTask: (taskId: string) => void;
@@ -26,6 +28,7 @@ const SCRATCHPAD_KEY = 'lanekeeper_scratchpad_notes';
 
 export const FlightDeckView: React.FC<FlightDeckViewProps> = ({
   tasks,
+  lanes,
   onSelectTask,
   onToggleTimer,
   onCompleteTask,
@@ -46,13 +49,15 @@ export const FlightDeckView: React.FC<FlightDeckViewProps> = ({
   }, [scratchpadText]);
 
   // Tasks in progress (Flight deck strict limit: 1-3)
-  const inFlightTasks = sortTasksByRank(tasks.filter((t) => !t.archived && t.laneId === 'inprogress'));
+  const inFlightTasks = sortTasksByRank(
+    tasks.filter((t) => !t.archived && isTaskInLaneType(t, lanes, 'started'))
+  );
 
   // Tasks due today or overdue
   const now = new Date();
   const todayDateStr = now.toDateString();
   const dueTodayOrOverdueTasks = tasks.filter((t) => {
-    if (t.archived || !t.dueDate || t.laneId === 'done') return false;
+    if (t.archived || !t.dueDate || isTaskInLaneType(t, lanes, 'completed')) return false;
     const d = new Date(t.dueDate);
     return d.toDateString() === todayDateStr || d.getTime() < now.getTime();
   });

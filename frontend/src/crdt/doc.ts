@@ -7,6 +7,15 @@ import {
   getWorkflowTemplate,
   DEFAULT_TEMPLATE_ID
 } from '../utils/templates.js';
+import { SAMPLE_TASK_SPECS } from '../utils/sampleTasks.js';
+import { getFirstLaneIdByType } from '../utils/laneTypes.js';
+
+export interface CrdtStoreSnapshot {
+  tasks: Task[];
+  lanes: Lane[];
+  metadata: ProjectMetadata;
+  isSynced: boolean;
+}
 
 class CrdtStore {
   public doc: Y.Doc;
@@ -14,6 +23,17 @@ class CrdtStore {
   public isSynced: boolean = false;
   private listeners: Set<() => void> = new Set();
   private memoryDocs: Map<string, Y.Doc> = new Map();
+  // Tracks which Y.Doc instances already have the 'update' listener attached,
+  // so switching back to a reused doc (the in-memory/no-IndexedDB path)
+  // never stacks a second copy of the handler onto the same doc.
+  private docsWithListener: WeakSet<Y.Doc> = new WeakSet();
+  // Cached read snapshots, invalidated (via notifyListeners) on every
+  // change. Getters return a stable reference when nothing changed, which
+  // useSyncExternalStore requires to avoid re-render loops.
+  private tasksCache: Task[] | null = null;
+  private lanesCache: Lane[] | null = null;
+  private metadataCache: ProjectMetadata | null = null;
+  private storeSnapshotCache: CrdtStoreSnapshot | null = null;
 
   constructor() {
     this.doc = new Y.Doc();
@@ -63,16 +83,33 @@ class CrdtStore {
   }
 
   private setupListeners(): void {
+    // Idempotent per Y.Doc instance: switchProject calls this again on
+    // every switch, and the in-memory (no-IndexedDB) path reuses the same
+    // Y.Doc object across repeated switches to the same project, so without
+    // this guard each revisit would stack another 'update' handler onto it.
+    if (this.docsWithListener.has(this.doc)) {
+      return;
+    }
+    this.docsWithListener.add(this.doc);
     this.doc.on('update', () => {
-      const metaMap = this.doc.getMap<string>('metadata');
-      if (metaMap.get('name') === 'General') {
-        const activeId = metaMap.get('id') || this.getActiveProjectId() || 'default';
-        const projectFromList = this.getProjectsList().find((p) => p.id === activeId);
-        metaMap.set('name', projectFromList?.name || (activeId === 'default' ? 'Lanekeeper Core' : activeId));
-      }
+      this.reconcileMetadataName();
       this.sanitizeLaneOrder();
       this.notifyListeners();
     });
+  }
+
+  /**
+   * Corrects the legacy/default 'General' metadata sentinel to a resolved
+   * project name. This is the single place that reconciles CRDT metadata
+   * against the localStorage projects list; getMetadata() only reads.
+   */
+  private reconcileMetadataName(): void {
+    const metaMap = this.doc.getMap<string>('metadata');
+    const currentName = metaMap.get('name');
+    if (currentName && currentName !== 'General') return;
+    const activeId = metaMap.get('id') || this.getActiveProjectId() || 'default';
+    const projectFromList = this.getProjectsList().find((p) => p.id === activeId);
+    metaMap.set('name', projectFromList?.name || (activeId === 'default' ? 'Lanekeeper Core' : activeId));
   }
 
   public subscribe(listener: () => void): () => void {
@@ -82,7 +119,15 @@ class CrdtStore {
     };
   }
 
+  private invalidateSnapshots(): void {
+    this.tasksCache = null;
+    this.lanesCache = null;
+    this.metadataCache = null;
+    this.storeSnapshotCache = null;
+  }
+
   private notifyListeners(): void {
+    this.invalidateSnapshots();
     for (const listener of this.listeners) {
       listener();
     }
@@ -96,10 +141,7 @@ class CrdtStore {
     const activeId = metaMap.get('id') || this.getActiveProjectId() || 'default';
     metaMap.set('id', activeId);
     const existingProject = this.getProjectsList().find((p) => p.id === activeId);
-    const currentName = metaMap.get('name');
-    if (!currentName || currentName === 'General') {
-      metaMap.set('name', existingProject?.name || (activeId === 'default' ? 'Lanekeeper Core' : activeId));
-    }
+    this.reconcileMetadataName();
     if (!metaMap.has('prefix')) metaMap.set('prefix', existingProject?.prefix || (activeId === 'default' ? 'LK' : 'KEY'));
 
     // Only populate if lanesMap is empty (new project or fresh store)
@@ -167,7 +209,16 @@ class CrdtStore {
     return removed;
   }
 
+  /**
+   * Pure read: resolves the current project's metadata, falling back to the
+   * localStorage projects list for anything unset in the CRDT doc. Never
+   * writes — the 'General' sentinel is corrected by reconcileMetadataName(),
+   * called from the doc's 'update' handler and from ensureDefaultLanes(),
+   * not from here.
+   */
   public getMetadata(): ProjectMetadata {
+    if (this.metadataCache) return this.metadataCache;
+
     const metaMap = this.doc.getMap<string>('metadata');
     const activeId = metaMap.get('id') || this.getActiveProjectId() || 'default';
     const projectFromList = this.getProjectsList().find((p) => p.id === activeId);
@@ -176,17 +227,14 @@ class CrdtStore {
       ? rawName
       : (projectFromList?.name || (activeId === 'default' ? 'Lanekeeper Core' : activeId));
 
-    if (rawName === 'General') {
-      metaMap.set('name', resolvedName);
-    }
-
-    return {
+    this.metadataCache = {
       id: activeId,
       name: resolvedName,
       prefix: metaMap.get('prefix') || projectFromList?.prefix || 'LK',
       description: metaMap.get('description'),
       templateId: metaMap.get('templateId') || projectFromList?.templateId || DEFAULT_TEMPLATE_ID
     };
+    return this.metadataCache;
   }
 
   public updateMetadata(updates: Partial<ProjectMetadata>): void {
@@ -350,6 +398,8 @@ class CrdtStore {
   }
 
   public getLanes(): Lane[] {
+    if (this.lanesCache) return this.lanesCache;
+
     const lanesMap = this.doc.getMap<Lane>('lanes');
     const laneOrder = this.doc.getArray<string>('laneOrder').toArray();
     const result: Lane[] = [];
@@ -362,6 +412,7 @@ class CrdtStore {
         if (lane) result.push(lane);
       }
     }
+    this.lanesCache = result;
     return result;
   }
 
@@ -414,8 +465,27 @@ class CrdtStore {
   }
 
   public getTasks(): Task[] {
+    if (this.tasksCache) return this.tasksCache;
     const tasksMap = this.doc.getMap<Task>('tasks');
-    return Array.from(tasksMap.values());
+    this.tasksCache = Array.from(tasksMap.values());
+    return this.tasksCache;
+  }
+
+  /**
+   * A single stable snapshot object combining tasks/lanes/metadata/sync
+   * state, for useSyncExternalStore — one subscription instead of four,
+   * and a reference that only changes when the underlying data actually
+   * does.
+   */
+  public getStoreSnapshot(): CrdtStoreSnapshot {
+    if (this.storeSnapshotCache) return this.storeSnapshotCache;
+    this.storeSnapshotCache = {
+      tasks: this.getTasks(),
+      lanes: this.getLanes(),
+      metadata: this.getMetadata(),
+      isSynced: this.isSynced
+    };
+    return this.storeSnapshotCache;
   }
 
   public addTask(taskData: Partial<Task> & { title: string }): Task {
@@ -423,7 +493,7 @@ class CrdtStore {
     const taskId = crypto.randomUUID();
     const taskKey = taskData.key || getNextTaskKey(meta.prefix);
     const now = new Date().toISOString();
-    const laneId = taskData.laneId || 'triage';
+    const laneId = taskData.laneId || getFirstLaneIdByType(this.getLanes(), 'backlog') || 'triage';
 
     let rank = taskData.rank;
     if (!rank) {
@@ -496,60 +566,8 @@ class CrdtStore {
   }
 
   public seedSampleTasks(): Task[] {
-    const sampleSpecs: Array<{
-      title: string;
-      description?: string;
-      priority: Task['priority'];
-      laneId: string;
-      estimateMinutes?: number;
-      tags: string[];
-      dueDate?: string;
-    }> = [
-      {
-        title: 'Architect local-first CRDT sync layer',
-        description: 'Design stateless document diff exchange using yjs binary states.',
-        priority: 'urgent',
-        laneId: 'inprogress',
-        estimateMinutes: 240,
-        tags: ['architecture', 'crdt']
-      },
-      {
-        title: 'Configure AWS Cognito with software TOTP MFA',
-        description: 'Enforce hardware/software TOTP MFA on user pool.',
-        priority: 'high',
-        laneId: 'todo',
-        estimateMinutes: 120,
-        tags: ['security', 'cognito']
-      },
-      {
-        title: 'Build Flight Deck focus view and timer',
-        description: 'Focus cockpit showing only 1-3 critical tasks in flight.',
-        priority: 'urgent',
-        laneId: 'inprogress',
-        estimateMinutes: 180,
-        tags: ['ui', 'focus']
-      },
-      {
-        title: 'Implement Web Speech API voice task dictation',
-        description: 'On-device browser speech recognition for hands-free task capture.',
-        priority: 'medium',
-        laneId: 'triage',
-        estimateMinutes: 60,
-        tags: ['pwa', 'voice']
-      },
-      {
-        title: 'Set up EventBridge due-date reminder push cron',
-        description: '5-minute EventBridge cron rule to dispatch RFC 8291 Web Push notifications.',
-        priority: 'high',
-        dueDate: new Date(Date.now() + 86400000).toISOString().split('T')[0],
-        laneId: 'todo',
-        estimateMinutes: 120,
-        tags: ['infra', 'push']
-      }
-    ];
-
     const added: Task[] = [];
-    for (const spec of sampleSpecs) {
+    for (const spec of SAMPLE_TASK_SPECS) {
       added.push(this.addTask(spec));
     }
     this.notifyListeners();

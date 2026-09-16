@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, lazy, Suspense } from 'react';
 import { useCrdt } from './hooks/useCrdt.js';
 import { useWebPush } from './hooks/useWebPush.js';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts.js';
@@ -10,10 +10,17 @@ import { useToolbarPreferences } from './hooks/useToolbarPreferences.js';
 import { FeatureGateProvider } from './features/index.js';
 
 import { Header, type ActiveView } from './components/layout/Header.js';
+// The board is the default view, loaded eagerly so first paint has no
+// loading flash. Table/Calendar/Flight Deck only download once the user
+// actually switches to them.
 import { KanbanBoard } from './components/board/KanbanBoard.js';
-import { FlightDeckView } from './components/flightdeck/FlightDeckView.js';
-import { TableView } from './components/table/TableView.js';
-import { CalendarView } from './components/calendar/CalendarView.js';
+const FlightDeckView = lazy(() =>
+  import('./components/flightdeck/FlightDeckView.js').then((m) => ({ default: m.FlightDeckView }))
+);
+const TableView = lazy(() => import('./components/table/TableView.js').then((m) => ({ default: m.TableView })));
+const CalendarView = lazy(() =>
+  import('./components/calendar/CalendarView.js').then((m) => ({ default: m.CalendarView }))
+);
 import { QuickCaptureModal } from './components/capture/QuickCaptureModal.js';
 import { TaskDetailDrawer } from './components/task/TaskDetailDrawer.js';
 import { HelpModal } from './components/layout/HelpModal.js';
@@ -21,6 +28,10 @@ import { AuthModal } from './components/auth/AuthModal.js';
 import { ProjectSettingsModal } from './components/project/ProjectSettingsModal.js';
 import { AppSettingsModal, type AppSettingsTab } from './components/settings/AppSettingsModal.js';
 import { useUserProfile } from './hooks/useUserProfile.js';
+import { getFirstLaneIdByType } from './utils/laneTypes.js';
+import { onLeaseDegraded } from './crdt/leases.js';
+import { showToast } from './utils/toast.js';
+import { ToastStack } from './components/common/ToastStack.js';
 import type { Task, AuthSession } from './types/index.js';
 
 export function App() {
@@ -118,6 +129,23 @@ export function App() {
     }
   }, []);
 
+  // Surface offline ID-lease exhaustion instead of letting it fail silently:
+  // once a prefix's reserved key block runs out, new tasks get unstable
+  // PREFIX-temp-NNNN keys until the next successful sync refills the lease.
+  useEffect(() => {
+    const lastWarnedAt = new Map<string, number>();
+    return onLeaseDegraded((prefix) => {
+      const now = Date.now();
+      const last = lastWarnedAt.get(prefix) ?? 0;
+      if (now - last < 60_000) return; // avoid spamming on a burst of offline captures
+      lastWarnedAt.set(prefix, now);
+      showToast(
+        `Offline task-key reserve for ${prefix} is exhausted — new tasks are getting temporary keys until you're back online.`,
+        'warning'
+      );
+    });
+  }, []);
+
   // Sync active selectedTask object when tasks array updates
   useEffect(() => {
     if (selectedTask) {
@@ -128,21 +156,41 @@ export function App() {
     }
   }, [tasks]);
 
-  // Global Keyboard Shortcuts
+  // Global Keyboard Shortcuts. closeTargets is ordered topmost-first: Escape
+  // closes only the first one that's currently open, not every open surface
+  // at once.
+  const isAnyModalOpen =
+    isQuickCaptureOpen ||
+    isHelpOpen ||
+    isAuthOpen ||
+    isProjectSettingsOpen ||
+    isAppSettingsOpen ||
+    selectedTask !== null;
+
   useKeyboardShortcuts({
     onOpenQuickCapture: () => setIsQuickCaptureOpen(true),
     onToggleFlightDeck: () =>
       setActiveView((v) => (v === 'board' ? 'flightdeck' : 'board')),
-    onCloseModals: () => {
-      setIsQuickCaptureOpen(false);
-      setIsHelpOpen(false);
-      setIsAuthOpen(false);
-      setIsProjectSettingsOpen(false);
-      setIsAppSettingsOpen(false);
-      setSelectedTask(null);
-    },
-    onToggleHelp: () => setIsHelpOpen((h) => !h)
+    onToggleHelp: () => setIsHelpOpen((h) => !h),
+    isAnyModalOpen,
+    closeTargets: [
+      { isOpen: isQuickCaptureOpen, onClose: () => setIsQuickCaptureOpen(false) },
+      { isOpen: isHelpOpen, onClose: () => setIsHelpOpen(false) },
+      { isOpen: isAuthOpen, onClose: () => setIsAuthOpen(false) },
+      { isOpen: isProjectSettingsOpen, onClose: () => setIsProjectSettingsOpen(false) },
+      { isOpen: isAppSettingsOpen, onClose: () => setIsAppSettingsOpen(false) },
+      { isOpen: selectedTask !== null, onClose: () => setSelectedTask(null) }
+    ]
   });
+
+  // Stable identities so React.memo on TaskCard/LaneColumn is actually
+  // effective — an inline arrow here would be a fresh function every App
+  // render, defeating the memoization no matter how the child is wrapped.
+  const handleSelectTask = useCallback((task: Task) => setSelectedTask(task), []);
+  const handleAddTaskToLane = useCallback(
+    (laneId: string, title: string) => addTask({ laneId, title }),
+    [addTask]
+  );
 
   const handleQuickTaskSubmit = (taskData: any) => {
     addTask(taskData);
@@ -156,13 +204,15 @@ export function App() {
       title: rawText.split('\n')[0].slice(0, 80),
       description: rawText,
       priority: 'none',
-      laneId: 'triage'
+      laneId: getFirstLaneIdByType(lanes, 'backlog')
     });
   };
 
   const handleCompleteTask = (taskId: string) => {
+    const completedLaneId = getFirstLaneIdByType(lanes, 'completed');
+    if (!completedLaneId) return;
     updateTask(taskId, {
-      laneId: 'done',
+      laneId: completedLaneId,
       isTimerRunning: false
     });
   };
@@ -170,6 +220,10 @@ export function App() {
   return (
     <FeatureGateProvider>
       <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans select-none antialiased">
+      {/* Inert while any modal/drawer is open, so background content is
+          unreachable to keyboard and assistive tech, not just visually
+          obscured behind the overlay. */}
+      <div className="flex flex-col flex-1 min-h-0" inert={isAnyModalOpen || undefined}>
       {/* App Header */}
       <Header
         metadata={metadata}
@@ -207,44 +261,52 @@ export function App() {
           <KanbanBoard
             lanes={lanes}
             tasks={tasks}
-            onSelectTask={(task) => setSelectedTask(task)}
+            onSelectTask={handleSelectTask}
             onToggleTimer={toggleTimer}
             onMoveTask={moveTask}
-            onAddTask={(laneId, title) => addTask({ laneId, title })}
+            onAddTask={handleAddTaskToLane}
             onArchiveCompletedTasks={archiveCompletedTasks}
           />
         )}
-        {activeView === 'table' && (
-          <TableView
-            tasks={tasks}
-            lanes={lanes}
-            onSelectTask={(task) => setSelectedTask(task)}
-            onToggleTimer={toggleTimer}
-            onUpdateTask={updateTask}
-            onAddTask={(taskData) => addTask(taskData)}
-            onUnarchiveTask={unarchiveTask}
-          />
-        )}
-        {activeView === 'calendar' && (
-          <CalendarView
-            tasks={tasks}
-            lanes={lanes}
-            onSelectTask={(task) => setSelectedTask(task)}
-            onToggleTimer={toggleTimer}
-            onAddTask={(taskData) => addTask(taskData)}
-          />
-        )}
-        {activeView === 'flightdeck' && (
-          <FlightDeckView
-            tasks={tasks}
-            onSelectTask={(task) => setSelectedTask(task)}
-            onToggleTimer={toggleTimer}
-            onCompleteTask={handleCompleteTask}
-            onOpenQuickCapture={() => setIsQuickCaptureOpen(true)}
-            onCreateTaskFromScratchpad={handleCreateFromScratchpad}
-          />
-        )}
+        <Suspense
+          fallback={
+            <div className="flex-1 flex items-center justify-center text-slate-500 text-sm">Loading view&hellip;</div>
+          }
+        >
+          {activeView === 'table' && (
+            <TableView
+              tasks={tasks}
+              lanes={lanes}
+              onSelectTask={handleSelectTask}
+              onToggleTimer={toggleTimer}
+              onUpdateTask={updateTask}
+              onAddTask={(taskData) => addTask(taskData)}
+              onUnarchiveTask={unarchiveTask}
+            />
+          )}
+          {activeView === 'calendar' && (
+            <CalendarView
+              tasks={tasks}
+              lanes={lanes}
+              onSelectTask={handleSelectTask}
+              onToggleTimer={toggleTimer}
+              onAddTask={(taskData) => addTask(taskData)}
+            />
+          )}
+          {activeView === 'flightdeck' && (
+            <FlightDeckView
+              tasks={tasks}
+              lanes={lanes}
+              onSelectTask={handleSelectTask}
+              onToggleTimer={toggleTimer}
+              onCompleteTask={handleCompleteTask}
+              onOpenQuickCapture={() => setIsQuickCaptureOpen(true)}
+              onCreateTaskFromScratchpad={handleCreateFromScratchpad}
+            />
+          )}
+        </Suspense>
       </main>
+      </div>
 
       {/* Quick Task Ingestion Modal (Cmd+K / C) */}
       <QuickCaptureModal
@@ -335,6 +397,8 @@ export function App() {
         onOpenAuth={() => setIsAuthOpen(true)}
         onOpenHelp={() => setIsHelpOpen(true)}
       />
+
+      <ToastStack />
     </div>
     </FeatureGateProvider>
   );
