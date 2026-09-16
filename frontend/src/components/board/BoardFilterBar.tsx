@@ -20,7 +20,7 @@ interface BoardFilterBarProps {
 }
 
 const PRIORITIES: Array<{ id: TaskPriority | 'all'; label: string; activeClass: string }> = [
-  { id: 'all', label: 'All', activeClass: 'bg-slate-700 text-white border-slate-600' },
+  { id: 'all', label: 'All', activeClass: 'bg-slate-700 text-slate-100 border-slate-600' },
   { id: 'urgent', label: 'Urgent', activeClass: 'bg-rose-950/80 text-rose-300 border-rose-600/80' },
   { id: 'high', label: 'High', activeClass: 'bg-amber-950/80 text-amber-300 border-amber-600/80' },
   { id: 'medium', label: 'Medium', activeClass: 'bg-blue-950/80 text-blue-300 border-blue-600/80' },

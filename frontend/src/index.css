@@ -22,6 +22,19 @@
   --color-indigo-300: var(--lk-indigo-300);
   --color-indigo-200: var(--lk-indigo-200);
   --color-indigo-100: var(--lk-indigo-100);
+
+  --animate-fade-in: fade-in 0.15s ease-out;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* 1. Lanekeeper (Default Dark & Light) */
@@ -31,8 +44,8 @@
   --lk-slate-900: #0f172a;
   --lk-slate-800: #1e293b;
   --lk-slate-700: #334155;
-  --lk-slate-600: #475569;
-  --lk-slate-500: #64748b;
+  --lk-slate-600: #6f829d;
+  --lk-slate-500: #73839a;
   --lk-slate-400: #94a3b8;
   --lk-slate-300: #cbd5e1;
   --lk-slate-200: #e2e8f0;
@@ -56,7 +69,7 @@
   --lk-slate-900: #ffffff;
   --lk-slate-800: #e2e8f0;
   --lk-slate-700: #cbd5e1;
-  --lk-slate-600: #94a3b8;
+  --lk-slate-600: #607490;
   --lk-slate-500: #64748b;
   --lk-slate-400: #475569;
   --lk-slate-300: #334155;
@@ -81,8 +94,8 @@
   --lk-slate-900: #282a36;
   --lk-slate-800: #383a59;
   --lk-slate-700: #44475a;
-  --lk-slate-600: #5a5d7a;
-  --lk-slate-500: #6272a4;
+  --lk-slate-600: #8e91ac;
+  --lk-slate-500: #8692b9;
   --lk-slate-400: #9094bd;
   --lk-slate-300: #c4c6e0;
   --lk-slate-200: #e2e3f0;
@@ -106,8 +119,8 @@
   --lk-slate-900: #ffffff;
   --lk-slate-800: #e5e5ea;
   --lk-slate-700: #cfcfe0;
-  --lk-slate-600: #a3a4be;
-  --lk-slate-500: #6272a4;
+  --lk-slate-600: #6d6f98;
+  --lk-slate-500: #5f6fa2;
   --lk-slate-400: #4f516d;
   --lk-slate-300: #3e4056;
   --lk-slate-200: #282a36;
@@ -131,9 +144,9 @@
   --lk-slate-900: #1a1b26;
   --lk-slate-800: #24283b;
   --lk-slate-700: #2f3549;
-  --lk-slate-600: #414868;
-  --lk-slate-500: #565f89;
-  --lk-slate-400: #787c99;
+  --lk-slate-600: #7882ab;
+  --lk-slate-500: #7b83ac;
+  --lk-slate-400: #7e829d;
   --lk-slate-300: #a9b1d6;
   --lk-slate-200: #c0caf5;
   --lk-slate-100: #ffffff;
@@ -156,8 +169,8 @@
   --lk-slate-900: #ffffff;
   --lk-slate-800: #d5d6db;
   --lk-slate-700: #c4c8da;
-  --lk-slate-600: #9699a3;
-  --lk-slate-500: #68707a;
+  --lk-slate-600: #60636e;
+  --lk-slate-500: #5c636c;
   --lk-slate-400: #4c505e;
   --lk-slate-300: #343b58;
   --lk-slate-200: #2e303e;
@@ -181,8 +194,8 @@
   --lk-slate-900: #181825;
   --lk-slate-800: #1e1e2e;
   --lk-slate-700: #313244;
-  --lk-slate-600: #45475a;
-  --lk-slate-500: #585b70;
+  --lk-slate-600: #7e809c;
+  --lk-slate-500: #7c8098;
   --lk-slate-400: #7f849c;
   --lk-slate-300: #a6adc8;
   --lk-slate-200: #bac2de;
@@ -206,9 +219,9 @@
   --lk-slate-900: #ffffff;
   --lk-slate-800: #e6e9ef;
   --lk-slate-700: #ccd0da;
-  --lk-slate-600: #bcc0cc;
-  --lk-slate-500: #9ca0b0;
-  --lk-slate-400: #6c6f85;
+  --lk-slate-600: #656d85;
+  --lk-slate-500: #666b80;
+  --lk-slate-400: #6a6d82;
   --lk-slate-300: #5c5f77;
   --lk-slate-200: #4c4f69;
   --lk-slate-100: #202027;
@@ -231,9 +244,9 @@
   --lk-slate-900: #2e3440;
   --lk-slate-800: #3b4252;
   --lk-slate-700: #434c5e;
-  --lk-slate-600: #4c566a;
-  --lk-slate-500: #65738e;
-  --lk-slate-400: #7b88a1;
+  --lk-slate-600: #939db2;
+  --lk-slate-500: #939db2;
+  --lk-slate-400: #939db2;
   --lk-slate-300: #d8dee9;
   --lk-slate-200: #e5e9f0;
   --lk-slate-100: #eceff4;
@@ -256,8 +269,8 @@
   --lk-slate-900: #ffffff;
   --lk-slate-800: #e5e9f0;
   --lk-slate-700: #d8dee9;
-  --lk-slate-600: #aeb8c9;
-  --lk-slate-500: #7b88a1;
+  --lk-slate-600: #5b6c88;
+  --lk-slate-500: #5f6c85;
   --lk-slate-400: #4c566a;
   --lk-slate-300: #434c5e;
   --lk-slate-200: #3b4252;
@@ -281,9 +294,9 @@
   --lk-slate-900: #282c34;
   --lk-slate-800: #353b45;
   --lk-slate-700: #3e4451;
-  --lk-slate-600: #4b5263;
-  --lk-slate-500: #5c6370;
-  --lk-slate-400: #828997;
+  --lk-slate-600: #8b93a7;
+  --lk-slate-500: #8c93a1;
+  --lk-slate-400: #8d94a0;
   --lk-slate-300: #abb2bf;
   --lk-slate-200: #d7dae0;
   --lk-slate-100: #f0f2f5;
@@ -306,8 +319,8 @@
   --lk-slate-900: #ffffff;
   --lk-slate-800: #ebebeb;
   --lk-slate-700: #e0e0e0;
-  --lk-slate-600: #bebebe;
-  --lk-slate-500: #a0a1a7;
+  --lk-slate-600: #727272;
+  --lk-slate-500: #71727a;
   --lk-slate-400: #696c77;
   --lk-slate-300: #4f525d;
   --lk-slate-200: #383a42;
@@ -331,8 +344,8 @@
   --lk-slate-900: #161b22;
   --lk-slate-800: #21262d;
   --lk-slate-700: #30363d;
-  --lk-slate-600: #484f58;
-  --lk-slate-500: #6e7681;
+  --lk-slate-600: #798492;
+  --lk-slate-500: #7d8590;
   --lk-slate-400: #8b949e;
   --lk-slate-300: #b1bac4;
   --lk-slate-200: #c9d1d9;
@@ -356,8 +369,8 @@
   --lk-slate-900: #ffffff;
   --lk-slate-800: #eaeef2;
   --lk-slate-700: #d0d7de;
-  --lk-slate-600: #afb8c1;
-  --lk-slate-500: #8c959f;
+  --lk-slate-600: #657382;
+  --lk-slate-500: #68717c;
   --lk-slate-400: #656d76;
   --lk-slate-300: #424a53;
   --lk-slate-200: #24292f;
@@ -381,8 +394,8 @@
   --lk-slate-900: #221f22;
   --lk-slate-800: #2d2a2e;
   --lk-slate-700: #403e41;
-  --lk-slate-600: #514e51;
-  --lk-slate-500: #727072;
+  --lk-slate-600: #8a858a;
+  --lk-slate-500: #898789;
   --lk-slate-400: #939293;
   --lk-slate-300: #c1c0c0;
   --lk-slate-200: #e3e3e1;
@@ -406,8 +419,8 @@
   --lk-slate-900: #ffffff;
   --lk-slate-800: #ecebe9;
   --lk-slate-700: #dedcd9;
-  --lk-slate-600: #bab7b3;
-  --lk-slate-500: #8f8c88;
+  --lk-slate-600: #74706a;
+  --lk-slate-500: #73706c;
   --lk-slate-400: #686561;
   --lk-slate-300: #484542;
   --lk-slate-200: #2f2d2b;
@@ -431,9 +444,9 @@
   --lk-slate-900: #282828;
   --lk-slate-800: #32302f;
   --lk-slate-700: #3c3836;
-  --lk-slate-600: #504945;
-  --lk-slate-500: #665c54;
-  --lk-slate-400: #928374;
+  --lk-slate-600: #988d87;
+  --lk-slate-500: #9d9188;
+  --lk-slate-400: #9b8d7f;
   --lk-slate-300: #d5c4a1;
   --lk-slate-200: #ebdbb2;
   --lk-slate-100: #fbf1c7;
@@ -456,9 +469,9 @@
   --lk-slate-900: #f9f5d7;
   --lk-slate-800: #f2e5bc;
   --lk-slate-700: #ebdbb2;
-  --lk-slate-600: #d5c4a1;
-  --lk-slate-500: #bdae93;
-  --lk-slate-400: #7c6f64;
+  --lk-slate-600: #806939;
+  --lk-slate-500: #7b6a4b;
+  --lk-slate-400: #766a5f;
   --lk-slate-300: #504945;
   --lk-slate-200: #3c3836;
   --lk-slate-100: #282828;
@@ -481,9 +494,9 @@
   --lk-slate-900: #002b36;
   --lk-slate-800: #073642;
   --lk-slate-700: #094959;
-  --lk-slate-600: #0e5b6e;
-  --lk-slate-500: #586e75;
-  --lk-slate-400: #657b83;
+  --lk-slate-600: #189bbb;
+  --lk-slate-500: #7a939b;
+  --lk-slate-400: #7c929a;
   --lk-slate-300: #839496;
   --lk-slate-200: #93a1a1;
   --lk-slate-100: #eee8d5;
@@ -506,9 +519,9 @@
   --lk-slate-900: #ffffff;
   --lk-slate-800: #eee8d5;
   --lk-slate-700: #e0d9c4;
-  --lk-slate-600: #93a1a1;
-  --lk-slate-500: #839496;
-  --lk-slate-400: #657b83;
+  --lk-slate-600: #657474;
+  --lk-slate-500: #627274;
+  --lk-slate-400: #5e737a;
   --lk-slate-300: #586e75;
   --lk-slate-200: #073642;
   --lk-slate-100: #002b36;
@@ -531,7 +544,7 @@
   --lk-slate-900: #012456;
   --lk-slate-800: #0a3d87;
   --lk-slate-700: #1453b0;
-  --lk-slate-600: #386db8;
+  --lk-slate-600: #6390cf;
   --lk-slate-500: #5f8ecf;
   --lk-slate-400: #90b3e6;
   --lk-slate-300: #b8d1f3;
@@ -556,9 +569,9 @@
   --lk-slate-900: #ffffff;
   --lk-slate-800: #e1ecf8;
   --lk-slate-700: #cde0f5;
-  --lk-slate-600: #a2c4ed;
-  --lk-slate-500: #689cd9;
-  --lk-slate-400: #3b77be;
+  --lk-slate-600: #266ec6;
+  --lk-slate-500: #2f70bb;
+  --lk-slate-400: #3770b2;
   --lk-slate-300: #1f5497;
   --lk-slate-200: #0f3a74;
   --lk-slate-100: #011738;
@@ -581,8 +594,8 @@
   --lk-slate-900: #0c0c0c;
   --lk-slate-800: #242424;
   --lk-slate-700: #363636;
-  --lk-slate-600: #555555;
-  --lk-slate-500: #767676;
+  --lk-slate-600: #7b7b7b;
+  --lk-slate-500: #7b7b7b;
   --lk-slate-400: #9e9e9e;
   --lk-slate-300: #b8b8b8;
   --lk-slate-200: #cccccc;
@@ -606,8 +619,8 @@
   --lk-slate-900: #ffffff;
   --lk-slate-800: #e5e5e5;
   --lk-slate-700: #d4d4d4;
-  --lk-slate-600: #a6a6a6;
-  --lk-slate-500: #767676;
+  --lk-slate-600: #6e6e6e;
+  --lk-slate-500: #6e6e6e;
   --lk-slate-400: #555555;
   --lk-slate-300: #363636;
   --lk-slate-200: #242424;
@@ -631,8 +644,8 @@
   --lk-slate-900: #181b20;
   --lk-slate-800: #292e37;
   --lk-slate-700: #3b424f;
-  --lk-slate-600: #535d6e;
-  --lk-slate-500: #727e93;
+  --lk-slate-600: #79859a;
+  --lk-slate-500: #788397;
   --lk-slate-400: #99a6b9;
   --lk-slate-300: #cad3e1;
   --lk-slate-200: #e8edf5;
@@ -656,8 +669,8 @@
   --lk-slate-900: #ffffff;
   --lk-slate-800: #e4e6eb;
   --lk-slate-700: #cbd5e1;
-  --lk-slate-600: #94a3b8;
-  --lk-slate-500: #64748b;
+  --lk-slate-600: #5c6f8a;
+  --lk-slate-500: #606f85;
   --lk-slate-400: #475569;
   --lk-slate-300: #334155;
   --lk-slate-200: #1e293b;
@@ -746,4 +759,69 @@
 
 ::-webkit-scrollbar-thumb:hover {
   background: var(--lk-slate-600);
+}
+
+/* Visible keyboard focus indicator. Previously the only :focus-visible rule
+   in the codebase was leftover Vite template CSS scoped to a class that no
+   longer exists, so keyboard focus fell back to the browser default outline
+   at ~1:1 contrast against these dark surfaces — effectively invisible. */
+:focus-visible {
+  outline: 2px solid var(--lk-indigo-400);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* Status/priority/tag badges (TaskCard, quick-capture preview, kind chips)
+   use fixed Tailwind hues — rose/amber/yellow/blue/purple/cyan/emerald —
+   picked for a dark badge background (e.g. bg-rose-500/20 on a near-black
+   page). None of those hues are remapped by the --lk-* theme system the
+   way slate/indigo are, so the same pale foreground painted over the same
+   translucent background on a near-white light-mode page is nearly
+   invisible (verified as low as 1.03:1). Darken them in light mode only. */
+[data-mode="light"] .text-rose-300 {
+  color: #9f1239;
+}
+[data-mode="light"] .text-rose-400 {
+  /* Darker than the -300 override: this tier is also used over
+     bg-rose-950/40, whose own composited color on a warm light-mode page
+     (e.g. gruvbox) is already a muted mid-tone, not near-white. */
+  color: #4c0519;
+}
+[data-mode="light"] .text-amber-300 {
+  color: #92400e;
+}
+[data-mode="light"] .text-amber-400 {
+  /* Darker than the -300 override, for the same reason as text-rose-400
+     above: also composited over bg-amber-950/40. */
+  color: #451a03;
+}
+[data-mode="light"] .text-yellow-300 {
+  color: #854d0e;
+}
+[data-mode="light"] .text-blue-300,
+[data-mode="light"] .text-blue-400 {
+  color: #1e40af;
+}
+[data-mode="light"] .text-purple-300,
+[data-mode="light"] .text-purple-400 {
+  color: #6b21a8;
+}
+[data-mode="light"] .text-cyan-300,
+[data-mode="light"] .text-cyan-400 {
+  color: #155e75;
+}
+[data-mode="light"] .text-emerald-300,
+[data-mode="light"] .text-emerald-400 {
+  color: #065f46;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
 }
