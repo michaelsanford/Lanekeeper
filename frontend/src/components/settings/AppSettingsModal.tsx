@@ -25,6 +25,7 @@ import {
 } from '../../features/index.js';
 import type { UserProfile } from '../../types/index.js';
 import type { NetworkStatus } from '../../hooks/useNetworkStatus.js';
+import type { ToolbarRevealMode } from '../../hooks/useToolbarPreferences.js';
 import { UserAvatar } from '../layout/UserAvatar.js';
 import { getInitials, DEFAULT_SCOPES } from '../../hooks/useUserProfile.js';
 
@@ -41,6 +42,8 @@ interface AppSettingsModalProps {
   profile?: UserProfile;
   networkStatus?: NetworkStatus;
   isOnline?: boolean;
+  revealMode?: ToolbarRevealMode;
+  onSelectRevealMode?: (mode: ToolbarRevealMode) => void;
   onUpdateProfile?: (updates: Partial<UserProfile>) => void;
   onGenerateCliToken?: () => string;
   onOpenAuth?: () => void;
@@ -72,6 +75,8 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
   profile = FALLBACK_PROFILE,
   networkStatus,
   isOnline,
+  revealMode = 'balanced',
+  onSelectRevealMode,
   onUpdateProfile,
   onGenerateCliToken: _onGenerateCliToken,
   onOpenAuth,
@@ -477,6 +482,87 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
                     </div>
                   );
                 })}
+              </div>
+
+              {/* Section: Toolbar Density & Slide Reveal */}
+              <div className="pt-4 border-t border-slate-800/80 space-y-3">
+                <div>
+                  <h4 className="text-sm font-bold text-slate-100 flex items-center gap-1.5">
+                    <Sliders className="w-4 h-4 text-indigo-400" />
+                    <span>Toolbar Density &amp; Slide Reveal</span>
+                  </h4>
+                  <p className="text-xs text-slate-400 mt-0.5">
+                    Choose how toolbar labels and peripheral controls expand on hover.
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  {/* Balanced */}
+                  <div
+                    onClick={() => onSelectRevealMode?.('balanced')}
+                    className={`p-3.5 rounded-xl border transition-all cursor-pointer flex flex-col justify-between space-y-2 ${
+                      revealMode === 'balanced'
+                        ? 'bg-indigo-950/40 border-indigo-500/70 ring-1 ring-indigo-500/50 shadow-md'
+                        : 'bg-slate-950/80 border-slate-800 hover:border-slate-700 hover:bg-slate-900/60'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="font-semibold text-xs text-slate-100">Balanced (Default)</span>
+                      {revealMode === 'balanced' && (
+                        <span className="text-[10px] font-semibold text-indigo-400 bg-indigo-950 px-1.5 py-0.5 rounded border border-indigo-800/70">
+                          Active
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-[11px] text-slate-400 leading-relaxed">
+                      Core context stays anchored (Project Name visible, active view labeled). Peripheral utilities &amp; Quick Capture slide out on hover.
+                    </p>
+                  </div>
+
+                  {/* Zen */}
+                  <div
+                    onClick={() => onSelectRevealMode?.('zen')}
+                    className={`p-3.5 rounded-xl border transition-all cursor-pointer flex flex-col justify-between space-y-2 ${
+                      revealMode === 'zen'
+                        ? 'bg-indigo-950/40 border-indigo-500/70 ring-1 ring-indigo-500/50 shadow-md'
+                        : 'bg-slate-950/80 border-slate-800 hover:border-slate-700 hover:bg-slate-900/60'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="font-semibold text-xs text-slate-100">Zen / Minimalist</span>
+                      {revealMode === 'zen' && (
+                        <span className="text-[10px] font-semibold text-indigo-400 bg-indigo-950 px-1.5 py-0.5 rounded border border-indigo-800/70">
+                          Active
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-[11px] text-slate-400 leading-relaxed">
+                      Maximum screen space. All items collapse to icon anchors at rest; hover slides out project name and view titles.
+                    </p>
+                  </div>
+
+                  {/* Expanded */}
+                  <div
+                    onClick={() => onSelectRevealMode?.('expanded')}
+                    className={`p-3.5 rounded-xl border transition-all cursor-pointer flex flex-col justify-between space-y-2 ${
+                      revealMode === 'expanded'
+                        ? 'bg-indigo-950/40 border-indigo-500/70 ring-1 ring-indigo-500/50 shadow-md'
+                        : 'bg-slate-950/80 border-slate-800 hover:border-slate-700 hover:bg-slate-900/60'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="font-semibold text-xs text-slate-100">Always Expanded</span>
+                      {revealMode === 'expanded' && (
+                        <span className="text-[10px] font-semibold text-indigo-400 bg-indigo-950 px-1.5 py-0.5 rounded border border-indigo-800/70">
+                          Active
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-[11px] text-slate-400 leading-relaxed">
+                      Static layout. All labels remain visible where viewport allows, with hover expansion animations disabled.
+                    </p>
+                  </div>
+                </div>
               </div>
             </div>
           )}

@@ -6,6 +6,7 @@ import { useTheme } from './hooks/useTheme.js';
 import { getStoredAuthSession, saveAuthSession } from './auth/cognito.js';
 import { scheduleSync, syncWithServer } from './crdt/sync.js';
 import { useNetworkStatus } from './hooks/useNetworkStatus.js';
+import { useToolbarPreferences } from './hooks/useToolbarPreferences.js';
 import { FeatureGateProvider } from './features/index.js';
 
 import { Header, type ActiveView } from './components/layout/Header.js';
@@ -65,6 +66,7 @@ export function App() {
   const syncToken = authSession?.accessToken || (import.meta.env.DEV ? 'lk_dev_seed_token' : undefined);
 
   const { status: networkStatus, isOnline } = useNetworkStatus(apiUrl, syncToken);
+  const { revealMode, setRevealMode } = useToolbarPreferences();
   const { profile, updateProfile, generateCliToken } = useUserProfile(authSession);
   const { theme, mode, setTheme, setMode } = useTheme();
 
@@ -185,6 +187,7 @@ export function App() {
         }}
         isOnline={isOnline}
         networkStatus={networkStatus}
+        revealMode={revealMode}
         pushSubscribed={isSubscribed}
         pushPermission={permission}
         onTogglePush={requestAndSubscribe}
@@ -325,6 +328,8 @@ export function App() {
         profile={profile}
         networkStatus={networkStatus}
         isOnline={isOnline}
+        revealMode={revealMode}
+        onSelectRevealMode={setRevealMode}
         onUpdateProfile={updateProfile}
         onGenerateCliToken={generateCliToken}
         onOpenAuth={() => setIsAuthOpen(true)}
