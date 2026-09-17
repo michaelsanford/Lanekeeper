@@ -21,7 +21,7 @@ describe('BoardFilterBar Component', () => {
         onResetFilters: vi.fn()
       })
     );
-    const html = rawHtml.replace(/<!--.*?-->/g, '');
+    const html = rawHtml.split('<!-- -->').join('');
 
     // Search input placeholder
     expect(html).toContain('Search board (key, title, #tag)...');
@@ -58,7 +58,7 @@ describe('BoardFilterBar Component', () => {
         onResetFilters: vi.fn()
       })
     );
-    const html = rawHtml.replace(/<!--.*?-->/g, '');
+    const html = rawHtml.split('<!-- -->').join('');
 
     expect(html).toContain('Showing');
     expect(html).toContain('2');
@@ -222,7 +222,7 @@ describe('TaskCard Subtask Visual Progress Bar', () => {
         onToggleTimer: vi.fn()
       })
     );
-    const html = rawHtml.replace(/<!--.*?-->/g, '');
+    const html = rawHtml.split('<!-- -->').join('');
 
     expect(html).toContain('width:50%');
     expect(html).toContain('1/2 (50%)');
@@ -237,7 +237,7 @@ describe('TaskCard Subtask Visual Progress Bar', () => {
         onToggleTimer: vi.fn()
       })
     );
-    const html = rawHtml.replace(/<!--.*?-->/g, '');
+    const html = rawHtml.split('<!-- -->').join('');
 
     expect(html).toContain('width:100%');
     expect(html).toContain('2/2 (100%)');
@@ -252,7 +252,7 @@ describe('TaskCard Subtask Visual Progress Bar', () => {
         onToggleTimer: vi.fn()
       })
     );
-    const html = rawHtml.replace(/<!--.*?-->/g, '');
+    const html = rawHtml.split('<!-- -->').join('');
 
     expect(html).not.toContain('rounded-full h-1.5');
   });

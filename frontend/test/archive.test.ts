@@ -160,7 +160,7 @@ describe('TableView Archival Display and Recovery', () => {
         onUnarchiveTask: () => {}
       })
     );
-    const html = rawHtml.replace(/<!--.*?-->/g, '');
+    const html = rawHtml.split('<!-- -->').join('');
 
     // Active view shows only active task by default
     expect(html).toContain('Active finished task');

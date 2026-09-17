@@ -172,6 +172,20 @@ describe('UserAvatar Component', () => {
     expect(html).toContain('src="https://avatars.githubusercontent.com/u/12345"');
   });
 
+  it('rejects unsafe avatarUrl protocols and falls back to initials badge', () => {
+    const html = renderToString(
+      <UserAvatar
+        initials="MS"
+        displayName="Michael Sanford"
+        avatarUrl="javascript:alert(1)"
+      />
+    );
+
+    expect(html).not.toContain('<img');
+    expect(html).not.toContain('javascript:');
+    expect(html).toContain('MS');
+  });
+
   it('renders different size classes for sm, md, and lg', () => {
     const smHtml = renderToString(<UserAvatar initials="SM" size="sm" />);
     expect(smHtml).toContain('w-7 h-7');

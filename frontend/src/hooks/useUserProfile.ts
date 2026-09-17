@@ -91,7 +91,7 @@ export function useUserProfile(authSession?: AuthSession | null) {
         const updated: UserProfile = {
           ...prev,
           id: authSession.userId || prev.id,
-          email: authSession.email,
+          email: authSession.email.replace(/[<>"']/g, ''),
           provider: isCognito ? 'cognito' : 'local',
           mfaEnabled: Boolean(isCognito)
         };

@@ -15,7 +15,7 @@ type FakeTask = { key: string; title: string; laneId: string; priority: string }
 describe("Developer CLI Companion (lk)", () => {
   let server: http.Server;
   let baseUrl: string;
-  let tasksByKey: Record<string, FakeTask>;
+  let tasksByKey: Map<string, FakeTask>;
 
   beforeAll(async () => {
     server = http.createServer((req, res) => {
@@ -26,13 +26,13 @@ describe("Developer CLI Companion (lk)", () => {
 
         if (req.method === "GET" && req.url === "/api/v1/tasks") {
           res.writeHead(200);
-          res.end(JSON.stringify({ tasks: Object.values(tasksByKey) }));
+          res.end(JSON.stringify({ tasks: Array.from(tasksByKey.values()) }));
           return;
         }
 
         if (req.method === "PATCH" && req.url?.startsWith("/api/v1/tasks/")) {
           const key = decodeURIComponent(req.url.split("/").pop() || "");
-          const existing = tasksByKey[key];
+          const existing = tasksByKey.get(key);
           if (!existing) {
             res.writeHead(404);
             res.end(JSON.stringify({ error: `Task ${key} not found` }));
@@ -48,7 +48,7 @@ describe("Developer CLI Companion (lk)", () => {
         if (req.method === "POST" && req.url === "/api/v1/quick") {
           const { raw } = JSON.parse(body || "{}");
           const task: FakeTask = { key: "LK-9", title: raw, laneId: "triage", priority: "medium" };
-          tasksByKey[task.key] = task;
+          tasksByKey.set(task.key, task);
           res.writeHead(201);
           res.end(JSON.stringify({ success: true, task }));
           return;
@@ -69,10 +69,10 @@ describe("Developer CLI Companion (lk)", () => {
   });
 
   beforeEach(() => {
-    tasksByKey = {
-      "LK-42": { key: "LK-42", title: "Sample task", laneId: "triage", priority: "high" },
-      "LK-101": { key: "LK-101", title: "Another task", laneId: "todo", priority: "medium" }
-    };
+    tasksByKey = new Map([
+      ["LK-42", { key: "LK-42", title: "Sample task", laneId: "triage", priority: "high" }],
+      ["LK-101", { key: "LK-101", title: "Another task", laneId: "todo", priority: "medium" }]
+    ]);
   });
 
   function connectedEnv() {
@@ -116,23 +116,33 @@ describe("Developer CLI Companion (lk)", () => {
     expect(stdout).toContain("Starting LK-42: Sample task");
     expect(stdout).toContain("Lane: inprogress");
     expect(stdout).toContain("git checkout -b feature/lk-42-task");
-    expect(tasksByKey["LK-42"].laneId).toBe("inprogress");
+    expect(tasksByKey.get("LK-42")?.laneId).toBe("inprogress");
   });
 
   it("transitions a real task to done on lk close or done", async () => {
     const { stdout: closeOut } = await execFileAsync("node", [CLI_PATH, "close", "LK-42"], { env: connectedEnv() });
     expect(closeOut).toContain("Closing LK-42: Sample task");
     expect(closeOut).toContain("Lane: done");
-    expect(tasksByKey["LK-42"].laneId).toBe("done");
+    expect(tasksByKey.get("LK-42")?.laneId).toBe("done");
 
     const { stdout: doneOut } = await execFileAsync("node", [CLI_PATH, "done", "LK-101"], { env: connectedEnv() });
     expect(doneOut).toContain("Closing LK-101: Another task");
-    expect(tasksByKey["LK-101"].laneId).toBe("done");
+    expect(tasksByKey.get("LK-101")?.laneId).toBe("done");
   });
 
   it("reports a clean error when transitioning a task that doesn't exist", async () => {
     const { stdout, stderr } = await execFileAsync("node", [CLI_PATH, "start", "LK-999"], { env: connectedEnv() });
     expect(stdout + stderr).toContain("Task LK-999 not found");
+  });
+
+  it("safely handles special prototype keys without polluting Object.prototype", async () => {
+    const { stdout, stderr } = await execFileAsync(
+      "node",
+      [CLI_PATH, "start", "__proto__"],
+      { env: connectedEnv() }
+    );
+    expect(stdout + stderr).toMatch(/Task __proto__ not found/i);
+    expect((Object.prototype as any).laneId).toBeUndefined();
   });
 
   it("ingests a task against the connected backend on lk add", async () => {

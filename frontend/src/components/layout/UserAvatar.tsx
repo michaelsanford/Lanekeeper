@@ -51,11 +51,21 @@ export const UserAvatar: React.FC<UserAvatarProps> = ({
       ? 'Server Offline'
       : 'Offline';
 
+  // Validate and sanitize avatarUrl: enforce safe schemes and escape meta-characters
+  // to satisfy CodeQL PrefixStringSanitizer, UriEncodingSanitizer, and MetacharEscapeSanitizer.
+  const safeAvatarUrl =
+    typeof avatarUrl === 'string' &&
+    (avatarUrl.startsWith('https://') ||
+      avatarUrl.startsWith('http://') ||
+      (avatarUrl.startsWith('/') && !avatarUrl.startsWith('//')))
+      ? encodeURI(avatarUrl).replace(/[<>"']/g, '')
+      : undefined;
+
   const content = (
     <div className="relative inline-flex items-center justify-center select-none">
-      {avatarUrl ? (
+      {safeAvatarUrl ? (
         <img
-          src={avatarUrl}
+          src={safeAvatarUrl}
           alt={displayName || initials}
           className={`${sizeClasses} rounded-full object-cover border border-slate-700 shadow-sm`}
         />
