@@ -1,4 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import { dirname, resolve } from 'node:path';
 import {
   THEMES,
   getStoredTheme,
@@ -8,6 +11,8 @@ import {
   type ThemeId,
   type ThemeMode
 } from '../src/utils/themes.js';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
 describe('Coding Themes Catalog & Manager', () => {
   beforeEach(() => {
@@ -154,4 +159,20 @@ describe('Coding Themes Catalog & Manager', () => {
       }
     }
   });
+
+  it('applies authentic Campbell PowerShell yellow hover text accents in index.css', () => {
+    const cssPath = resolve(__dirname, '../src/index.css');
+    const css = readFileSync(cssPath, 'utf8');
+
+    // Dark mode Campbell PowerShell hover accents should use bright yellow (#f9f1a5)
+    expect(css).toMatch(
+      /\[data-theme="campbell-powershell"\]\s+\.hover\\:text-white:hover[\s\S]*?color:\s*#f9f1a5\s*!important;/
+    );
+
+    // Light mode Campbell PowerShell hover accents should use high-contrast yellow (#854d0e)
+    expect(css).toMatch(
+      /\[data-theme="campbell-powershell"\]\[data-mode="light"\]\s+\.hover\\:text-white:hover[\s\S]*?color:\s*#854d0e\s*!important;/
+    );
+  });
 });
+

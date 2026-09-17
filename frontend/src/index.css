@@ -719,6 +719,49 @@
   border-color: rgba(234, 88, 12, 0.9) !important;
 }
 
+/* Authentic Campbell PowerShell Accents: Bright yellow text on hover (#f9f1a5) */
+[data-theme="campbell-powershell"] .hover\:text-white:hover,
+[data-theme="campbell-powershell"] .group:hover .group-hover\:text-white,
+[data-theme="campbell-powershell"] .hover\:text-slate-100:hover,
+[data-theme="campbell-powershell"] .group:hover .group-hover\:text-slate-100,
+[data-theme="campbell-powershell"] .hover\:text-slate-200:hover,
+[data-theme="campbell-powershell"] .group:hover .group-hover\:text-slate-200,
+[data-theme="campbell-powershell"] .hover\:text-slate-300:hover,
+[data-theme="campbell-powershell"] .group:hover .group-hover\:text-slate-300,
+[data-theme="campbell-powershell"] .hover\:text-indigo-100:hover,
+[data-theme="campbell-powershell"] .group:hover .group-hover\:text-indigo-100,
+[data-theme="campbell-powershell"] .hover\:text-indigo-200:hover,
+[data-theme="campbell-powershell"] .group:hover .group-hover\:text-indigo-200 {
+  color: #f9f1a5 !important;
+}
+
+[data-theme="campbell-powershell"][data-mode="light"] .hover\:text-white:hover,
+[data-mode="light"] [data-theme="campbell-powershell"] .hover\:text-white:hover,
+[data-theme="campbell-powershell"][data-mode="light"] .group:hover .group-hover\:text-white,
+[data-mode="light"] [data-theme="campbell-powershell"] .group:hover .group-hover\:text-white,
+[data-theme="campbell-powershell"][data-mode="light"] .hover\:text-slate-100:hover,
+[data-mode="light"] [data-theme="campbell-powershell"] .hover\:text-slate-100:hover,
+[data-theme="campbell-powershell"][data-mode="light"] .group:hover .group-hover\:text-slate-100,
+[data-mode="light"] [data-theme="campbell-powershell"] .group:hover .group-hover\:text-slate-100,
+[data-theme="campbell-powershell"][data-mode="light"] .hover\:text-slate-200:hover,
+[data-mode="light"] [data-theme="campbell-powershell"] .hover\:text-slate-200:hover,
+[data-theme="campbell-powershell"][data-mode="light"] .group:hover .group-hover\:text-slate-200,
+[data-mode="light"] [data-theme="campbell-powershell"] .group:hover .group-hover\:text-slate-200,
+[data-theme="campbell-powershell"][data-mode="light"] .hover\:text-slate-300:hover,
+[data-mode="light"] [data-theme="campbell-powershell"] .hover\:text-slate-300:hover,
+[data-theme="campbell-powershell"][data-mode="light"] .group:hover .group-hover\:text-slate-300,
+[data-mode="light"] [data-theme="campbell-powershell"] .group:hover .group-hover\:text-slate-300,
+[data-theme="campbell-powershell"][data-mode="light"] .hover\:text-indigo-100:hover,
+[data-mode="light"] [data-theme="campbell-powershell"] .hover\:text-indigo-100:hover,
+[data-theme="campbell-powershell"][data-mode="light"] .group:hover .group-hover\:text-indigo-100,
+[data-mode="light"] [data-theme="campbell-powershell"] .group:hover .group-hover\:text-indigo-100,
+[data-theme="campbell-powershell"][data-mode="light"] .hover\:text-indigo-200:hover,
+[data-mode="light"] [data-theme="campbell-powershell"] .hover\:text-indigo-200:hover,
+[data-theme="campbell-powershell"][data-mode="light"] .group:hover .group-hover\:text-indigo-200,
+[data-mode="light"] [data-theme="campbell-powershell"] .group:hover .group-hover\:text-indigo-200 {
+  color: #854d0e !important;
+}
+
 @layer base {
   html {
     font-size: 16.5px;
