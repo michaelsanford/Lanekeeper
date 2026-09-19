@@ -8,6 +8,7 @@ import { LaneMarkerPickerModal } from '../src/components/project/LaneMarkerPicke
 import { ProjectSettingsModal } from '../src/components/project/ProjectSettingsModal.js';
 import { AppSettingsModal } from '../src/components/settings/AppSettingsModal.js';
 import { TaskDetailDrawer } from '../src/components/task/TaskDetailDrawer.js';
+import { ConfirmModal } from '../src/components/common/ConfirmModal.js';
 import type { Task, Lane, ProjectMetadata } from '../src/types/index.js';
 
 const lanes: Lane[] = [{ id: 'triage', name: 'Triage', color: '#64748b', type: 'backlog' }];
@@ -120,6 +121,19 @@ describe('Modal accessibility: dialog semantics present on every modal', () => {
       />
     );
     assertDialogSemantics(html, 'TaskDetailDrawer');
+  });
+
+  it('ConfirmModal', () => {
+    const html = renderToString(
+      <ConfirmModal
+        isOpen={true}
+        onClose={vi.fn()}
+        onConfirm={vi.fn()}
+        title="Confirm action"
+        message="Are you sure?"
+      />
+    );
+    assertDialogSemantics(html, 'ConfirmModal');
   });
 
   it('modals render nothing (no dialog markup) when closed', () => {

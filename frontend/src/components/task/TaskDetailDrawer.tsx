@@ -15,6 +15,7 @@ import {
 import type { Task, Lane, TaskPriority, TaskKind } from '../../types/index.js';
 import { useFeatureGate } from '../../features/index.js';
 import { ModalShell } from '../common/ModalShell.js';
+import { ConfirmModal } from '../common/ConfirmModal.js';
 
 interface TaskDetailDrawerProps {
   task: Task | null;
@@ -50,6 +51,7 @@ export const TaskDetailDrawer: React.FC<TaskDetailDrawerProps> = ({
 
   const [newSubtaskTitle, setNewSubtaskTitle] = useState('');
   const [description, setDescription] = useState('');
+  const [isConfirmDeleteOpen, setIsConfirmDeleteOpen] = useState(false);
 
   // Live timer tick
   const [, setTick] = useState(0);
@@ -166,14 +168,9 @@ export const TaskDetailDrawer: React.FC<TaskDetailDrawerProps> = ({
             )}
 
             <button
-              onClick={() => {
-                if (confirm(`Delete task ${task.key}?`)) {
-                  onDeleteTask(task.id);
-                  onClose();
-                }
-              }}
+              onClick={() => setIsConfirmDeleteOpen(true)}
               title="Delete task"
-              className="p-2 rounded-lg text-slate-400 hover:text-rose-400 hover:bg-rose-950/40 transition-colors"
+              className="p-2 rounded-lg text-slate-400 hover:text-rose-400 hover:bg-rose-950/40 transition-colors cursor-pointer"
             >
               <Trash2 className="w-4 h-4" />
             </button>
@@ -440,6 +437,20 @@ export const TaskDetailDrawer: React.FC<TaskDetailDrawerProps> = ({
             </form>
           </div>
         </div>
+
+        <ConfirmModal
+          isOpen={isConfirmDeleteOpen}
+          title={`Delete task ${task.key}?`}
+          message={`Are you sure you want to delete "${task.title || task.key}"? This action cannot be undone.`}
+          confirmLabel="Delete Task"
+          variant="danger"
+          onConfirm={() => {
+            setIsConfirmDeleteOpen(false);
+            onDeleteTask(task.id);
+            onClose();
+          }}
+          onClose={() => setIsConfirmDeleteOpen(false)}
+        />
     </ModalShell>
   );
 };

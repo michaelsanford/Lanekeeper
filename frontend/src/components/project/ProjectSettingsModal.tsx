@@ -19,6 +19,7 @@ import { SwimlaneIcon } from '../icons/LaneIcons.js';
 import { LaneMarker } from '../icons/LaneMarker.js';
 import { LaneMarkerPickerModal } from './LaneMarkerPickerModal.js';
 import { ModalShell } from '../common/ModalShell.js';
+import { ConfirmModal } from '../common/ConfirmModal.js';
 import type { ProjectMetadata, Lane, LaneType } from '../../types/index.js';
 import {
   WORKFLOW_TEMPLATES,
@@ -135,6 +136,9 @@ export const ProjectSettingsModal: React.FC<ProjectSettingsModalProps> = ({
   // New Project state
   const [newProjectName, setNewProjectName] = useState('');
   const [newProjectPrefix, setNewProjectPrefix] = useState('');
+
+  // Delete lane confirmation state
+  const [laneToDelete, setLaneToDelete] = useState<Lane | null>(null);
 
   if (!isOpen) return null;
 
@@ -575,12 +579,9 @@ export const ProjectSettingsModal: React.FC<ProjectSettingsModalProps> = ({
                       {lanes.length > 1 && (
                         <button
                           type="button"
-                          onClick={() => {
-                            if (confirm(`Delete lane "${lane.name}"? Cards will move to the first lane.`)) {
-                              onDeleteLane(lane.id);
-                            }
-                          }}
-                          className="p-1.5 rounded text-slate-500 hover:text-rose-400 hover:bg-rose-950/40 transition-colors"
+                          onClick={() => setLaneToDelete(lane)}
+                          title={`Delete lane "${lane.name}"`}
+                          className="p-1.5 rounded text-slate-500 hover:text-rose-400 hover:bg-rose-950/40 transition-colors cursor-pointer"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -810,6 +811,22 @@ export const ProjectSettingsModal: React.FC<ProjectSettingsModalProps> = ({
           laneColor={markerPickerTarget.laneColor}
           laneName={markerPickerTarget.laneName}
           onSelectIcon={handleSelectMarker}
+        />
+      )}
+
+      {/* Delete Lane Confirmation Modal */}
+      {laneToDelete && (
+        <ConfirmModal
+          isOpen={true}
+          title={`Delete lane "${laneToDelete.name}"?`}
+          message="Cards in this lane will be moved to the first lane. This action cannot be undone."
+          confirmLabel="Delete Lane"
+          variant="danger"
+          onConfirm={() => {
+            onDeleteLane(laneToDelete.id);
+            setLaneToDelete(null);
+          }}
+          onClose={() => setLaneToDelete(null)}
         />
       )}
     </ModalShell>
