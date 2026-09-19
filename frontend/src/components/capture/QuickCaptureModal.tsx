@@ -15,7 +15,7 @@ import {
   HelpCircle,
   Sparkles
 } from 'lucide-react';
-import { parseQuickTask } from '../../utils/parser.js';
+import { parseQuickTask, parseDateToken } from '../../utils/parser.js';
 import { useSpeechRecognition } from '../../hooks/useSpeechRecognition.js';
 import { ModalShell } from '../common/ModalShell.js';
 import type { TaskPriority } from '../../types/index.js';
@@ -114,16 +114,47 @@ export const QuickCaptureModal: React.FC<QuickCaptureModalProps> = ({
     const { trigger, query } = activeTrigger;
 
     if (trigger === '^') {
-      const candidates = [
+      const candidates: Array<{ value: string; label: string }> = [
         { value: '^today', label: 'Today' },
         { value: '^tomorrow', label: 'Tomorrow' },
         { value: '^fri', label: 'Friday' },
         { value: '^mon', label: 'Monday' },
-        { value: '^sun', label: 'Sunday' }
+        { value: '^2026-11-04', label: 'Nov 4 (ISO)' },
+        { value: '^apr-04', label: 'Apr 4 (Month-Day)' }
       ];
-      return candidates.filter(
-        (c) => !query || c.value.toLowerCase().includes(query) || c.label.toLowerCase().includes(query)
+
+      const now = new Date();
+      const currentYear = now.getFullYear();
+      const nextMonthDate = new Date(currentYear, now.getMonth() + 1, 1);
+      const nextMonthName = nextMonthDate.toLocaleString('en-US', { month: 'short' }).toLowerCase();
+      const nextMonthValue = `^${nextMonthName}-01`;
+      if (!candidates.some((c) => c.value === nextMonthValue)) {
+        candidates.push({ value: nextMonthValue, label: `${nextMonthName.toUpperCase()} 1` });
+      }
+
+      const filtered = candidates.filter(
+        (c) =>
+          !query ||
+          c.value.toLowerCase().includes(query) ||
+          c.label.toLowerCase().includes(query)
       );
+
+      // If user typed a custom date query that parses, dynamically offer it
+      if (query.length >= 3 && !filtered.some((f) => f.value.toLowerCase() === `^${query}`)) {
+        const parsedQuery = parseDateToken(query, now);
+        if (parsedQuery) {
+          filtered.unshift({
+            value: `^${query}`,
+            label: parsedQuery.toLocaleDateString(undefined, {
+              month: 'short',
+              day: 'numeric',
+              year: parsedQuery.getFullYear() !== currentYear ? 'numeric' : undefined
+            })
+          });
+        }
+      }
+
+      return filtered;
     }
 
     if (trigger === '!') {
@@ -133,9 +164,15 @@ export const QuickCaptureModal: React.FC<QuickCaptureModalProps> = ({
         { value: '!medium', label: 'Medium', priority: 'medium' },
         { value: '!low', label: 'Low', priority: 'low' }
       ];
-      return candidates.filter(
-        (c) => !query || c.value.toLowerCase().includes(query) || c.label.toLowerCase().includes(query)
-      );
+      return candidates.filter((c) => {
+        const q = query.toLowerCase();
+        return (
+          !q ||
+          c.value.toLowerCase().slice(1).startsWith(q) ||
+          c.value.toLowerCase().includes(q) ||
+          c.label.toLowerCase().includes(q)
+        );
+      });
     }
 
     if (trigger === '~') {
@@ -214,6 +251,18 @@ export const QuickCaptureModal: React.FC<QuickCaptureModalProps> = ({
     });
   };
 
+  const handleInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Tab') {
+      if (activeTrigger && triggerSuggestions.length === 1) {
+        e.preventDefault();
+        e.stopPropagation();
+        handleSelectSuggestion(triggerSuggestions[0].value);
+      }
+    }
+  };
+
+  const isSingleSuggestion = activeTrigger !== null && triggerSuggestions.length === 1;
+
   return (
     <ModalShell
       onClose={onClose}
@@ -247,6 +296,7 @@ export const QuickCaptureModal: React.FC<QuickCaptureModalProps> = ({
               setInput(e.target.value);
               setCaretPos(e.target.selectionStart);
             }}
+            onKeyDown={handleInputKeyDown}
             onKeyUp={(e) => setCaretPos(e.currentTarget.selectionStart)}
             onClick={(e) => setCaretPos(e.currentTarget.selectionStart)}
             placeholder="e.g. Upgrade Cognito auth middleware #backend !urgent ^tomorrow ~2h"
@@ -299,7 +349,8 @@ export const QuickCaptureModal: React.FC<QuickCaptureModalProps> = ({
               <Calendar className="w-3.5 h-3.5" />
               {new Date(parsed.dueDate).toLocaleDateString(undefined, {
                 month: 'short',
-                day: 'numeric'
+                day: 'numeric',
+                year: 'numeric'
               })}
             </span>
           )}
@@ -349,6 +400,11 @@ export const QuickCaptureModal: React.FC<QuickCaptureModalProps> = ({
                     <Icon size={12} className="shrink-0" aria-hidden={true} />
                     <span>{sug.value}</span>
                     <span className="text-[10px] opacity-75 font-sans">({sug.label})</span>
+                    {isSingleSuggestion && (
+                      <kbd className="text-[10px] font-mono bg-slate-900/90 text-slate-300 px-1 py-0.2 rounded border border-slate-700/80 ml-0.5">
+                        Tab
+                      </kbd>
+                    )}
                   </button>
                 );
               }
@@ -365,6 +421,11 @@ export const QuickCaptureModal: React.FC<QuickCaptureModalProps> = ({
                   {sug.label && sug.label !== sug.value && (
                     <span className="text-[10px] text-slate-400 font-sans">({sug.label})</span>
                   )}
+                  {isSingleSuggestion && (
+                    <kbd className="text-[10px] font-mono bg-slate-900/90 text-slate-300 px-1 py-0.2 rounded border border-slate-700/80 ml-0.5">
+                      Tab
+                    </kbd>
+                  )}
                 </button>
               );
             })}
@@ -372,8 +433,14 @@ export const QuickCaptureModal: React.FC<QuickCaptureModalProps> = ({
             {triggerSuggestions.length === 0 && (
               <span className="text-slate-500 text-xs italic">
                 {activeTrigger.trigger === '^'
-                  ? 'Type a date e.g. ^2026-10-31 or ^tomorrow'
+                  ? 'Type a date e.g. ^apr-04, ^2026-11-04, or ^tomorrow'
                   : `No matching ${activeTrigger.trigger} suggestions`}
+              </span>
+            )}
+
+            {isSingleSuggestion && (
+              <span className="text-slate-400 text-[11px] font-sans ml-1">
+                (Press <kbd className="text-[10px] font-mono bg-slate-900 text-slate-300 px-1 py-0.2 rounded border border-slate-700">Tab</kbd> to select)
               </span>
             )}
           </div>
@@ -388,7 +455,7 @@ export const QuickCaptureModal: React.FC<QuickCaptureModalProps> = ({
                 type="button"
                 onClick={() => handleSelectSuggestion('^')}
                 className="inline-flex items-center gap-1 font-mono text-xs text-cyan-300 hover:text-white bg-cyan-950/40 hover:bg-cyan-900/60 px-2 py-0.5 rounded-md border border-cyan-800/60 transition-colors cursor-pointer"
-                title="Due date macros (^today, ^tomorrow, ^fri, etc.)"
+                title="Due date macros (^today, ^tomorrow, ^fri, ^apr-04, etc.)"
               >
                 <Calendar className="w-3 h-3 text-cyan-400 shrink-0" />
                 <span>^ due</span>
@@ -455,7 +522,7 @@ export const QuickCaptureModal: React.FC<QuickCaptureModalProps> = ({
                 <div className="flex items-baseline gap-1.5">
                   <span className="font-mono font-bold text-cyan-400">^</span>
                   <span className="text-slate-400">Due:</span>
-                  <span className="font-mono text-slate-300">^today, ^tomorrow, ^mon..^sun, ^YYYY-MM-DD</span>
+                  <span className="font-mono text-slate-300">^today, ^tomorrow, ^fri, ^2026-11-04, ^apr-04</span>
                 </div>
                 <div className="flex items-baseline gap-1.5">
                   <span className="font-mono font-bold text-rose-400">!</span>
@@ -475,6 +542,9 @@ export const QuickCaptureModal: React.FC<QuickCaptureModalProps> = ({
                   <span className="font-mono text-slate-300">#backend, #frontend, #bug...</span>
                 </div>
               </div>
+            </div>
+            <div className="text-[10px] text-slate-400 italic pt-1 border-t border-slate-800/80">
+              Tip: Press <kbd className="bg-slate-900 px-1 py-0.2 rounded text-slate-300 border border-slate-700">Tab</kbd> while typing to autocomplete any single filtered suggestion (e.g. !ur &rarr; !urgent).
             </div>
           </div>
         )}

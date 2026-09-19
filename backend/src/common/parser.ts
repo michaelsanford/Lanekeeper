@@ -117,19 +117,32 @@ export function parseQuickTask(input: string, baseDate: Date = new Date()): Quic
   };
 }
 
-function parseDateToken(token: string, baseDate: Date): Date | null {
+const MONTH_NAMES: Record<string, number> = {
+  jan: 0, january: 0,
+  feb: 1, february: 1,
+  mar: 2, march: 2,
+  apr: 3, april: 3,
+  may: 4,
+  jun: 5, june: 5,
+  jul: 6, july: 6,
+  aug: 7, august: 7,
+  sep: 8, sept: 8, september: 8,
+  oct: 9, october: 9,
+  nov: 10, november: 10,
+  dec: 11, december: 11
+};
+
+export function parseDateToken(token: string, baseDate: Date = new Date()): Date | null {
   const year = baseDate.getFullYear();
   const month = baseDate.getMonth();
   const date = baseDate.getDate();
 
   if (token === 'today') {
-    const d = new Date(year, month, date, 23, 59, 59);
-    return d;
+    return new Date(year, month, date, 23, 59, 59);
   }
 
   if (token === 'tomorrow' || token === 'tmrw') {
-    const d = new Date(year, month, date + 1, 23, 59, 59);
-    return d;
+    return new Date(year, month, date + 1, 23, 59, 59);
   }
 
   const daysOfWeek: Record<string, number> = {
@@ -147,19 +160,64 @@ function parseDateToken(token: string, baseDate: Date): Date | null {
     const currentDay = baseDate.getDay();
     let diff = targetDay - currentDay;
     if (diff <= 0) diff += 7; // Next occurrence
-    const d = new Date(year, month, date + diff, 23, 59, 59);
-    return d;
+    return new Date(year, month, date + diff, 23, 59, 59);
   }
 
-  // ISO date format YYYY-MM-DD
-  const isoMatch = token.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  // ISO date format YYYY-MM-DD or YYYY-M-D (with - or /)
+  const isoMatch = token.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})$/);
   if (isoMatch) {
     const y = parseInt(isoMatch[1], 10);
     const m = parseInt(isoMatch[2], 10) - 1;
     const day = parseInt(isoMatch[3], 10);
     const d = new Date(y, m, day, 23, 59, 59);
-    if (!isNaN(d.getTime())) {
+    if (!isNaN(d.getTime()) && d.getMonth() === m && d.getDate() === day) {
       return d;
+    }
+  }
+
+  // Month-Day format: e.g. apr-04, apr-4, november-14, apr-04-2027
+  const monthDayMatch = token.match(/^([a-z]{3,9})[-/](\d{1,2})(?:[-/](\d{4}))?$/);
+  if (monthDayMatch) {
+    const mStr = monthDayMatch[1];
+    if (mStr in MONTH_NAMES) {
+      const mIndex = MONTH_NAMES[mStr];
+      const day = parseInt(monthDayMatch[2], 10);
+      const explicitYear = monthDayMatch[3] ? parseInt(monthDayMatch[3], 10) : undefined;
+
+      const targetYear =
+        explicitYear !== undefined
+          ? explicitYear
+          : new Date(year, mIndex, day, 23, 59, 59).getTime() < baseDate.getTime()
+          ? year + 1
+          : year;
+
+      const candidate = new Date(targetYear, mIndex, day, 23, 59, 59);
+      if (!isNaN(candidate.getTime()) && candidate.getMonth() === mIndex && candidate.getDate() === day) {
+        return candidate;
+      }
+    }
+  }
+
+  // Day-Month format: e.g. 04-apr, 4-apr, 14-november, 04-apr-2027
+  const dayMonthMatch = token.match(/^(\d{1,2})[-/]([a-z]{3,9})(?:[-/](\d{4}))?$/);
+  if (dayMonthMatch) {
+    const mStr = dayMonthMatch[2];
+    if (mStr in MONTH_NAMES) {
+      const mIndex = MONTH_NAMES[mStr];
+      const day = parseInt(dayMonthMatch[1], 10);
+      const explicitYear = dayMonthMatch[3] ? parseInt(dayMonthMatch[3], 10) : undefined;
+
+      const targetYear =
+        explicitYear !== undefined
+          ? explicitYear
+          : new Date(year, mIndex, day, 23, 59, 59).getTime() < baseDate.getTime()
+          ? year + 1
+          : year;
+
+      const candidate = new Date(targetYear, mIndex, day, 23, 59, 59);
+      if (!isNaN(candidate.getTime()) && candidate.getMonth() === mIndex && candidate.getDate() === day) {
+        return candidate;
+      }
     }
   }
 

@@ -101,6 +101,24 @@ describe('Quick Capture applySuggestion', () => {
     expect(result.newCaretPos).toBe(22);
   });
 
+  it('completes single filtered choice !ur to !urgent with trailing space', () => {
+    const result = applySuggestion('Fix auth !ur', 12, '!urgent');
+    expect(result.newText).toBe('Fix auth !urgent ');
+    expect(result.newCaretPos).toBe(17);
+  });
+
+  it('completes ^apr to ^apr-04 with trailing space', () => {
+    const result = applySuggestion('Taxes ^apr', 10, '^apr-04');
+    expect(result.newText).toBe('Taxes ^apr-04 ');
+    expect(result.newCaretPos).toBe(14);
+  });
+
+  it('completes ^2026 to ^2026-11-04 with trailing space', () => {
+    const result = applySuggestion('Release ^2026', 13, '^2026-11-04');
+    expect(result.newText).toBe('Release ^2026-11-04 ');
+    expect(result.newCaretPos).toBe(20);
+  });
+
   it('handles replacement in middle of string without duplicating spaces', () => {
     const result = applySuggestion('Fix ^tom before release', 8, '^tomorrow');
     expect(result.newText).toBe('Fix ^tomorrow before release');
