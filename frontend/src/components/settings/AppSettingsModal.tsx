@@ -612,26 +612,23 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
                       <div
                         key={th.id}
                         onClick={() => onSelectTheme(th.id)}
-                        className={`p-4 rounded-xl border transition-all cursor-pointer flex flex-col justify-between space-y-3 ${
+                        className={`p-3.5 rounded-xl border transition-all cursor-pointer flex flex-col justify-between gap-2.5 ${
                           isActive
                             ? 'bg-indigo-950/40 border-indigo-500/70 shadow-lg ring-1 ring-indigo-500/50'
                             : 'bg-slate-950/80 border-slate-800 hover:border-slate-700 hover:bg-slate-900/60'
                         }`}
                       >
-                        <div className="space-y-2">
-                          <div className="flex items-start justify-between gap-2">
-                            <div>
-                              <div className="font-semibold text-slate-100 text-sm">{th.name}</div>
-                              <div className="text-[11px] text-slate-400 font-mono mt-0.5">{th.authorOrOrigin}</div>
-                            </div>
-                            {isActive && (
-                              <span className="flex items-center gap-1 text-[11px] font-semibold text-indigo-400 bg-indigo-950 px-2 py-0.5 rounded border border-indigo-800/70">
-                                <Check className="w-3 h-3" />
-                                Active
-                              </span>
-                            )}
+                        <div className="flex items-start justify-between gap-2">
+                          <div>
+                            <div className="font-semibold text-slate-100 text-sm">{th.name}</div>
+                            <div className="text-[11px] text-slate-400 font-mono mt-0.5">{th.authorOrOrigin}</div>
                           </div>
-                          <p className="text-xs text-slate-400 line-clamp-2 leading-relaxed">{th.description}</p>
+                          {isActive && (
+                            <span className="flex items-center gap-1 text-[11px] font-semibold text-indigo-400 bg-indigo-950 px-2 py-0.5 rounded border border-indigo-800/70 shrink-0">
+                              <Check className="w-3 h-3" />
+                              Active
+                            </span>
+                          )}
                         </div>
 
                         {/* 3-Color Swatch Strip */}
