@@ -18,6 +18,7 @@
 - **PWA Web Share Target API & App Shortcuts**: Integrated directly into iOS, Android, and macOS native share sheets, plus home screen long-press shortcuts for instant capture.
 - **GitHub Smart Commit & PR Ingestion**: Pushing `fix(auth): handle token expiry (fixes LK-42)` automatically transitions `LK-42` to Done and embeds the commit into the task activity log.
 - **13 Famous Coding & Roadwork Colour Schemes**: Instant switching between iconic developer palettes (Lanekeeper Midnight, Dracula, Tokyo Night, Catppuccin Mocha, Nord, One Dark Pro, GitHub Dark, Monokai Pro, Gruvbox Dark, Solarized Dark, Campbell PowerShell, Campbell, and Roadworks) with first-class Light and Dark mode support across all themes.
+- **Interface Typography & Web Fonts**: Choice of 6 developer-friendly Google web fonts (Inter, JetBrains Mono, Fira Code, IBM Plex Sans, Plus Jakarta Sans, Space Grotesk), OpenDyslexic for reading accessibility, and System Default native OS typography.
 - **Multiple Operational Views**: Seamless switching between Kanban Swimlane Board, sortable Data Table view, full-month Calendar schedule view, and single-task Flight Deck focus mode.
 
 ---

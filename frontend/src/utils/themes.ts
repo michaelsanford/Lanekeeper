@@ -446,3 +446,15 @@ export function applyTheme(themeId: ThemeId, mode: ThemeMode = getStoredMode()):
     } catch {}
   }
 }
+
+export {
+  type FontId,
+  type FontCategory,
+  type FontInfo,
+  FONTS,
+  FONT_STORAGE_KEY,
+  getStoredFont,
+  applyFont,
+  getFontInfo
+} from './fonts.js';
+

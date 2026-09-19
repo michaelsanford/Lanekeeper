@@ -15,9 +15,17 @@ import {
   ShieldAlert,
   GitCommit,
   AtSign,
-  Key
+  Key,
+  Type
 } from 'lucide-react';
-import { type ThemeId, type ThemeMode, THEMES, getThemePreview } from '../../utils/themes.js';
+import {
+  type ThemeId,
+  type ThemeMode,
+  type FontId,
+  THEMES,
+  FONTS,
+  getThemePreview
+} from '../../utils/themes.js';
 import { ModalShell } from '../common/ModalShell.js';
 import {
   useFeatureGate,
@@ -37,8 +45,10 @@ interface AppSettingsModalProps {
   onClose: () => void;
   currentTheme: ThemeId;
   currentMode: ThemeMode;
+  currentFont?: FontId;
   onSelectTheme: (themeId: ThemeId) => void;
   onSelectMode: (mode: ThemeMode) => void;
+  onSelectFont?: (fontId: FontId) => void;
   initialTab?: AppSettingsTab;
   profile?: UserProfile;
   networkStatus?: NetworkStatus;
@@ -70,8 +80,10 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
   onClose,
   currentTheme,
   currentMode,
+  currentFont = 'system',
   onSelectTheme,
   onSelectMode,
+  onSelectFont,
   initialTab = 'profile',
   profile = FALLBACK_PROFILE,
   networkStatus,
@@ -481,6 +493,93 @@ export const AppSettingsModal: React.FC<AppSettingsModalProps> = ({
                       Static layout. All labels remain visible where viewport allows, with hover expansion animations disabled.
                     </p>
                   </div>
+                </div>
+              </div>
+
+              {/* Section: Typography & Web Fonts */}
+              <div className="pt-2 border-t border-slate-800/80 space-y-4">
+                <div className="pb-2 border-b border-slate-800/80">
+                  <h3 className="text-sm font-bold text-slate-100 flex items-center gap-1.5">
+                    <Type className="w-4 h-4 text-indigo-400" />
+                    <span>Typography &amp; Web Fonts</span>
+                  </h3>
+                  <p className="text-xs text-slate-400 mt-0.5">
+                    Choose an interface typeface tailored for developer productivity, dense information display, or reading accessibility.
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                  {FONTS.map((f) => {
+                    const isActive = f.id === currentFont;
+                    return (
+                      <div
+                        key={f.id}
+                        role="button"
+                        tabIndex={0}
+                        onClick={() => onSelectFont?.(f.id)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            onSelectFont?.(f.id);
+                          }
+                        }}
+                        className={`p-4 rounded-xl border transition-all cursor-pointer flex flex-col justify-between space-y-3 ${
+                          isActive
+                            ? 'bg-indigo-950/40 border-indigo-500/70 shadow-lg ring-1 ring-indigo-500/50'
+                            : 'bg-slate-950/80 border-slate-800 hover:border-slate-700 hover:bg-slate-900/60'
+                        }`}
+                      >
+                        <div className="space-y-2">
+                          <div className="flex items-start justify-between gap-2">
+                            <div>
+                              <div
+                                className="font-semibold text-slate-100 text-sm"
+                                style={{ fontFamily: f.fontFamily }}
+                              >
+                                {f.name}
+                              </div>
+                              <div className="text-[11px] text-slate-400 font-mono mt-0.5">
+                                {f.designerOrOrigin}
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-1.5 shrink-0">
+                              <span
+                                className={`text-[10px] font-mono px-2 py-0.5 rounded border uppercase tracking-wider ${
+                                  f.category === 'dyslexic'
+                                    ? 'bg-emerald-950/70 text-emerald-400 border-emerald-800/60'
+                                    : f.category === 'google'
+                                    ? 'bg-indigo-950/70 text-indigo-400 border-indigo-800/60'
+                                    : 'bg-slate-800/70 text-slate-300 border-slate-700/60'
+                                }`}
+                              >
+                                {f.badgeText}
+                              </span>
+                              {isActive && (
+                                <span className="flex items-center gap-1 text-[11px] font-semibold text-indigo-400 bg-indigo-950 px-2 py-0.5 rounded border border-indigo-800/70">
+                                  <Check className="w-3 h-3" />
+                                  Active
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                          <p className="text-xs text-slate-400 line-clamp-2 leading-relaxed">
+                            {f.description}
+                          </p>
+                        </div>
+
+                        {/* Typography Specimen Preview */}
+                        <div className="pt-2 border-t border-slate-800/70">
+                          <div
+                            className="text-xs text-slate-300 bg-slate-900/80 px-2.5 py-1.5 rounded-lg border border-slate-800 truncate"
+                            style={{ fontFamily: f.fontFamily }}
+                            title={f.sampleText}
+                          >
+                            {f.sampleText}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
 

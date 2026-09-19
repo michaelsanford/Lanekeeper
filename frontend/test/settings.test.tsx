@@ -41,6 +41,15 @@ describe('Settings Modals and Header Grouping', () => {
     expect(html).toContain('Theme &amp; Appearance');
     expect(html).toContain('Feature Gates');
     expect(html).toContain('Colour Schemes');
+    expect(html).toContain('Typography &amp; Web Fonts');
+    expect(html).toContain('Inter');
+    expect(html).toContain('JetBrains Mono');
+    expect(html).toContain('Fira Code');
+    expect(html).toContain('IBM Plex Sans');
+    expect(html).toContain('Plus Jakarta Sans');
+    expect(html).toContain('Space Grotesk');
+    expect(html).toContain('OpenDyslexic');
+    expect(html).toContain('System Default');
   });
 
   it('renders AppSettingsModal with Feature Gates tab active', () => {

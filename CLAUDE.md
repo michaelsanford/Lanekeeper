@@ -60,6 +60,10 @@ DynamoDB is a single table (`PK`/`SK` + `GSI1`/`GSI2`, all `ALL` projection) wit
 
 Two auth paths (`backend/src/common/auth.ts`): the SPA uses Cognito JWT claims via `getCognitoAuthContext()`; the CLI and external scripts use bearer API tokens validated by SHA-256 hash lookup in `validateApiToken()`. Any token starting with `lk_dev_` — or any request in local dev — short-circuits to a dev identity.
 
+### Web push reminders are a separate storage lane in the same table
+
+`backend/src/handlers/push.ts` (subscribe endpoint) stores VAPID subscriptions under `USER#<id>` / `SUB#<endpointHash>`. `backend/src/handlers/scheduler.ts` is an EventBridge-scheduled Lambda (not API Gateway-routed, so it has no `dev-server.ts` entry) that queries `GSI2` for `REMINDER#PENDING` items due `<= now`, fans out `sendWebPush()` (`backend/src/services/webpush.ts`) to every subscription for that user, then deletes the reminder item. There's no local way to trigger it outside invoking the handler directly or `sam local invoke`.
+
 ### Lanes, templates, and feature flags
 
 `LaneType` (`backlog | unstarted | started | completed | cancelled`) is what behavior keys off, not lane ids — auto-archiving, completed-task styling in the board/table/calendar views, and template migration all match on `type`. Lane *ids* differ per workflow template (`frontend/src/utils/templates.ts`); `applyWorkflowTemplate()` remaps orphaned tasks by matching old lane `type` to a new lane of the same type. The GitHub smart-commit handler is the exception: it hardcodes the `software-dev` lane ids (`done`, `review`, `inprogress`).

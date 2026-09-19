@@ -79,7 +79,7 @@ export function App() {
   const { status: networkStatus, isOnline } = useNetworkStatus(apiUrl, syncToken);
   const { revealMode, setRevealMode } = useToolbarPreferences();
   const { profile, updateProfile, generateCliToken } = useUserProfile(authSession);
-  const { theme, mode, setTheme, setMode } = useTheme();
+  const { theme, mode, font, setTheme, setMode, setFont } = useTheme();
 
   const { isSubscribed, requestAndSubscribe, permission } = useWebPush(
     apiUrl,
@@ -384,8 +384,10 @@ export function App() {
         onClose={() => setIsAppSettingsOpen(false)}
         currentTheme={theme}
         currentMode={mode}
+        currentFont={font}
         onSelectTheme={setTheme}
         onSelectMode={setMode}
+        onSelectFont={setFont}
         initialTab={appSettingsTab}
         profile={profile}
         networkStatus={networkStatus}
