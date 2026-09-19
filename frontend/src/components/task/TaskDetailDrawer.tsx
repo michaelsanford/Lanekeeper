@@ -16,6 +16,8 @@ import type { Task, Lane, TaskPriority, TaskKind } from '../../types/index.js';
 import { useFeatureGate } from '../../features/index.js';
 import { ModalShell } from '../common/ModalShell.js';
 import { ConfirmModal } from '../common/ConfirmModal.js';
+import { PriorityBadge } from '../common/PriorityBadge.js';
+import { getPriorityConfig } from '../../utils/priorities.js';
 
 interface TaskDetailDrawerProps {
   task: Task | null;
@@ -123,6 +125,8 @@ export const TaskDetailDrawer: React.FC<TaskDetailDrawerProps> = ({
                 </option>
               ))}
             </select>
+
+            <PriorityBadge priority={task.priority} size="md" />
           </div>
 
           <div className="flex items-center gap-2">
@@ -217,19 +221,32 @@ export const TaskDetailDrawer: React.FC<TaskDetailDrawerProps> = ({
             {/* Priority */}
             <div className="space-y-1.5">
               <span className="text-slate-400 font-mono text-xs uppercase font-medium">Priority</span>
-              <select
-                value={task.priority}
-                onChange={(e) =>
-                  onUpdateTask(task.id, { priority: e.target.value as TaskPriority })
-                }
-                className="w-full bg-slate-900 text-slate-200 p-2 rounded-md border border-slate-800 outline-none text-sm"
-              >
-                <option value="none">None</option>
-                <option value="low">Low</option>
-                <option value="medium">Medium</option>
-                <option value="high">High</option>
-                <option value="urgent">Urgent</option>
-              </select>
+              <div className="relative flex items-center">
+                {(() => {
+                  const pConfig = getPriorityConfig(task.priority);
+                  const PriorityIcon = pConfig.icon;
+                  return (
+                    <PriorityIcon
+                      size={15}
+                      className={`absolute left-2.5 pointer-events-none ${pConfig.textClass} shrink-0`}
+                      aria-hidden={true}
+                    />
+                  );
+                })()}
+                <select
+                  value={task.priority}
+                  onChange={(e) =>
+                    onUpdateTask(task.id, { priority: e.target.value as TaskPriority })
+                  }
+                  className="w-full bg-slate-900 text-slate-200 pl-8 pr-2 py-2 rounded-md border border-slate-800 outline-none text-sm cursor-pointer"
+                >
+                  <option value="none">None</option>
+                  <option value="low">Low</option>
+                  <option value="medium">Medium</option>
+                  <option value="high">High</option>
+                  <option value="urgent">Urgent</option>
+                </select>
+              </div>
             </div>
 
             {/* Due Date */}

@@ -15,6 +15,7 @@ import type { Task, Lane, TaskPriority } from '../../types/index.js';
 import { LaneMarker } from '../icons/LaneMarker.js';
 import { useFeatureGate } from '../../features/index.js';
 import { isTaskInLaneType } from '../../utils/laneTypes.js';
+import { PRIORITY_CONFIG, getPriorityConfig } from '../../utils/priorities.js';
 
 interface TableViewProps {
   tasks: Task[];
@@ -30,21 +31,7 @@ interface TableViewProps {
 type SortField = 'key' | 'title' | 'lane' | 'priority' | 'dueDate' | 'estimate' | 'timeSpent';
 type SortDirection = 'asc' | 'desc';
 
-const PRIORITY_WEIGHTS: Record<TaskPriority, number> = {
-  urgent: 4,
-  high: 3,
-  medium: 2,
-  low: 1,
-  none: 0
-};
 
-const PRIORITY_COLORS: Record<TaskPriority, { bg: string; text: string; border: string }> = {
-  urgent: { bg: 'bg-rose-950/60', text: 'text-rose-400', border: 'border-rose-800/60' },
-  high: { bg: 'bg-amber-950/60', text: 'text-amber-400', border: 'border-amber-800/60' },
-  medium: { bg: 'bg-blue-950/60', text: 'text-blue-400', border: 'border-blue-800/60' },
-  low: { bg: 'bg-slate-900/60', text: 'text-slate-400', border: 'border-slate-800/60' },
-  none: { bg: 'bg-transparent', text: 'text-slate-500', border: 'border-transparent' }
-};
 
 export const TableView: React.FC<TableViewProps> = ({
   tasks,
@@ -144,7 +131,7 @@ export const TableView: React.FC<TableViewProps> = ({
           break;
         }
         case 'priority':
-          comparison = (PRIORITY_WEIGHTS[a.priority] || 0) - (PRIORITY_WEIGHTS[b.priority] || 0);
+          comparison = (PRIORITY_CONFIG[a.priority]?.weight || 0) - (PRIORITY_CONFIG[b.priority]?.weight || 0);
           break;
         case 'dueDate': {
           const timeA = a.dueDate ? new Date(a.dueDate).getTime() : Infinity;
@@ -443,33 +430,38 @@ export const TableView: React.FC<TableViewProps> = ({
 
                     {/* Priority */}
                     <td className="py-2.5 px-4" onClick={(e) => e.stopPropagation()}>
-                      <select
-                        value={task.priority}
-                        onChange={(e) =>
-                          onUpdateTask(task.id, { priority: e.target.value as TaskPriority })
-                        }
-                        className={`text-xs px-2 py-1 rounded border outline-none font-medium cursor-pointer ${
-                          PRIORITY_COLORS[task.priority].bg
-                        } ${PRIORITY_COLORS[task.priority].text} ${
-                          PRIORITY_COLORS[task.priority].border
-                        }`}
-                      >
-                        <option value="urgent" className="bg-slate-900 text-rose-400">
-                          Urgent
-                        </option>
-                        <option value="high" className="bg-slate-900 text-amber-400">
-                          High
-                        </option>
-                        <option value="medium" className="bg-slate-900 text-blue-400">
-                          Medium
-                        </option>
-                        <option value="low" className="bg-slate-900 text-slate-400">
-                          Low
-                        </option>
-                        <option value="none" className="bg-slate-900 text-slate-500">
-                          None
-                        </option>
-                      </select>
+                      {(() => {
+                        const pConfig = getPriorityConfig(task.priority);
+                        const PriorityIcon = pConfig.icon;
+                        return (
+                          <div className="flex items-center gap-1.5">
+                            <PriorityIcon size={14} className={`${pConfig.textClass} shrink-0`} aria-hidden={true} />
+                            <select
+                              value={task.priority}
+                              onChange={(e) =>
+                                onUpdateTask(task.id, { priority: e.target.value as TaskPriority })
+                              }
+                              className={`text-xs px-2 py-1 rounded border outline-none font-medium cursor-pointer ${pConfig.badgeClass}`}
+                            >
+                              <option value="urgent" className="bg-slate-900 text-rose-400">
+                                Urgent
+                              </option>
+                              <option value="high" className="bg-slate-900 text-amber-400">
+                                High
+                              </option>
+                              <option value="medium" className="bg-slate-900 text-blue-400">
+                                Medium
+                              </option>
+                              <option value="low" className="bg-slate-900 text-slate-400">
+                                Low
+                              </option>
+                              <option value="none" className="bg-slate-900 text-slate-500">
+                                None
+                              </option>
+                            </select>
+                          </div>
+                        );
+                      })()}
                     </td>
 
                     {/* Due Date */}

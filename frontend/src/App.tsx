@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, lazy, Suspense } from 'react';
+import { useState, useEffect, useCallback, useMemo, lazy, Suspense } from 'react';
 import { useCrdt } from './hooks/useCrdt.js';
 import { useWebPush } from './hooks/useWebPush.js';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts.js';
@@ -217,6 +217,16 @@ export function App() {
     });
   };
 
+  const availableTags = useMemo(() => {
+    const tagSet = new Set<string>();
+    for (const t of tasks) {
+      if (t.tags) {
+        for (const tag of t.tags) tagSet.add(tag);
+      }
+    }
+    return Array.from(tagSet).sort();
+  }, [tasks]);
+
   return (
     <FeatureGateProvider>
       <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans select-none antialiased">
@@ -313,6 +323,7 @@ export function App() {
         isOpen={isQuickCaptureOpen}
         onClose={() => setIsQuickCaptureOpen(false)}
         onSubmitTask={handleQuickTaskSubmit}
+        availableTags={availableTags}
       />
 
       {/* Slide-over Task Detail Drawer */}

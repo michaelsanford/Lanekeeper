@@ -7,14 +7,15 @@ import {
   Play,
   Square,
   Tag,
-  AlertCircle,
   Bug,
   Sparkles,
   Wrench,
-  AlertOctagon
+  AlertOctagon,
+  AlertCircle
 } from 'lucide-react';
-import type { Task, TaskPriority } from '../../types/index.js';
+import type { Task } from '../../types/index.js';
 import { useFeatureGate } from '../../features/index.js';
+import { PriorityBadge } from '../common/PriorityBadge.js';
 
 interface TaskCardProps {
   task: Task;
@@ -54,13 +55,6 @@ export const TaskCard: React.FC<TaskCardProps> = React.memo(function TaskCard({
     transition
   };
 
-  const priorityConfig: Record<TaskPriority, { label: string; color: string }> = {
-    urgent: { label: 'Urgent', color: 'bg-rose-500/20 text-rose-300 border-rose-500/40' },
-    high: { label: 'High', color: 'bg-amber-500/20 text-amber-300 border-amber-500/40' },
-    medium: { label: 'Medium', color: 'bg-yellow-500/20 text-yellow-300 border-yellow-500/40' },
-    low: { label: 'Low', color: 'bg-blue-500/20 text-blue-300 border-blue-500/40' },
-    none: { label: '', color: '' }
-  };
 
   // Format elapsed time
   const totalElapsedSeconds =
@@ -155,15 +149,7 @@ export const TaskCard: React.FC<TaskCardProps> = React.memo(function TaskCard({
         </div>
 
         <div className="flex items-center gap-1.5">
-          {task.priority !== 'none' && (
-            <span
-              className={`text-xs font-semibold uppercase tracking-wider px-2 py-0.5 rounded border ${
-                priorityConfig[task.priority].color
-              }`}
-            >
-              {priorityConfig[task.priority].label}
-            </span>
-          )}
+          <PriorityBadge priority={task.priority} size="md" />
 
           {/* Inline Timer Button */}
           {isTimeTrackingEnabled && (

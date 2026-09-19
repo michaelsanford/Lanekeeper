@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Search, X, Filter, Tag as TagIcon, RotateCcw, AlertOctagon, Copy, Check } from 'lucide-react';
 import type { TaskPriority } from '../../types/index.js';
+import { PRIORITY_CONFIG } from '../../utils/priorities.js';
 
 interface BoardFilterBarProps {
   searchQuery: string;
@@ -19,12 +20,17 @@ interface BoardFilterBarProps {
   onCopyMarkdown?: () => void;
 }
 
-const PRIORITIES: Array<{ id: TaskPriority | 'all'; label: string; activeClass: string }> = [
+const PRIORITIES: Array<{
+  id: TaskPriority | 'all';
+  label: string;
+  activeClass: string;
+  icon?: React.ComponentType<{ size?: number; className?: string; 'aria-hidden'?: boolean | 'true' | 'false' }>;
+}> = [
   { id: 'all', label: 'All', activeClass: 'bg-slate-700 text-slate-100 border-slate-600' },
-  { id: 'urgent', label: 'Urgent', activeClass: 'bg-rose-950/80 text-rose-300 border-rose-600/80' },
-  { id: 'high', label: 'High', activeClass: 'bg-amber-950/80 text-amber-300 border-amber-600/80' },
-  { id: 'medium', label: 'Medium', activeClass: 'bg-blue-950/80 text-blue-300 border-blue-600/80' },
-  { id: 'low', label: 'Low', activeClass: 'bg-slate-800 text-slate-300 border-slate-700' }
+  { id: 'urgent', label: PRIORITY_CONFIG.urgent.label, activeClass: PRIORITY_CONFIG.urgent.badgeClass, icon: PRIORITY_CONFIG.urgent.icon },
+  { id: 'high', label: PRIORITY_CONFIG.high.label, activeClass: PRIORITY_CONFIG.high.badgeClass, icon: PRIORITY_CONFIG.high.icon },
+  { id: 'medium', label: PRIORITY_CONFIG.medium.label, activeClass: PRIORITY_CONFIG.medium.badgeClass, icon: PRIORITY_CONFIG.medium.icon },
+  { id: 'low', label: PRIORITY_CONFIG.low.label, activeClass: PRIORITY_CONFIG.low.badgeClass, icon: PRIORITY_CONFIG.low.icon }
 ];
 
 export const BoardFilterBar: React.FC<BoardFilterBarProps> = ({
@@ -94,13 +100,14 @@ export const BoardFilterBar: React.FC<BoardFilterBarProps> = ({
                 key={p.id}
                 type="button"
                 onClick={() => onPriorityChange(p.id)}
-                className={`px-2 py-0.5 rounded-md font-medium text-[11px] border transition-colors ${
+                className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md font-medium text-[11px] border transition-colors ${
                   isActive
                     ? p.activeClass
                     : 'border-transparent text-slate-400 hover:text-slate-200 hover:bg-slate-900'
                 }`}
               >
-                {p.label}
+                {p.icon && <p.icon size={11} className="shrink-0" aria-hidden={true} />}
+                <span>{p.label}</span>
               </button>
             );
           })}
