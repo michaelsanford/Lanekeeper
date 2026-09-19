@@ -19,6 +19,8 @@
 - **GitHub Smart Commit & PR Ingestion**: Pushing `fix(auth): handle token expiry (fixes LK-42)` automatically transitions `LK-42` to Done and embeds the commit into the task activity log.
 - **13 Famous Coding & Roadwork Colour Schemes**: Instant switching between iconic developer palettes (Lanekeeper Midnight, Dracula, Tokyo Night, Catppuccin Mocha, Nord, One Dark Pro, GitHub Dark, Monokai Pro, Gruvbox Dark, Solarized Dark, Campbell PowerShell, Campbell, and Roadworks) with first-class Light and Dark mode support across all themes.
 - **Interface Typography & Web Fonts**: Choice of 6 developer-friendly Google web fonts (Inter, JetBrains Mono, Fira Code, IBM Plex Sans, Plus Jakarta Sans, Space Grotesk), OpenDyslexic for reading accessibility, and System Default native OS typography.
+- **Priority Iconography & Visual Hierarchy**: Distinct Lucide icons and semantic color hierarchy for task priorities (Urgent `AlertOctagon`, High `ArrowUp`, Medium `Equal`, Low `ArrowDown`) integrated consistently across Kanban cards, board filter bars, table views, and task detail drawers.
+- **Accessible Modal Dialogs**: Custom, keyboard-accessible confirmation modals with focus traps, escape handling, and screen reader labels replacing native browser alerts.
 - **Multiple Operational Views**: Seamless switching between Kanban Swimlane Board, sortable Data Table view, full-month Calendar schedule view, and single-task Flight Deck focus mode.
 
 ---
@@ -98,9 +100,14 @@ Upgrade Cognito auth pool #backend #infra !urgent ^tomorrow ~2h @michael
 | `text`      | Task Title     | Leading or trailing description                 |
 | `#tag`      | Category / Tag | `#backend`, `#frontend`, `#infra`               |
 | `!priority` | Task Priority  | `!urgent`, `!high`, `!med`, `!low`              |
-| `^due`      | Due Date       | `^today`, `^tomorrow`, `^friday`, `^2026-10-31` |
+| `^due`      | Due Date       | `^today`, `^tomorrow`, `^fri`, `^2026-11-04`, `^apr-04` |
 | `~estimate` | Time Sizing    | `~30m`, `~1h`, `~2.5h`, `~3pt`                  |
 | `@assignee` | Team Member    | `@michael`, `@alex`                             |
+
+The Quick Capture modal includes dynamic, in-context syntax suggestions and single-choice `Tab` autocompletion:
+- Typing `!` surfaces priority suggestions with distinct icons; typing `!ur` and pressing `Tab` completes `!urgent`.
+- Typing `^` surfaces relative macros (`^today`, `^tomorrow`, `^fri`), explicit ISO dates (`^2026-11-04`), and month-day formats (`^apr-04`). If the year is omitted, dates that have already passed in the current year automatically advance to the upcoming year.
+- Pressing `Tab` while typing any trigger automatically autocompletes the single filtered choice without losing input focus.
 
 ---
 

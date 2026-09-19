@@ -1,5 +1,5 @@
 import React from 'react';
-import { CloudOff, Fingerprint, ShieldCheck, Zap, Mic, Share2, GitBranch, LayoutGrid, Bell, Keyboard } from 'lucide-react';
+import { CloudOff, Fingerprint, ShieldCheck, Zap, Mic, Share2, GitBranch, LayoutGrid, Bell, Keyboard, Type, AlertOctagon, CheckSquare } from 'lucide-react';
 import { FEATURE_DEFINITIONS } from '../../../frontend/src/features/index.js';
 
 const FEATURES: { icon: React.ElementType; title: string; description: string }[] = [
@@ -14,6 +14,24 @@ const FEATURES: { icon: React.ElementType; title: string; description: string }[
     title: 'Deterministic project prefixes & offline ID leasing',
     description:
       'Predictable issue numbers (LK-42) backed by atomic counters, with offline ID reservation leases so you can create tickets while disconnected without collisions.'
+  },
+  {
+    icon: Type,
+    title: 'Google Web Fonts & OpenDyslexic',
+    description:
+      'Customize interface typography with developer favorites like JetBrains Mono and Fira Code, or OpenDyslexic for enhanced readability.'
+  },
+  {
+    icon: AlertOctagon,
+    title: 'Visual priority iconography',
+    description:
+      'Clear, glanceable visual hierarchy with dedicated icons for Urgent, High, Medium, and Low priority states across all views.'
+  },
+  {
+    icon: CheckSquare,
+    title: 'Accessible modal dialogs',
+    description:
+      'Replacing intrusive native browser popups with fully accessible, keyboard-trapped modal dialogs for safe destructive action confirmation.'
   },
   {
     icon: Fingerprint,

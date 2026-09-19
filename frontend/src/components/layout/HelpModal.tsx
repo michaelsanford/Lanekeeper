@@ -124,7 +124,7 @@ export const HelpModal: React.FC<HelpModalProps> = ({
               </div>
               <div className="flex items-baseline justify-between border-b border-slate-800/80 pb-2">
                 <span className="text-cyan-400 font-semibold">^due</span>
-                <span className="text-slate-400 font-sans text-xs">^today, ^tomorrow, ^fri, ^2026-10-31</span>
+                <span className="text-slate-400 font-sans text-xs">^today, ^tomorrow, ^fri, ^2026-11-04, ^apr-04</span>
               </div>
               <div className="flex items-baseline justify-between border-b border-slate-800/80 pb-2">
                 <span className="text-amber-400 font-semibold">~estimate</span>
@@ -135,6 +135,9 @@ export const HelpModal: React.FC<HelpModalProps> = ({
                 <span className="text-slate-400 font-sans text-xs">Assign task to team member</span>
               </div>
             </div>
+            <p className="text-[11px] text-slate-400">
+              Tip: Press <kbd className="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 text-indigo-300 font-mono text-[10px]">Tab</kbd> during capture to autocomplete unique suggestions (e.g. <code className="text-rose-400">!ur[Tab]</code> &rarr; <code className="text-rose-400">!urgent</code>).
+            </p>
           </div>
 
           {/* `lk` cli */}

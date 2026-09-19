@@ -55,5 +55,48 @@ export const ThemeGallery: React.FC<ThemeGalleryProps> = ({ theme }) => (
         );
       })}
     </div>
+
+    <div className="mt-16 mb-6 text-center">
+      <h2 className="text-2xl sm:text-3xl font-bold text-slate-100 tracking-tight mb-2">Typography & accessibility</h2>
+      <p className="text-slate-400 max-w-xl mx-auto">
+        Select a typeface to customize readability across the interface &mdash; from developer monospace favorites to
+        OpenDyslexic for neurodivergent reading comfort.
+      </p>
+    </div>
+
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+      {theme.fonts.map((f) => {
+        const isActive = theme.font === f.id;
+        return (
+          <button
+            key={f.id}
+            type="button"
+            onClick={() => theme.setFont(f.id)}
+            aria-pressed={isActive}
+            className={`relative text-left rounded-xl border p-3.5 transition-all cursor-pointer ${
+              isActive
+                ? 'border-indigo-500 ring-1 ring-indigo-500/50 bg-indigo-950/30'
+                : 'border-slate-800 hover:border-slate-700 bg-slate-900/60'
+            }`}
+          >
+            {isActive ? (
+              <span className="absolute top-2 right-2 w-5 h-5 rounded-full bg-indigo-600 flex items-center justify-center">
+                <Check size={12} className="text-white" />
+              </span>
+            ) : null}
+            <div className="flex items-center justify-between mb-1 pr-6">
+              <span className="text-sm font-semibold text-slate-100">{f.name}</span>
+            </div>
+            <div className="text-[11px] font-mono text-slate-500 mb-2">{f.designerOrOrigin}</div>
+            <div
+              className="text-xs text-slate-300 truncate bg-slate-950/60 px-2 py-1.5 rounded border border-slate-800/80"
+              style={{ fontFamily: f.fontFamily }}
+            >
+              {f.sampleText}
+            </div>
+          </button>
+        );
+      })}
+    </div>
   </section>
 );

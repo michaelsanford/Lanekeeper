@@ -59,6 +59,27 @@ describe('runLkCommand', () => {
     expect(outcome.effect.task.dueDate).toBeDefined();
   });
 
+  it('parses extended date formats like ^apr-04 and ^2026-11-04 in add command', () => {
+    const state = freshState();
+    const outcome = runLkCommand('add File taxes #finance ^apr-04 !high', state);
+    expect(outcome.effect?.type).toBe('create');
+    if (outcome.effect?.type !== 'create') throw new Error('expected create effect');
+    expect(outcome.effect.task.title).toBe('File taxes');
+    expect(outcome.effect.task.tags).toEqual(['finance']);
+    expect(outcome.effect.task.priority).toBe('high');
+    const dueDate = new Date(outcome.effect.task.dueDate!);
+    expect(dueDate.getMonth()).toBe(3); // April
+    expect(dueDate.getDate()).toBe(4);
+
+    const outcomeIso = runLkCommand('add Audit logs ^2026-11-04', state);
+    if (outcomeIso.effect?.type !== 'create') throw new Error('expected create effect');
+    expect(outcomeIso.effect.task.title).toBe('Audit logs');
+    const isoDueDate = new Date(outcomeIso.effect.task.dueDate!);
+    expect(isoDueDate.getFullYear()).toBe(2026);
+    expect(isoDueDate.getMonth()).toBe(10); // November
+    expect(isoDueDate.getDate()).toBe(4);
+  });
+
   it('requires a key for start', () => {
     const outcome = runLkCommand('start', freshState());
     expect(outcome.lines).toEqual(['Error: Please provide task key (e.g. lk start LK-42)']);

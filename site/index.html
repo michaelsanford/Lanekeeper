@@ -30,20 +30,30 @@
     />
     <meta name="twitter:image" content="https://www.michaelsanford.com/Lanekeeper/icons/icon-512.svg" />
 
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link href="https://fonts.cdnfonts.com/css/open-dyslexic" rel="stylesheet" />
+
     <script>
-      // Applies the visitor's stored (or system-preferred) theme before first paint,
-      // matching the product's own lanekeeper_theme / lanekeeper_theme_mode keys so
-      // there is no flash of the wrong palette.
+      // Applies the visitor's stored (or system-preferred) theme and font before first paint,
+      // matching the product's own lanekeeper_theme / lanekeeper_theme_mode / lanekeeper_font keys so
+      // there is no flash of the wrong palette or font.
       (function () {
         try {
           var theme = localStorage.getItem('lanekeeper_theme') || 'lanekeeper';
           var mode = localStorage.getItem('lanekeeper_theme_mode');
+          var font = localStorage.getItem('lanekeeper_font') || 'system';
           if (mode !== 'light' && mode !== 'dark') {
             mode = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
           }
           var root = document.documentElement;
           root.setAttribute('data-theme', theme);
           root.setAttribute('data-mode', mode);
+          root.setAttribute('data-font', font);
           root.classList.add(mode);
         } catch (e) {}
       })();

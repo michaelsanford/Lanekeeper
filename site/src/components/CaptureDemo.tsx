@@ -1,23 +1,18 @@
 import React, { useMemo, useState } from 'react';
-import { Tag, Flag, CalendarClock, Timer, AtSign } from 'lucide-react';
+import { Tag, CalendarClock, Timer, AtSign } from 'lucide-react';
 import { parseQuickTask } from '../../../frontend/src/utils/parser.js';
+import { PriorityBadge } from '../../../frontend/src/components/common/PriorityBadge.js';
 
 const DEFAULT_INPUT = 'Upgrade Cognito auth pool #backend #infra !urgent ^tomorrow ~2h @michael';
 
 const EXAMPLES = [
   'Upgrade Cognito auth pool #backend #infra !urgent ^tomorrow ~2h @michael',
+  'File tax documentation #accounting ^apr-04',
+  'Annual compliance audit ^2026-11-04 !high',
   'Fix the #auth login bug !high before ^friday the release ~45m',
   'Migrate table schema ~3pt !med',
   'Deploy !yesterday ~7q'
 ];
-
-const PRIORITY_BADGE: Record<string, string> = {
-  urgent: 'bg-rose-500/20 text-rose-300 border-rose-500/40',
-  high: 'bg-amber-500/20 text-amber-300 border-amber-500/40',
-  medium: 'bg-yellow-500/20 text-yellow-300 border-yellow-500/40',
-  low: 'bg-blue-500/20 text-blue-300 border-blue-500/40',
-  none: 'bg-slate-800 text-slate-400 border-slate-700'
-};
 
 /**
  * A live run of the product's own quick-capture grammar (frontend/src/utils/parser.ts),
@@ -67,14 +62,10 @@ export const CaptureDemo: React.FC = () => {
             <div className="text-[11px] font-mono uppercase tracking-wider text-slate-500 mb-2">Parsed title</div>
             <div className="text-base font-semibold text-slate-100">{parsed.title || 'Untitled Task'}</div>
           </div>
-
           <div className="rounded-xl border border-slate-800 bg-slate-950/60 p-3.5 flex flex-wrap items-center gap-2">
-            <span
-              className={`text-xs font-semibold uppercase tracking-wider px-2 py-0.5 rounded border ${PRIORITY_BADGE[parsed.priority]}`}
-            >
-              <Flag size={11} className="inline-block mr-1 -mt-0.5" />
-              {parsed.priority}
-            </span>
+            {parsed.priority !== 'none' ? (
+              <PriorityBadge priority={parsed.priority} size="sm" />
+            ) : null}
             {parsed.tags.map((tag) => (
               <span
                 key={tag}
